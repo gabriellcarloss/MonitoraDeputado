@@ -22,11 +22,11 @@ export function useFiltros(opcoes: OpcoesFiltro) {
   return { filtros, definir, limpar };
 }
 
-const cls = "h-9 rounded-md border border-border bg-card px-2 text-sm";
+const cls = "h-9 rounded-full border border-border bg-subtle/60 px-3 text-sm font-medium focus:border-verde focus:outline-none";
 
 export function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-muted">
+    <label className="flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-muted">
       {rotulo}
       {children}
     </label>
@@ -56,7 +56,7 @@ export function BarraFiltros({ opcoes, periodo = true, children }: {
   const { filtros, definir, limpar } = useFiltros(opcoes);
   const ativos = Object.keys(filtros).length;
   return (
-    <div className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-3">
+    <div className="cartao mb-6 flex flex-wrap items-end gap-3 p-3">
       {periodo ? (
         <>
           <Campo rotulo="De"><input type="month" className={cls} value={filtros.inicio ?? ""} min="2023-01"
@@ -69,7 +69,7 @@ export function BarraFiltros({ opcoes, periodo = true, children }: {
       <Selecao rotulo="Partido" valor={filtros.partido} opcoes={opcoes.partidos} onChange={(partido) => definir({ partido })} />
       {children}
       {ativos ? (
-        <button type="button" onClick={limpar} className="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm text-muted hover:text-fg">
+        <button type="button" onClick={limpar} className="pilula">
           <X size={14} aria-hidden /> Limpar filtros
         </button>
       ) : null}

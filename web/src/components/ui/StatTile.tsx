@@ -1,26 +1,58 @@
-export function StatTile({ rotulo, valor, detalhe }: { rotulo: string; valor: string; detalhe?: string }) {
+import clsx from "clsx";
+
+const PONTOS = { verde: "bg-verde", amarelo: "bg-amarelo", azul: "bg-info", vermelho: "bg-alta", laranja: "bg-atencao" } as const;
+export type CorPonto = keyof typeof PONTOS;
+
+export function StatTile({ rotulo, valor, detalhe, cor = "verde", barra }: {
+  rotulo: string; valor: React.ReactNode; detalhe?: string; cor?: CorPonto; barra?: number;
+}) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-sm text-muted">{rotulo}</p>
-      <p className="mt-1 text-2xl font-bold tracking-tight">{valor}</p>
-      {detalhe ? <p className="mt-1 text-xs text-muted">{detalhe}</p> : null}
+    <div className="cartao brilho-hover h-full p-4">
+      <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted">
+        <span aria-hidden className={clsx("h-1.5 w-1.5 rounded-full", PONTOS[cor])} /> {rotulo}
+      </p>
+      <p className="num-display mt-1 text-3xl leading-tight sm:text-[2rem]">{valor}</p>
+      {detalhe ? <p className="mt-0.5 text-xs text-muted">{detalhe}</p> : null}
+      {barra !== undefined ? (
+        <div className="mt-3 h-1 overflow-hidden rounded-full bg-subtle" aria-hidden>
+          <div className={clsx("h-full rounded-full", PONTOS[cor])} style={{ width: `${Math.max(0, Math.min(1, barra)) * 100}%` }} />
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function Carregando({ texto = "Carregando dados…" }: { texto?: string }) {
-  return <p className="py-8 text-center text-sm text-muted" role="status">{texto}</p>;
+  return (
+    <div className="py-8 text-center text-sm text-muted" role="status">
+      <span className="mr-2 inline-block h-3 w-3 animate-ping rounded-full bg-verde align-middle" aria-hidden />{texto}
+    </div>
+  );
 }
 
 export function Erro({ texto }: { texto: string }) {
   return <p className="rounded-lg border border-alta/40 bg-alta/10 p-3 text-sm" role="alert">Não foi possível carregar os dados: {texto}</p>;
 }
 
-export function Titulo({ children, sub }: { children: React.ReactNode; sub?: React.ReactNode }) {
+export function Titulo({ children, sub, sobretitulo }: { children: React.ReactNode; sub?: React.ReactNode; sobretitulo?: string }) {
   return (
-    <div className="mb-5">
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{children}</h1>
-      {sub ? <p className="mt-1 max-w-3xl text-muted">{sub}</p> : null}
+    <div className="mb-6">
+      {sobretitulo ? <p className="mb-1 text-xs font-bold uppercase tracking-widest text-destaque">{sobretitulo}</p> : null}
+      <h1 className="font-display text-3xl leading-none sm:text-4xl">{children}</h1>
+      {sub ? <p className="mt-2 max-w-3xl text-muted">{sub}</p> : null}
     </div>
+  );
+}
+
+export function Secao({ titulo, sub, children, acao }: { titulo: string; sub?: string; children: React.ReactNode; acao?: React.ReactNode }) {
+  return (
+    <section>
+      <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="font-display text-2xl leading-none">{titulo}</h2>
+        {sub ? <p className="text-sm text-muted">{sub}</p> : null}
+        {acao ? <div className="ml-auto">{acao}</div> : null}
+      </div>
+      {children}
+    </section>
   );
 }

@@ -12,7 +12,7 @@ export default {
         verde: v("verde"), amarelo: v("amarelo"), azul: v("azul"), destaque: v("destaque"),
         info: v("info"), atencao: v("atencao"), alta: v("alta"),
       },
-      fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+      fontFamily: { sans: ["Inter Variable", "Inter", "system-ui", "sans-serif"], display: ["Anton", "Impact", "sans-serif"] },
     },
   },
 } satisfies Config;

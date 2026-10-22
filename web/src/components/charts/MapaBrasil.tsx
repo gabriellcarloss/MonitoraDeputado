@@ -5,7 +5,7 @@ import { Cartao, TabelaSimples } from "./Cartao";
 import { useCores } from "./cores";
 
 /** Mapa em grade (tile map): cada UF ocupa uma célula na posição aproximada do território. */
-const GRADE: Record<string, [number, number]> = {
+export const GRADE: Record<string, [number, number]> = {
   RR: [0, 2], AP: [0, 4],
   AM: [1, 1], PA: [1, 3], MA: [1, 4], CE: [1, 5], RN: [1, 6],
   AC: [2, 0], RO: [2, 1], TO: [2, 3], PI: [2, 4], PB: [2, 6], PE: [2, 5],

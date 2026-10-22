@@ -22,7 +22,7 @@ export function Boletim({ indicadores, posicoes, total }: { indicadores: Indicad
       ) : null}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {GRUPOS.map((g) => (
-          <section key={g.titulo} className="rounded-xl border border-border bg-card p-4">
+          <section key={g.titulo} className="cartao p-4">
             <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">{g.titulo}</h3>
             <dl className="space-y-2">
               {g.itens.map((k) => {

@@ -23,7 +23,7 @@ export function Comparador() {
   if (!deps) return <Carregando />;
   return (
     <div className="space-y-6">
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="overflow-x-auto cartao">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr>

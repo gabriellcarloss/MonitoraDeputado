@@ -104,8 +104,8 @@ function Gastos({ d }: { d: DeputadoDetalhe }) {
           detalhe: `${f.n} notas`, href: f.cnpj && f.cnpj.length === 14 ? `/fornecedor/?cnpj=${f.cnpj}` : undefined }))} />
       </div>
       {pass.dados && pass.dados.length ? (
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h2 className="text-base font-semibold">Passagens aéreas por trecho</h2>
+        <section className="cartao p-4">
+          <h2 className="font-display text-xl leading-none">Passagens aéreas por trecho</h2>
           <p className="mb-2 text-sm text-muted">
             {num(pass.dados.reduce((s, p) => s + p.terceiros, 0))} de {num(pass.dados.reduce((s, p) => s + p.n, 0))} passagens emitidas para outras pessoas.{" "}
             <Link href={`/gastos/passagens/?deputado=${id}`} className="text-destaque underline">Ver passageiros</Link>
@@ -141,8 +141,8 @@ function Votacoes({ d }: { d: DeputadoDetalhe }) {
         <Kpi rotulo="Votos contra o partido" valor={num(i?.n_votos_contra_bancada ?? 0)} />
       </div>
       <SerieTemporal titulo="Votos registrados por mês" barras formato="num" linhas={[{ nome: "Votos", pontos: s?.pontos ?? [], picos: s?.picos }]} altura={220} />
-      <section className="rounded-xl border border-border bg-card p-4">
-        <h2 className="mb-2 text-base font-semibold">Como votou (últimas 300 votações)</h2>
+      <section className="cartao p-4">
+        <h2 className="font-display mb-3 text-xl leading-none">Como votou (últimas 300 votações)</h2>
         {votos.erro ? <Erro texto={votos.erro} /> : !votos.dados ? <Carregando /> : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-sm">
@@ -168,7 +168,7 @@ function Votacoes({ d }: { d: DeputadoDetalhe }) {
 }
 
 function Kpi({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return <div className="rounded-xl border border-border bg-card p-3"><p className="text-xs text-muted">{rotulo}</p><p className="num text-xl font-bold">{valor}</p></div>;
+  return <div className="cartao p-3"><p className="text-xs text-muted">{rotulo}</p><p className="num text-xl font-bold">{valor}</p></div>;
 }
 
 function Presenca({ d }: { d: DeputadoDetalhe }) {
@@ -182,8 +182,8 @@ function Presenca({ d }: { d: DeputadoDetalhe }) {
   return (
     <div className="space-y-6">
       <SerieTemporal titulo="Presença mensal em sessões deliberativas" formato="pct" linhas={[{ nome: "Presença", pontos: s?.pontos ?? [] }]} altura={220} />
-      <section className="rounded-xl border border-border bg-card p-4">
-        <h2 className="text-base font-semibold">Calendário de sessões</h2>
+      <section className="cartao p-4">
+        <h2 className="font-display text-xl leading-none">Calendário de sessões</h2>
         <p className="mb-3 flex flex-wrap gap-4 text-sm text-muted">
           <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-verde" aria-hidden /> Presente</span>
           <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-alta" aria-hidden /> Ausente</span>
@@ -232,12 +232,12 @@ function Proposicoes({ d }: { d: DeputadoDetalhe }) {
   return (
     <div className="space-y-6">
       <SerieTemporal titulo="Projetos apresentados por mês (autor)" barras formato="num" linhas={[{ nome: "Projetos", pontos: s?.pontos ?? [], picos: s?.picos }]} altura={220} />
-      <section className="rounded-xl border border-border bg-card p-4">
-        <h2 className="text-base font-semibold">Projetos de lei e emendas constitucionais ({relevantes.length})</h2>
+      <section className="cartao p-4">
+        <h2 className="font-display text-xl leading-none">Projetos de lei e emendas constitucionais ({relevantes.length})</h2>
         {relevantes.length ? <Lista itens={relevantes} /> : <p className="py-4 text-sm text-muted">Nenhum PL, PLP, PEC ou PDL no período.</p>}
       </section>
-      <section className="rounded-xl border border-border bg-card p-4">
-        <h2 className="text-base font-semibold">Requerimentos, indicações e outros ({outras.length})</h2>
+      <section className="cartao p-4">
+        <h2 className="font-display text-xl leading-none">Requerimentos, indicações e outros ({outras.length})</h2>
         <p className="text-sm text-muted">Atividade administrativa — contada à parte dos projetos.</p>
         {outras.length ? <Lista itens={outras} /> : <p className="py-4 text-sm text-muted">Nenhum registro.</p>}
       </section>

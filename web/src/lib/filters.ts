@@ -17,6 +17,9 @@ export interface Filtros {
   gasto_min?: number;
   gasto_max?: number;
   ordem?: string;
+  tipo?: string;
+  tema?: string;
+  orgao?: string;
   /** Uso interno (não vem da URL): só categorias de passagem. */
   so_passagens?: boolean;
 }
@@ -70,6 +73,11 @@ export function parseFiltros(sp: URLSearchParams, opcoes: Opcoes): Filtros {
   f.gasto_min = numero(g("gasto_min"));
   f.gasto_max = numero(g("gasto_max"));
   f.ordem = texto(g("ordem"), 60);
+  const tipo = g("tipo")?.toUpperCase();
+  if (tipo && /^[A-Z]{2,5}$/.test(tipo)) f.tipo = tipo;
+  f.tema = texto(g("tema"));
+  const orgao = g("orgao")?.toUpperCase();
+  if (orgao && /^[A-Z0-9]{2,12}$/.test(orgao)) f.orgao = orgao;
   return Object.fromEntries(Object.entries(f).filter(([, v]) => v !== undefined)) as Filtros;
 }
 

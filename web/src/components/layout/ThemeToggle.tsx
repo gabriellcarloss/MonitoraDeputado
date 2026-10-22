@@ -7,7 +7,7 @@ type Tema = "claro" | "escuro" | "sistema";
 const CHAVE = "tema";
 
 /** Script inline no <head>: aplica o tema antes da pintura para não piscar. */
-export const scriptTema = `(function(){try{var t=localStorage.getItem('${CHAVE}')||'sistema';var e=t==='escuro'||(t==='sistema'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=e?'dark':'light'}catch(_){document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}})()`;
+export const scriptTema = `(function(){try{var t=localStorage.getItem('${CHAVE}')||'escuro';var e=t==='escuro'||(t==='sistema'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=e?'dark':'light'}catch(_){document.documentElement.dataset.theme='dark'}})()`;
 
 function aplicar(t: Tema) {
   const escuro = t === "escuro" || (t === "sistema" && matchMedia("(prefers-color-scheme: dark)").matches);
@@ -16,15 +16,15 @@ function aplicar(t: Tema) {
 }
 
 export function ThemeToggle() {
-  const [tema, setTema] = useState<Tema>("sistema");
+  const [tema, setTema] = useState<Tema>("escuro");
   useEffect(() => {
     try {
-      setTema((localStorage.getItem(CHAVE) as Tema) || "sistema");
+      setTema((localStorage.getItem(CHAVE) as Tema) || "escuro");
     } catch {}
     const mq = matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
       let t: Tema = "sistema";
-      try { t = (localStorage.getItem(CHAVE) as Tema) || "sistema"; } catch {}
+      try { t = (localStorage.getItem(CHAVE) as Tema) || "escuro"; } catch {}
       if (t === "sistema") aplicar("sistema");
     };
     mq.addEventListener("change", onChange);
@@ -41,12 +41,12 @@ export function ThemeToggle() {
         try { localStorage.setItem(CHAVE, prox); } catch {}
         aplicar(prox);
       }}
-      className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-sm text-muted hover:text-fg"
+      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
       aria-label={`Tema: ${tema}. Mudar para ${prox}`}
       title={`Tema: ${tema}`}
     >
       <Icone size={16} aria-hidden />
-      <span className="hidden sm:inline capitalize">{tema}</span>
+      <span>Tema {tema}</span>
     </button>
   );
 }

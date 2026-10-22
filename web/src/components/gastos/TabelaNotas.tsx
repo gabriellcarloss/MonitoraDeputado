@@ -54,10 +54,10 @@ export function TabelaNotas({ filtros, mostrarDeputado = true }: { filtros: Filt
   }
 
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
+    <section className="cartao p-4">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex-1">
-          <h2 className="text-base font-semibold">Notas fiscais</h2>
+          <h2 className="font-display text-xl leading-none">Notas fiscais</h2>
           <p className="text-sm text-muted">
             {total.dados ? `${num(n)} notas · ${brl(total.dados[0].total ?? 0)}` : "…"} — cada linha é um documento reembolsado pela cota.
           </p>

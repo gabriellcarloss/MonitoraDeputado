@@ -42,8 +42,8 @@ export function Passagens() {
           {trechos.dados ? <Barras titulo="Trechos mais caros" cor={1}
             itens={trechos.dados.slice(0, 15).map((t) => ({ rotulo: t.trecho ?? "sem trecho", valor: t.valor, detalhe: `${num(t.n)} passagens · ${num(t.terceiros)} para terceiros` }))} /> : <Carregando />}
         </div>
-        <section className="rounded-xl border border-border bg-card p-4">
-          <h2 className="text-base font-semibold">Quem voou com dinheiro da cota sem ser deputado</h2>
+        <section className="cartao p-4">
+          <h2 className="font-display text-xl leading-none">Quem voou com dinheiro da cota sem ser deputado</h2>
           <p className="mb-2 text-sm text-muted">Passageiros diferentes do deputado titular da nota. Assessores podem viajar a serviço — o dado mostra quem e quanto, a interpretação é sua.
             Destaque: pessoas que voaram pela cota de <strong>mais de um</strong> gabinete.</p>
           {!terceiros.dados ? <Carregando /> : terceiros.dados.length === 0 ? <p className="py-4 text-sm text-muted">Nenhuma passagem para terceiros com esses filtros.</p> : (

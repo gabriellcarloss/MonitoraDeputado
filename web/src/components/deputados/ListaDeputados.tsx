@@ -94,7 +94,7 @@ export function ListaDeputados() {
       </div>
 
       {modo === "tabela" ? (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
+        <div className="overflow-x-auto cartao">
           <table className="w-full min-w-[900px] text-sm">
             <thead className="text-left text-muted">
               <tr>
@@ -131,7 +131,7 @@ export function ListaDeputados() {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {lista.map((d) => (
-            <li key={d.id} className="rounded-xl border border-border bg-card p-3">
+            <li key={d.id} className="cartao p-3">
               <div className="flex items-start gap-3">
                 <Foto src={d.foto} nome={d.nome} tamanho={48} />
                 <div className="min-w-0 flex-1">

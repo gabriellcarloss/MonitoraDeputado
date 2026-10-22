@@ -1,8 +1,7 @@
 "use client";
 
-import clsx from "clsx";
 import { useState } from "react";
-import { MapaBrasil } from "@/components/charts/MapaBrasil";
+import { Mapa3D } from "@/components/charts/Mapa3D";
 import { type PontoQuadrante, Quadrante } from "@/components/charts/Quadrante";
 import { brl, ouTraco, pct } from "@/lib/format";
 import type { Grupo } from "@/lib/types";
@@ -22,18 +21,17 @@ export function MapaUfs({ ufs }: { ufs: Record<string, Grupo> }) {
     return [uf, e?.media ?? null];
   }));
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-1" role="group" aria-label="Métrica do mapa">
-        {(Object.keys(METRICAS) as MetricaMapa[]).map((k) => (
-          <button key={k} type="button" onClick={() => setM(k)} aria-pressed={m === k}
-            className={clsx("rounded-md border px-2 py-1 text-xs", m === k ? "border-verde bg-verde/10 text-destaque" : "border-border text-muted")}>
-            {METRICAS[k].rotulo}
-          </button>
-        ))}
-      </div>
-      <MapaBrasil titulo={`${info.rotulo} por UF`} valores={valores} formato={info.fmt}
-        onSelecionar={(uf) => { window.location.href = `/deputados/?uf=${uf}`; }} />
-    </div>
+    <Mapa3D titulo="Mapa 3D por estado" subtitulo={`${info.rotulo}. Altura e cor proporcionais ao valor.`} valores={valores} formato={info.fmt}
+      onSelecionar={(uf) => { window.location.href = `/deputados/?uf=${uf}`; }}
+      acoes={
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Métrica do mapa">
+          {(Object.keys(METRICAS) as MetricaMapa[]).map((k) => (
+            <button key={k} type="button" onClick={() => setM(k)} aria-pressed={m === k} className="pilula h-7 px-2.5 text-xs">
+              {k === "gasto" ? "Gasto" : k === "presenca" ? "Presença" : "Projetos"}
+            </button>
+          ))}
+        </div>
+      } />
   );
 }
 

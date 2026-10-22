@@ -1,6 +1,5 @@
 "use client";
 
-import clsx from "clsx";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function useAba<T extends string>(abas: readonly T[]): [T, (a: T) => void] {
@@ -16,11 +15,10 @@ export function Abas<T extends string>({ abas, rotulos, atual, onChange }: {
   abas: readonly T[]; rotulos: Record<T, string>; atual: T; onChange: (a: T) => void;
 }) {
   return (
-    <div role="tablist" aria-label="Seções do perfil" className="-mx-4 mb-5 flex gap-1 overflow-x-auto border-b border-border px-4">
+    <div role="tablist" aria-label="Seções do perfil" className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1">
       {abas.map((a) => (
         <button key={a} role="tab" type="button" aria-selected={a === atual} onClick={() => onChange(a)}
-          className={clsx("whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium",
-            a === atual ? "border-verde text-fg" : "border-transparent text-muted hover:text-fg")}>
+          aria-pressed={a === atual} className="pilula whitespace-nowrap">
           {rotulos[a]}
         </button>
       ))}

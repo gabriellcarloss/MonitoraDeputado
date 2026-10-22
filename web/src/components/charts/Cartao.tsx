@@ -9,16 +9,16 @@ export function Cartao({ titulo, subtitulo, tabela, children, acoes }: {
 }) {
   const [verTabela, setVerTabela] = useState(false);
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
+    <section className="cartao p-4">
       <div className="mb-3 flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold">{titulo}</h2>
-          {subtitulo ? <p className="text-sm text-muted">{subtitulo}</p> : null}
+          <h2 className="font-display text-xl leading-none">{titulo}</h2>
+          {subtitulo ? <p className="mt-1 text-sm text-muted">{subtitulo}</p> : null}
         </div>
         {acoes}
         {tabela ? (
           <button type="button" onClick={() => setVerTabela((v) => !v)} aria-pressed={verTabela}
-            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted hover:text-fg">
+            className="pilula h-7 px-2.5 text-xs">
             <Table2 size={14} aria-hidden /> {verTabela ? "Ver gráfico" : "Ver tabela"}
           </button>
         ) : null}
