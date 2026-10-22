@@ -19,3 +19,13 @@ BRASIL_API = "https://brasilapi.com.br/api/cnpj/v1/{cnpj}"
 
 TIPOS_RELEVANTES = ("PL", "PLP", "PEC", "PDL")
 TIPOS_REQUERIMENTO = ("REQ", "RIC", "INC", "MOC", "IND")
+
+# Valor mensal da CEAP por UF (Ato da Mesa nº 43/2009, valores atualizados vigentes em 2024).
+# Fonte: https://www2.camara.leg.br/transparencia/acesso-a-informacao/copy_of_perguntas-frequentes/cota-para-o-exercicio-da-atividade-parlamentar
+# Conferir ao liberar a rede; usados apenas para % da cota utilizada.
+COTA_MENSAL_UF = {
+    "AC": 50426.26, "AL": 46737.90, "AM": 49363.92, "AP": 49168.58, "BA": 44804.65, "CE": 48245.57, "DF": 36582.46,
+    "ES": 43217.71, "GO": 41300.86, "MA": 47945.49, "MG": 41886.51, "MS": 46336.64, "MT": 45221.83, "PA": 48021.25,
+    "PB": 47826.36, "PE": 47470.60, "PI": 46765.57, "PR": 44665.66, "RJ": 41553.77, "RN": 48525.79, "RO": 49466.29,
+    "RR": 51406.33, "RS": 46669.70, "SC": 45671.58, "SE": 45933.06, "SP": 42837.33, "TO": 45297.41,
+}
