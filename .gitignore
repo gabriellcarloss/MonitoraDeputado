@@ -11,3 +11,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 next-env.d.ts
+web/public/duckdb/

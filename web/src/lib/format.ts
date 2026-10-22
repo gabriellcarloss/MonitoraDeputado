@@ -30,9 +30,20 @@ export function mes(periodo: string): string {
   return `${MESES[Number(m) - 1]}/${a}`;
 }
 
-export function data(iso: string | null | undefined): string {
-  if (!iso) return TRACO;
-  const [a, m, d] = iso.slice(0, 10).split("-");
+/** Normaliza datas (texto ISO, Date ou epoch em ms vindo do Arrow) para AAAA-MM-DD. */
+export function iso(v: unknown): string | null {
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "number" || v instanceof Date) {
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+  }
+  return String(v).slice(0, 10);
+}
+
+export function data(v: string | number | Date | null | undefined): string {
+  const s = iso(v);
+  if (!s) return TRACO;
+  const [a, m, d] = s.split("-");
   return `${d}/${m}/${a}`;
 }
 

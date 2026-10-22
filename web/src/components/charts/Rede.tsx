@@ -20,7 +20,7 @@ export function hrefNo(id: string): string | null {
 }
 
 /** Grafo de relações (força). Tamanho do nó ∝ √valor; cor = tipo de entidade. */
-export function Rede({ rede, titulo = "Rede de relações", subtitulo }: { rede: TRede; titulo?: string; subtitulo?: string }) {
+export function Rede({ rede, titulo = "Rede de relações", subtitulo, centro }: { rede: TRede; titulo?: string; subtitulo?: string; centro?: string }) {
   const c = useCores();
   const router = useRouter();
   const max = Math.max(1, ...rede.nos.map((n) => n.valor));
@@ -43,8 +43,9 @@ export function Rede({ rede, titulo = "Rede de relações", subtitulo }: { rede:
       emphasis: { focus: "adjacency", lineStyle: { width: 2, opacity: 0.9 } },
       data: rede.nos.map((n) => ({
         id: n.id, name: n.rotulo, tipo: n.tipo, valor: n.valor, category: TIPOS.indexOf(n.tipo),
-        symbolSize: 8 + 30 * Math.sqrt(Math.max(0, n.valor) / max),
-        itemStyle: { borderColor: c.superficie, borderWidth: 2 },
+        symbolSize: n.id === centro ? 44 : 8 + 30 * Math.sqrt(Math.max(0, n.valor) / max),
+        itemStyle: n.id === centro ? { borderColor: c.texto, borderWidth: 3 } : { borderColor: c.superficie, borderWidth: 2 },
+        label: n.id === centro ? { show: true, fontWeight: "bold", fontSize: 12, formatter: n.rotulo } : undefined,
       })),
       links: rede.arestas.map((a) => ({ source: a.origem, target: a.destino, value: a.valor ?? 0 })),
     }],

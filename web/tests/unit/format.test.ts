@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brl, data, mes, num, ouTraco, pct } from "@/lib/format";
+import { brl, data, iso, mes, num, ouTraco, pct } from "@/lib/format";
 
 describe("format", () => {
   it("brl", () => {
@@ -25,5 +25,17 @@ describe("format", () => {
     expect(ouTraco(Infinity, brl)).toBe("—");
     expect(ouTraco(Number.NaN, pct)).toBe("—");
     expect(ouTraco(10, brl)).toBe("R$ 10,00");
+  });
+});
+
+describe("datas vindas do DuckDB/Arrow", () => {
+  it("data aceita epoch em ms e Date", () => {
+    expect(data(Date.UTC(2024, 2, 5) as unknown as string)).toBe("05/03/2024");
+    expect(data(new Date(Date.UTC(2024, 2, 5)) as unknown as string)).toBe("05/03/2024");
+  });
+  it("iso normaliza para AAAA-MM-DD", () => {
+    expect(iso(Date.UTC(2024, 11, 31))).toBe("2024-12-31");
+    expect(iso("2024-12-31T10:00:00")).toBe("2024-12-31");
+    expect(iso(null)).toBeNull();
   });
 });

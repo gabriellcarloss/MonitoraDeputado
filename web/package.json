@@ -8,7 +8,9 @@
     "start": "serve out",
     "test": "vitest run",
     "fixtures": "cd ../pipeline && uv run monitora ficticio --out ../web/public/data",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "predev": "node scripts/copiar-duckdb.mjs",
+    "prebuild": "node scripts/copiar-duckdb.mjs"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.29.0",
@@ -17,6 +19,7 @@
     "echarts-for-react": "3.0.2",
     "lucide-react": "0.544.0",
     "next": "15.5.4",
+    "parquet-wasm": "0.6.1",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },

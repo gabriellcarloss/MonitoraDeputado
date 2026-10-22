@@ -6,11 +6,24 @@ import { useEffect, useRef, useState } from "react";
 export const TABELAS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "sessoes", "presencas",
   "proposicoes", "autorias", "relatorias", "rede_arestas", "deputados", "series"] as const;
 
-let conexao: Promise<AsyncDuckDBConnection> | null = null;
+interface Motor {
+  con: AsyncDuckDBConnection;
+  /** Garante que as tabelas citadas no SQL existam (no modo de reserva, carrega o Parquet inteiro sob demanda). */
+  preparar(sql: string): Promise<void>;
+}
 
-async function iniciar(): Promise<AsyncDuckDBConnection> {
+let motor: Promise<Motor> | null = null;
+
+async function iniciar(): Promise<Motor> {
   const duckdb = await import("@duckdb/duckdb-wasm");
-  const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+  const origem = window.location.origin;
+  // Bundle "eh" hospedado junto com o site (public/duckdb); navegadores sem suporte caem no "mvp" do jsDelivr.
+  const local = `${origem}/duckdb`;
+  const cdn = duckdb.getJsDelivrBundles();
+  const bundle = await duckdb.selectBundle({
+    mvp: cdn.mvp,
+    eh: { mainModule: `${local}/duckdb-eh.wasm`, mainWorker: `${local}/duckdb-browser-eh.worker.js` },
+  });
   const workerUrl = URL.createObjectURL(
     new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }),
   );
@@ -18,12 +31,38 @@ async function iniciar(): Promise<AsyncDuckDBConnection> {
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
   URL.revokeObjectURL(workerUrl);
   const con = await db.connect();
-  const base = `${window.location.origin}/data/parquet`;
-  for (const t of TABELAS) {
-    await db.registerFileURL(`${t}.parquet`, `${base}/${t}.parquet`, duckdb.DuckDBDataProtocol.HTTP, false);
-    await con.query(`CREATE OR REPLACE VIEW ${t} AS SELECT * FROM read_parquet('${t}.parquet')`);
+  const base = `${origem}/data/parquet`;
+  const info = await fetch(`${local}/info.json`).then((r) => r.json()).catch(() => ({ extensao: false }));
+
+  if (info.extensao) {
+    // Extensão Parquet hospedada no próprio site: leitura parcial por HTTP range, sem baixar tudo.
+    await con.query(`SET custom_extension_repository = '${local}/extensions'`);
+    for (const t of TABELAS) {
+      await db.registerFileURL(`${t}.parquet`, `${base}/${t}.parquet`, duckdb.DuckDBDataProtocol.HTTP, false);
+      await con.query(`CREATE OR REPLACE VIEW ${t} AS SELECT * FROM read_parquet('${t}.parquet')`);
+    }
+    return { con, preparar: async () => {} };
   }
-  return con;
+
+  // Reserva: decodifica o Parquet com parquet-wasm e insere como Arrow (não precisa de extensões).
+  const pq = await import("parquet-wasm");
+  await pq.default(`${local}/parquet_wasm_bg.wasm`);
+  const carregadas = new Map<string, Promise<void>>();
+  const carregar = (t: string) => {
+    if (!carregadas.has(t)) {
+      carregadas.set(t, (async () => {
+        const bytes = new Uint8Array(await (await fetch(`${base}/${t}.parquet`)).arrayBuffer());
+        await con.insertArrowFromIPCStream(pq.readParquet(bytes).intoIPCStream(), { name: t, create: true });
+      })());
+    }
+    return carregadas.get(t)!;
+  };
+  return {
+    con,
+    preparar: async (sql) => {
+      await Promise.all(TABELAS.filter((t) => new RegExp(`\\b${t}\\b`).test(sql)).map(carregar));
+    },
+  };
 }
 
 function paraJs(v: unknown): unknown {
@@ -39,9 +78,10 @@ function paraJs(v: unknown): unknown {
 }
 
 export async function consultar<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
-  conexao ??= iniciar();
-  const con = await conexao;
-  const stmt = await con.prepare(sql);
+  motor ??= iniciar();
+  const m = await motor;
+  await m.preparar(sql);
+  const stmt = await m.con.prepare(sql);
   try {
     const tabela = await stmt.query(...params);
     return tabela.toArray().map((r) => paraJs(r.toJSON()) as T);

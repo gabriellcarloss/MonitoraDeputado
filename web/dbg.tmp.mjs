@@ -1,0 +1,10 @@
+import { chromium } from "@playwright/test";
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const p = await b.newPage();
+p.on("console", (m) => console.log("console", m.type(), m.text().slice(0, 1500)));
+p.on("requestfailed", (r) => console.log("FAIL", r.url().slice(0, 150), r.failure()?.errorText));
+p.on("response", (r) => { if (r.status() >= 400) console.log("HTTP", r.status(), r.url().slice(0, 150)); });
+await p.goto("http://localhost:4321/deputados/comparar/?ids=1,2,3", { waitUntil: "networkidle" });
+p.on("pageerror", (e) => console.log("PAGEERR", e.stack?.slice(0, 1500)));
+await p.waitForTimeout(3000);
+await b.close();

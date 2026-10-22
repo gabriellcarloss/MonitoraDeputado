@@ -45,7 +45,7 @@ export function Quadrante({ pontos, xLabel = "Gasto da cota", yLabel = "Proposi√
     { nome: "Demais deputados", cor: c.series[1], dados: pontos.filter((p) => !critico(p)) },
   ];
   const option: EChartsOption = {
-    grid: { left: 8, right: 24, top: 36, bottom: 32, containLabel: true },
+    grid: { left: 8, right: 40, top: 64, bottom: 32, containLabel: true },
     legend: { top: 0, left: 0, textStyle: { color: c.muted } },
     tooltip: { trigger: "item", ...tooltipBase(c), formatter: (x: unknown) => {
       const p = (x as { data: { p: PontoQuadrante } }).data.p;
@@ -53,7 +53,7 @@ export function Quadrante({ pontos, xLabel = "Gasto da cota", yLabel = "Proposi√
     } },
     xAxis: { type: "value", name: xLabel, nameLocation: "middle", nameGap: 24, nameTextStyle: { color: c.muted },
       ...eixoBase(c), axisLabel: { color: c.muted, formatter: brlCurto } },
-    yAxis: { type: "value", name: yLabel, nameTextStyle: { color: c.muted, align: "left" }, ...eixoBase(c), axisLine: { show: false } },
+    yAxis: { type: "value", name: yLabel, nameGap: 14, nameTextStyle: { color: c.muted, align: "left" }, ...eixoBase(c), axisLine: { show: false } },
     series: grupos.map((g, i) => ({
       name: g.nome, type: "scatter", symbolSize: 9, cursor: "pointer",
       itemStyle: { color: g.cor, borderColor: c.superficie, borderWidth: 1.5, opacity: 0.9 },
@@ -62,7 +62,8 @@ export function Quadrante({ pontos, xLabel = "Gasto da cota", yLabel = "Proposi√
       markLine: i === 0 ? {
         silent: true, symbol: "none", label: { color: c.muted, fontSize: 10 },
         lineStyle: { color: c.eixo, type: "solid", width: 1, opacity: 0.6 },
-        data: [{ xAxis: mx, label: { formatter: "mediana" } }, { yAxis: my, label: { formatter: "mediana" } }],
+        data: [{ xAxis: mx, label: { formatter: "mediana", position: "insideEndTop" } },
+          { yAxis: my, label: { formatter: "mediana", position: "insideEndTop" } }],
       } : undefined,
     })),
   };

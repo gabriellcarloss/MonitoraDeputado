@@ -14,6 +14,15 @@ const GRADE: Record<string, [number, number]> = {
   SP: [5, 3], RJ: [5, 4], PR: [6, 3], SC: [7, 3], RS: [8, 2],
 };
 
+function textoSobre(hex: string): string {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.25 ? "#111827" : "#ffffff";
+}
+
 export function MapaBrasil({ titulo, subtitulo, valores, formato, onSelecionar, selecionada }: {
   titulo: string; subtitulo?: string; valores: Record<string, number | null>; formato: (v: number) => string;
   onSelecionar?: (uf: string) => void; selecionada?: string;
@@ -38,7 +47,7 @@ export function MapaBrasil({ titulo, subtitulo, valores, formato, onSelecionar, 
                 s < 0 && "bg-subtle", selecionada === uf ? "border-fg ring-2 ring-fg" : "border-transparent")}
               title={`${uf}: ${v === null || v === undefined ? "sem dados" : formato(v)}`}
               aria-label={`${uf}: ${v === null || v === undefined ? "sem dados" : formato(v)}`}>
-              <span className={clsx("font-semibold", s >= 3 ? "text-white" : "text-gray-900")}>{uf}</span>
+              <span className="font-semibold" style={{ color: s < 0 ? undefined : textoSobre(c.seq[s]) }}>{uf}</span>
             </button>
           );
         })}
