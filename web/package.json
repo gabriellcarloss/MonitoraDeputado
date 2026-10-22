@@ -10,7 +10,8 @@
     "fixtures": "cd ../pipeline && uv run monitora ficticio --out ../web/public/data",
     "e2e": "playwright test",
     "predev": "node scripts/copiar-duckdb.mjs && tsx scripts/gerar-geo.ts",
-    "prebuild": "node scripts/copiar-duckdb.mjs && tsx scripts/gerar-geo.ts"
+    "prebuild": "node scripts/copiar-duckdb.mjs && tsx scripts/gerar-geo.ts",
+    "postbuild": "node scripts/pos-build.mjs"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.29.0",

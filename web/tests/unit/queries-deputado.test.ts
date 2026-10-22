@@ -33,3 +33,13 @@ describe("orientação resolvida por partido (federações e blocos)", () => {
     }
   });
 });
+
+describe("séries de vários deputados (comparador)", () => {
+  it("traz a série de gasto de cada id pedido", async () => {
+    const { sqlSeriesGasto } = await import("@/lib/queries/deputado");
+    const c = sqlSeriesGasto([1, 2]);
+    const r = await db.query<{ chave: string; periodo: string; valor: number }>(c.sql, c.params);
+    expect(new Set(r.map((x) => x.chave))).toEqual(new Set(["1", "2"]));
+    expect(c.sql).not.toContain("1, 2");
+  });
+});

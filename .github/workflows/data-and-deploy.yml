@@ -66,6 +66,23 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
 
+      - name: Inspeção (fotos e resumo no ramo 'inspecao')
+        if: ${{ inputs.inspecao }}
+        working-directory: web
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          node scripts/inspecao.mjs ../inspecao-saida
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # grava num worktree separado para não mexer na pasta do build (a publicação vem depois)
+          git worktree add --orphan -b inspecao /tmp/inspecao
+          cp -r inspecao-saida/. /tmp/inspecao/
+          cd /tmp/inspecao
+          git add -A
+          git commit -m "inspeção $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f origin inspecao
+
       - name: Publicar na Vercel
         working-directory: web
         env:
@@ -93,18 +110,3 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           echo "::error title=Publicar na Vercel::$(grep -i -m1 'error' deploy.log | cut -c1-300)"
           exit 1
-
-      - name: Inspeção (fotos e resumo no ramo 'inspecao')
-        if: ${{ inputs.inspecao }}
-        working-directory: web
-        run: |
-          pnpm exec playwright install --with-deps chromium
-          node scripts/inspecao.mjs ../inspecao-saida
-          cd ..
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout --orphan inspecao
-          git rm -rf --cached . > /dev/null
-          git add -f inspecao-saida
-          git commit -m "inspeção $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -f origin inspecao
