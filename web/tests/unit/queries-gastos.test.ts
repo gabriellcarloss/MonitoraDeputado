@@ -50,3 +50,21 @@ describe("queries de gastos", () => {
     expect(c.params).toContain(malicioso);
   });
 });
+
+describe("filtro só passagens", () => {
+  it("restringe às categorias de passagem", async () => {
+    const r = await run<{ categoria: string }>(q.sqlNotas({ so_passagens: true }, 500, 0));
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.every((x) => /PASSAGE/i.test(x.categoria))).toBe(true);
+  });
+});
+
+describe("fornecedor", () => {
+  it("série mensal e rede do fornecedor", async () => {
+    const [top] = await run<{ cnpj: string; valor: number }>(q.sqlTopFornecedores({}, 1));
+    const s = await run<{ periodo: string; valor: number }>(q.sqlSerieFornecedor(top.cnpj));
+    expect(s.reduce((a, x) => a + x.valor, 0)).toBeCloseTo(top.valor, 2);
+    const arestas = await run<{ origem_tipo: string; destino_tipo: string }>(q.sqlRedeFornecedor(top.cnpj));
+    expect(arestas.some((a) => a.origem_tipo === "deputado")).toBe(true);
+  });
+});

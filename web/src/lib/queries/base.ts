@@ -18,6 +18,7 @@ export function whereDespesas(f: Filtros): Consulta {
   if (f.cnpj) add("e.cnpj_cpf = ?", f.cnpj);
   if (f.deputado) add("e.deputado_id = ?", f.deputado);
   if (f.passageiro) add("upper(e.passageiro) LIKE '%' || upper(?) || '%'", f.passageiro);
+  if (f.so_passagens) c.push("e.categoria ILIKE '%PASSAGE%'");
   return { sql: c.length ? `WHERE ${c.join(" AND ")}` : "", params: p };
 }
 

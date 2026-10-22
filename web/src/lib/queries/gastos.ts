@@ -74,3 +74,16 @@ export function sqlDeputadosDoFornecedor(cnpj: string): Consulta {
 export function sqlCategorias(): Consulta {
   return { sql: "SELECT DISTINCT categoria FROM despesas ORDER BY 1", params: [] };
 }
+
+export function sqlSerieFornecedor(cnpj: string): Consulta {
+  return { sql: `SELECT periodo, valor FROM series WHERE escopo = 'fornecedor' AND metrica = 'gasto' AND chave = ? ORDER BY periodo`,
+    params: [cnpj] };
+}
+
+/** Arestas da ego-rede do fornecedor: deputados que pagaram e sócios, com rótulos dos deputados. */
+export function sqlRedeFornecedor(cnpj: string): Consulta {
+  return { sql: `SELECT a.*, d.nome AS rotulo_origem FROM rede_arestas a
+    LEFT JOIN deputados d ON a.origem_tipo = 'deputado' AND d.id::VARCHAR = a.origem_id
+    WHERE (a.destino_tipo = 'fornecedor' AND a.destino_id = ?) OR (a.origem_tipo = 'fornecedor' AND a.origem_id = ?)`,
+    params: [cnpj, cnpj] };
+}

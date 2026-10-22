@@ -17,6 +17,8 @@ export interface Filtros {
   gasto_min?: number;
   gasto_max?: number;
   ordem?: string;
+  /** Uso interno (não vem da URL): só categorias de passagem. */
+  so_passagens?: boolean;
 }
 
 interface Opcoes {

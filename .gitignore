@@ -12,3 +12,4 @@ __pycache__/
 .pytest_cache/
 next-env.d.ts
 web/public/duckdb/
+*.tmp.mjs
