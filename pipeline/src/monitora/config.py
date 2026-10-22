@@ -29,3 +29,15 @@ COTA_MENSAL_UF = {
     "PB": 47826.36, "PE": 47470.60, "PI": 46765.57, "PR": 44665.66, "RJ": 41553.77, "RN": 48525.79, "RO": 49466.29,
     "RR": 51406.33, "RS": 46669.70, "SC": 45671.58, "SE": 45933.06, "SP": 42837.33, "TO": 45297.41,
 }
+
+# 50 sobrenomes mais comuns no Brasil — ignorados na regra G07 (coincidência de sobrenome).
+SOBRENOMES_COMUNS = {
+    "SILVA", "SANTOS", "OLIVEIRA", "SOUZA", "SOUSA", "RODRIGUES", "FERREIRA", "ALVES", "PEREIRA", "LIMA", "GOMES",
+    "COSTA", "RIBEIRO", "MARTINS", "CARVALHO", "ALMEIDA", "LOPES", "SOARES", "FERNANDES", "VIEIRA", "BARBOSA",
+    "ROCHA", "DIAS", "NASCIMENTO", "ANDRADE", "MOREIRA", "NUNES", "MARQUES", "MACHADO", "MENDES", "FREITAS",
+    "CARDOSO", "RAMOS", "GONCALVES", "SANTANA", "TEIXEIRA", "ARAUJO", "PINTO", "MELO", "CAVALCANTI", "MONTEIRO",
+    "MOURA", "CORREIA", "BATISTA", "JESUS", "REIS", "BORGES", "CAMPOS", "MIRANDA", "JUNIOR", "FILHO", "NETO", "SOBRINHO",
+}
+
+# Feriados nacionais fixos (MM-DD); móveis são calculados a partir da Páscoa.
+FERIADOS_FIXOS = ["01-01", "04-21", "05-01", "09-07", "10-12", "11-02", "11-15", "11-20", "12-25"]
