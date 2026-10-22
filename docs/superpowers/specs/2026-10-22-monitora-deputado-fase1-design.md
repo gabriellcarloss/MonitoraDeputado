@@ -63,7 +63,7 @@ GitHub Actions (cron diário 04:00 BRT)
 | CEAP (cota parlamentar) | Arquivos Câmara | `https://www.camara.leg.br/cotas/Ano-{AAAA}.csv.zip` (2023→atual) |
 | Votações, votos, orientações | Arquivos dadosabertos | `/arquivos/votacoes/csv/votacoes-{AAAA}.csv`, `votacoesVotos-{AAAA}`, `votacoesOrientacoes-{AAAA}`, `votacoesProposicoes-{AAAA}` |
 | Proposições e autores | Arquivos dadosabertos | `/arquivos/proposicoes/csv/proposicoes-{AAAA}.csv`, `proposicoesAutores-{AAAA}`, `proposicoesTemas-{AAAA}` |
-| Relatorias | API v2 | `/proposicoes/{id}/relacionadas` + tramitações (campo relator) — via arquivo `proposicoes` (`ultimoStatus_uriRelator`) |
+| Relatorias | Arquivo dadosabertos `proposicoes-{AAAA}` | campo `ultimoStatus_uriRelator` (relator atual de cada proposição) |
 | Sessões e presença | API v2 | `/eventos?codTipoEvento=<sessões deliberativas>`, `/eventos/{id}/deputados` |
 | CNPJ fornecedores | Minha Receita (`minhareceita.org`) com fallback BrasilAPI (`brasilapi.com.br/api/cnpj/v1`) | consulta por CNPJ, cache permanente; reconsulta a cada 90 dias |
 
@@ -92,8 +92,7 @@ Preferir sempre arquivos em lote à API.
 | `autorias` | proposição × deputado | proposicao_id, deputado_id, proponente_principal (bool), ordem |
 | `relatorias` | proposição × deputado | proposicao_id, deputado_id, orgao |
 
-**Proposição "relevante"** (entrega legislativa): tipos PL, PLP, PEC, PDL, MPV-emenda
-não incluída; requerimentos (REQ, RIC, INC), moções e indicações contam em métrica
+**Proposição "relevante"** (entrega legislativa): tipos PL, PLP, PEC e PDL; requerimentos (REQ, RIC, INC), moções e indicações contam em métrica
 separada "atividade administrativa".
 
 ## 6. Indicadores (por deputado, com recorte por período)
