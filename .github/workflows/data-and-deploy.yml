@@ -13,6 +13,10 @@ on:
         description: "Gravar fotos das páginas e resumo dos dados no ramo 'inspecao' (para conferência)"
         type: boolean
         default: false
+      so_previa:
+        description: "Só prévia: NÃO publicar na Vercel (use junto com as fotos)"
+        type: boolean
+        default: false
 
 concurrency:
   group: data-and-deploy
@@ -84,6 +88,7 @@ jobs:
           git push -f origin inspecao
 
       - name: Publicar na Vercel
+        if: ${{ !inputs.so_previa }}
         working-directory: web
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
