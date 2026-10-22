@@ -1,96 +1,147 @@
 "use client";
 
+import type { EChartsOption } from "echarts";
+import { Box, Map as MapaIcone } from "lucide-react";
 import { useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { faixas } from "@/lib/mapa";
+import { carregarJson } from "@/lib/useJson";
 import { Cartao, TabelaSimples } from "./Cartao";
-import { useCores } from "./cores";
-import { GRADE } from "./MapaBrasil";
+import { tooltipBase, useCores } from "./cores";
 
-const S = 46; // lado da coluna (px)
-const P = 52; // passo da grade
-const HMAX = 130;
+const NOMES: Record<string, string> = {
+  AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia", CE: "Ceará", DF: "Distrito Federal",
+  ES: "Espírito Santo", GO: "Goiás", MA: "Maranhão", MT: "Mato Grosso", MS: "Mato Grosso do Sul", MG: "Minas Gerais",
+  PA: "Pará", PB: "Paraíba", PR: "Paraná", PE: "Pernambuco", PI: "Piauí", RJ: "Rio de Janeiro", RN: "Rio Grande do Norte",
+  RS: "Rio Grande do Sul", RO: "Rondônia", RR: "Roraima", SC: "Santa Catarina", SP: "São Paulo", SE: "Sergipe", TO: "Tocantins",
+};
 
-function sombra(hex: string, f: number) {
-  const n = parseInt(hex.replace("#", ""), 16);
-  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v * f));
-  return `rgb(${c.join(",")})`;
+let registro: Promise<typeof import("echarts/core")> | null = null;
+
+/** Carrega ECharts + echarts-gl e registra o contorno dos estados uma única vez. */
+function preparar() {
+  registro ??= (async () => {
+    const echarts = await import("echarts/core");
+    const [{ MapChart }, comp, { CanvasRenderer }] = await Promise.all([
+      import("echarts/charts"), import("echarts/components"), import("echarts/renderers"),
+    ]);
+    echarts.use([MapChart, comp.TooltipComponent, comp.VisualMapComponent, comp.GeoComponent, CanvasRenderer]);
+    await import("echarts-gl");
+    echarts.registerMap("brasil-uf", await carregarJson("/geo/br-uf.json"));
+    return echarts;
+  })();
+  return registro;
 }
 
 /**
- * Mapa 3D em grade: cada UF é uma coluna cuja altura e tom são proporcionais ao valor.
- * Arraste para girar; clique numa UF para filtrar. A tabela (Ver tabela) traz os mesmos números.
+ * Mapa do Brasil por UF. Em 3D cada estado é extrudado (altura pela posição relativa) e colorido por faixa de quantil,
+ * para um estado com valor extremo não achatar os demais. "Plano" mostra o mapa coroplético 2D.
  */
-export function Mapa3D({ titulo, subtitulo, valores, formato, onSelecionar, acoes }: {
+export function Mapa3D({ titulo, subtitulo, valores, formato, formatoCurto, onSelecionar, acoes }: {
   titulo: string; subtitulo?: string; valores: Record<string, number | null>; formato: (v: number) => string;
-  onSelecionar?: (uf: string) => void; acoes?: React.ReactNode;
+  formatoCurto?: (v: number) => string; onSelecionar?: (uf: string) => void; acoes?: React.ReactNode;
 }) {
+  const curto = formatoCurto ?? formato;
   const c = useCores();
   const reduzir = useReducedMotion();
-  const [rot, setRot] = useState({ x: 58, z: -28 });
-  const [crescido, setCrescido] = useState(!!reduzir);
-  const [foco, setFoco] = useState<string | null>(null);
-  const arrasto = useRef<{ x: number; y: number; rx: number; rz: number } | null>(null);
-  useEffect(() => { const t = setTimeout(() => setCrescido(true), 120); return () => clearTimeout(t); }, []);
+  const router = useRouter();
+  const [modo, setModo] = useState<"3d" | "plano">("3d");
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
+  useEffect(() => { if (window.innerWidth < 640 || reduzir) setModo("plano"); }, [reduzir]);
 
-  const nums = Object.values(valores).filter((v): v is number => v !== null && Number.isFinite(v));
-  const min = Math.min(...nums);
-  const max = Math.max(...nums);
-  const norm = (v: number) => (max === min ? 0.5 : (v - min) / (max - min));
+  const f = faixas(valores, 5);
+  const cores = c.seq.slice(1, 6);
+  const ordenados = Object.values(valores).filter((v): v is number => v !== null).sort((a, b) => a - b);
+  const posicao = (v: number) => (ordenados.length > 1 ? ordenados.findIndex((x) => x >= v) / (ordenados.length - 1) : 0.5);
+
+  useEffect(() => {
+    if (!el) return;
+    let instancia: { dispose(): void; resize(): void } | null = null;
+    let vivo = true;
+    const aoRedimensionar = () => instancia?.resize();
+    preparar().then((echarts) => {
+      if (!vivo) return;
+      const ch = echarts.init(el);
+      instancia = ch;
+      const dados = Object.entries(NOMES).map(([uf, nome]) => {
+        const v = valores[uf];
+        const tem = v !== null && v !== undefined;
+        return {
+          name: uf, value: tem ? v : null, nome,
+          height: tem ? 1.5 + 9 * posicao(v) : 0.6,
+          itemStyle: { color: tem ? cores[f.classe(v)] : c.grade },
+        };
+      });
+      const tooltip = {
+        ...tooltipBase(c),
+        formatter: (p: unknown) => {
+          const d = (p as { data?: { name: string; nome: string; value: number | null } }).data;
+          if (!d) return "";
+          return `<b>${d.nome} (${d.name})</b><br/>${d.value === null ? "sem dados" : formato(d.value)}`;
+        },
+      };
+      const rotulo = { show: true, formatter: (p: { name: string }) => p.name, fontSize: 11, fontWeight: 600 as const };
+      const opcao = (modo === "3d" ? {
+        tooltip,
+        series: [{
+          type: "map3D", map: "brasil-uf", data: dados, boxWidth: 100, boxDepth: 104, regionHeight: 1.5,
+          shading: "lambert",
+          light: { main: { intensity: 1.15, shadow: true, shadowQuality: "high", alpha: 40, beta: 30 }, ambient: { intensity: 0.45 } },
+          viewControl: { distance: 104, alpha: 48, beta: 8, minAlpha: 15, maxAlpha: 85, autoRotate: false, damping: 0.85,
+            animationDurationUpdate: 900 },
+          groundPlane: { show: false },
+          itemStyle: { borderWidth: 0.6, borderColor: c.superficie },
+          emphasis: { itemStyle: { color: c.series[2] }, label: { show: true, textStyle: { color: "#0b1220", fontSize: 13, backgroundColor: "transparent" } } },
+          label: { ...rotulo, distance: 1, textStyle: { color: c.texto, fontSize: 11, fontWeight: 600, backgroundColor: c.superficie,
+            padding: [2, 4], borderRadius: 3, opacity: 0.92 } },
+          animation: !reduzir, animationDurationUpdate: 800,
+        }],
+      } : {
+        tooltip,
+        series: [{
+          type: "map", map: "brasil-uf", aspectScale: 1, roam: false, layoutCenter: ["50%", "46%"], layoutSize: "92%",
+          data: dados.map(({ height: _h, itemStyle, ...d }) => ({ ...d, itemStyle: { areaColor: itemStyle.color } })),
+          itemStyle: { borderColor: c.superficie, borderWidth: 1 },
+          emphasis: { itemStyle: { areaColor: c.series[2] }, label: { color: "#0b1220" } },
+          select: { disabled: true },
+          label: { ...rotulo, color: c.texto, fontSize: 10, textBorderColor: c.superficie, textBorderWidth: 2 },
+        }],
+      }) as unknown as EChartsOption;
+      ch.setOption(opcao);
+      ch.on("click", (p: { name?: string }) => {
+        if (!p.name) return;
+        if (onSelecionar) onSelecionar(p.name); else router.push(`/deputados/?uf=${p.name}`);
+      });
+      window.addEventListener("resize", aoRedimensionar);
+    });
+    return () => { vivo = false; window.removeEventListener("resize", aoRedimensionar); instancia?.dispose(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [el, modo, JSON.stringify(valores), c, reduzir]);
 
   return (
     <Cartao titulo={titulo} subtitulo={subtitulo}
       tabela={<TabelaSimples colunas={["UF", "Valor"]}
-        linhas={Object.entries(valores).sort((a, b) => (b[1] ?? -1) - (a[1] ?? -1)).map(([uf, v]) => [uf, v === null ? "—" : formato(v)])} />}>
-      <div className="relative h-[440px] touch-none select-none overflow-hidden rounded-xl bg-gradient-to-b from-subtle/40 to-transparent"
-        style={{ perspective: 1100 }}
-        onPointerDown={(e) => { arrasto.current = { x: e.clientX, y: e.clientY, rx: rot.x, rz: rot.z }; e.currentTarget.setPointerCapture(e.pointerId); }}
-        onPointerMove={(e) => {
-          const a = arrasto.current;
-          if (!a) return;
-          setRot({ x: Math.max(20, Math.min(72, a.rx - (e.clientY - a.y) * 0.25)), z: a.rz + (e.clientX - a.x) * 0.35 });
-        }}
-        onPointerUp={() => { arrasto.current = null; }}>
-        <div className="absolute left-1/2 top-[52%]" style={{
-          width: 7 * P, height: 9 * P, marginLeft: -(7 * P) / 2, marginTop: -(9 * P) / 2,
-          transformStyle: "preserve-3d", transform: `rotateX(${rot.x}deg) rotateZ(${rot.z}deg)`,
-          transition: arrasto.current ? "none" : "transform .6s cubic-bezier(.22,1,.36,1)",
-        }}>
-          {Object.entries(GRADE).map(([uf, [lin, col]]) => {
-            const v = valores[uf];
-            const tem = v !== null && v !== undefined;
-            const t = tem ? norm(v) : 0;
-            const h = crescido ? (tem ? 6 + t * HMAX : 2) : 2;
-            const cor = tem ? c.seq[Math.min(5, Math.floor(t * 5.999))] : c.grade;
-            const face = { position: "absolute" as const, transition: "all .9s cubic-bezier(.22,1,.36,1)" };
-            const ativo = foco === uf;
-            return (
-              <button key={uf} type="button" aria-label={`${uf}: ${tem ? formato(v) : "sem dados"}`}
-                onClick={() => onSelecionar?.(uf)} onPointerEnter={() => setFoco(uf)} onPointerLeave={() => setFoco(null)}
-                onFocus={() => setFoco(uf)} onBlur={() => setFoco(null)}
-                style={{ position: "absolute", left: col * P, top: lin * P, width: S, height: S, transformStyle: "preserve-3d", transitionDelay: `${(lin + col) * 30}ms` }}>
-                <span style={{ ...face, left: 0, top: 0, width: S, height: S, transform: `translateZ(${h}px)`, background: ativo ? c.series[2] : cor,
-                  display: "grid", placeItems: "center", borderRadius: 3, boxShadow: ativo ? `0 0 24px ${c.series[2]}` : undefined }}>
-                  <span className="font-display text-[13px]" style={{ color: t > 0.45 || ativo ? "#0b1220" : "#fff", textShadow: t > 0.45 || ativo ? "none" : "0 1px 2px rgba(0,0,0,.6)" }}>{uf}</span>
-                </span>
-                <span style={{ ...face, left: 0, top: S - h, width: S, height: h, transformOrigin: "bottom", transform: "rotateX(-90deg)", background: sombra(cor, 0.72) }} />
-                <span style={{ ...face, left: 0, top: 0, width: S, height: h, transformOrigin: "top", transform: "rotateX(90deg)", background: sombra(cor, 0.82) }} />
-                <span style={{ ...face, left: S - h, top: 0, width: h, height: S, transformOrigin: "right", transform: "rotateY(90deg)", background: sombra(cor, 0.6) }} />
-                <span style={{ ...face, left: 0, top: 0, width: h, height: S, transformOrigin: "left", transform: "rotateY(-90deg)", background: sombra(cor, 0.9) }} />
-              </button>
-            );
-          })}
-        </div>
-        {acoes ? <div className="absolute right-3 top-14 z-10 sm:top-3" onPointerDown={(e) => e.stopPropagation()}>{acoes}</div> : null}
-        <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-border bg-card/90 px-3 py-2 text-sm shadow-lg backdrop-blur" aria-live="polite">
-          {foco ? <><span className="font-display text-lg">{foco}</span> <span className="num-display ml-2 text-lg">{valores[foco] == null ? "sem dados" : formato(valores[foco]!)}</span></>
-            : <span className="text-muted">Arraste para girar · clique numa UF</span>}
-        </div>
-        <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 text-xs text-muted">
-          <span>{nums.length ? formato(min) : ""}</span>
-          <div className="flex h-2 flex-1 overflow-hidden rounded">{c.seq.map((cor) => <div key={cor} className="flex-1" style={{ background: cor }} />)}</div>
-          <span>{nums.length ? formato(max) : ""}</span>
+        linhas={Object.entries(valores).sort((a, b) => (b[1] ?? -1) - (a[1] ?? -1)).map(([uf, v]) => [`${NOMES[uf] ?? uf} (${uf})`, v === null ? "—" : formato(v)])} />}>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        {acoes}
+        <div className="ml-auto flex gap-1" role="group" aria-label="Modo do mapa">
+          <button type="button" className="pilula h-7 px-2.5 text-xs" aria-pressed={modo === "3d"} onClick={() => setModo("3d")}><Box size={12} aria-hidden /> 3D</button>
+          <button type="button" className="pilula h-7 px-2.5 text-xs" aria-pressed={modo === "plano"} onClick={() => setModo("plano")}><MapaIcone size={12} aria-hidden /> Plano</button>
         </div>
       </div>
+      <div ref={setEl} className="h-[500px] w-full touch-none rounded-xl bg-gradient-to-b from-subtle/50 to-transparent" role="img"
+        aria-label={`${titulo}. Use "Ver tabela" para os valores.`} />
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted" aria-hidden>
+        {cores.map((cor, i) => (
+          <span key={cor} className="inline-flex items-center gap-1">
+            <span className="h-2.5 w-3.5 rounded-sm" style={{ background: cor }} />
+            {f.limites.length ? `${curto(f.limites[i])} – ${curto(f.limites[i + 1])}` : ""}
+          </span>
+        ))}
+        <span className="ml-auto">{modo === "3d" ? "Arraste para girar · role para aproximar · " : ""}clique numa UF</span>
+      </div>
+      <p className="mt-1 text-[10px] text-muted">Contornos: @svg-maps/brazil (CC BY 4.0). Cores por faixas de quantil — cada faixa reúne cerca de 1/5 das UFs.</p>
     </Cartao>
   );
 }

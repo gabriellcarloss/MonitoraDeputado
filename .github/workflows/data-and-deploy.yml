@@ -9,6 +9,10 @@ on:
         description: "Publicar dados FICTÍCIOS (só para testar a publicação)"
         type: boolean
         default: false
+      inspecao:
+        description: "Gravar fotos das páginas e resumo dos dados no ramo 'inspecao' (para conferência)"
+        type: boolean
+        default: false
 
 concurrency:
   group: data-and-deploy
@@ -18,6 +22,8 @@ jobs:
   atualizar:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    permissions:
+      contents: write
     env:
       SITE_URL: ${{ vars.SITE_URL }}
     steps:
@@ -69,3 +75,18 @@ jobs:
           # dados fictícios nunca vão para produção: só pré-visualização
           ALVO: ${{ inputs.ficticio && '--target=preview' || '--prod' }}
         run: npx --yes vercel@62.0.0 deploy out $ALVO --yes --token "$VERCEL_TOKEN"
+
+      - name: Inspeção (fotos e resumo no ramo 'inspecao')
+        if: ${{ inputs.inspecao }}
+        working-directory: web
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          node scripts/inspecao.mjs ../inspecao-saida
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan inspecao
+          git rm -rf --cached . > /dev/null
+          git add -f inspecao-saida
+          git commit -m "inspeção $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f origin inspecao

@@ -41,6 +41,7 @@ export default function Page() {
             </li>
           ))}
         </ul>
+        <p className="mt-3 text-sm text-muted">Contornos dos estados: <a className="text-destaque underline" href="https://github.com/VictorCazanave/svg-maps" target="_blank" rel="noopener noreferrer">@svg-maps/brazil</a>, licença CC BY 4.0.</p>
         {meta ? <p className="mt-3 text-sm text-muted">Registros: {Object.entries(meta.contagens).map(([k, v]) => `${k} ${num(v)}`).join(" · ")}.</p> : null}
       </Secao>
 

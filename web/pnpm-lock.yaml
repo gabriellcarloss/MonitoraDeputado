@@ -17,6 +17,9 @@ importers:
       '@fontsource/barlow-condensed':
         specifier: 5.2.6
         version: 5.2.6
+      '@svg-maps/brazil':
+        specifier: 2.0.0
+        version: 2.0.0
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -26,6 +29,9 @@ importers:
       echarts-for-react:
         specifier: 3.0.2
         version: 3.0.2(echarts@5.6.0)(react@19.1.1)
+      echarts-gl:
+        specifier: 2.0.9
+        version: 2.0.9(echarts@5.6.0)
       lucide-react:
         specifier: 0.544.0
         version: 0.544.0(react@19.1.1)
@@ -942,6 +948,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@svg-maps/brazil@2.0.0':
+    resolution: {integrity: sha512-6le594K1tO6c8Y/0KgWyurksyLnSU/8mTSnr48cKH0eaiG153UQP8aadQ/pKoeCBVd8khLVdmV7wKbkfIAbqBA==}
+
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
@@ -1199,6 +1208,9 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
+  claygl@1.3.0:
+    resolution: {integrity: sha512-+gGtJjT6SSHD2l2yC3MCubW/sCV40tZuSs5opdtn79vFSGUgp/lH139RNEQ6Jy078/L0aV8odCw8RSrUcMfLaQ==}
+
   cli-boxes@3.0.0:
     resolution: {integrity: sha512-/lzGpEWL/8PfI0BmBOPRwp0c/wFNX1RdUML3jK/RcSBA9T8mZDdQpqYBKtCFTOfQbwPqWEOpjqW+Fnayc0969g==}
     engines: {node: '>=10'}
@@ -1328,6 +1340,11 @@ packages:
     peerDependencies:
       echarts: ^3.0.0 || ^4.0.0 || ^5.0.0
       react: ^15.0.0 || >=16.0.0
+
+  echarts-gl@2.0.9:
+    resolution: {integrity: sha512-oKeMdkkkpJGWOzjgZUsF41DOh6cMsyrGGXimbjK2l6Xeq/dBQu4ShG2w2Dzrs/1bD27b2pLTGSaUzouY191gzA==}
+    peerDependencies:
+      echarts: ^5.1.2
 
   echarts@5.6.0:
     resolution: {integrity: sha512-oTbVTsXfKuEhxftHqL5xprgLoc0k7uScAwtryCgWF6hPYFLRwOUHiFmHGCBKP5NPFNkDVopOieyUqYGH8Fa3kA==}
@@ -2873,6 +2890,8 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.65.0':
     optional: true
 
+  '@svg-maps/brazil@2.0.0': {}
+
   '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.1
@@ -3165,6 +3184,8 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
+  claygl@1.3.0: {}
+
   cli-boxes@3.0.0: {}
 
   client-only@0.0.1: {}
@@ -3281,6 +3302,12 @@ snapshots:
       fast-deep-equal: 3.1.3
       react: 19.1.1
       size-sensor: 1.0.3
+
+  echarts-gl@2.0.9(echarts@5.6.0):
+    dependencies:
+      claygl: 1.3.0
+      echarts: 5.6.0
+      zrender: 5.6.1
 
   echarts@5.6.0:
     dependencies:
