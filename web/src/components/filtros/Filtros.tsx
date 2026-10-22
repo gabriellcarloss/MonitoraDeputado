@@ -50,8 +50,8 @@ export function Selecao({ rotulo, valor, opcoes, onChange, todos = "Todos" }: {
 }
 
 /** Barra de filtros única, acima dos gráficos. Extras específicos da página entram como children. */
-export function BarraFiltros({ opcoes, periodo = true, children }: {
-  opcoes: OpcoesFiltro; periodo?: boolean; children?: React.ReactNode;
+export function BarraFiltros({ opcoes, periodo = true, semUfPartido = false, children }: {
+  opcoes: OpcoesFiltro; periodo?: boolean; semUfPartido?: boolean; children?: React.ReactNode;
 }) {
   const { filtros, definir, limpar } = useFiltros(opcoes);
   const ativos = Object.keys(filtros).length;

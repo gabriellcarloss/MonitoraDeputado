@@ -7,7 +7,7 @@ type Tema = "claro" | "escuro" | "sistema";
 const CHAVE = "tema";
 
 /** Script inline no <head>: aplica o tema antes da pintura para não piscar. */
-export const scriptTema = `(function(){try{var t=localStorage.getItem('${CHAVE}')||'escuro';var e=t==='escuro'||(t==='sistema'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=e?'dark':'light'}catch(_){document.documentElement.dataset.theme='dark'}})()`;
+export const scriptTema = `(function(){try{var t=localStorage.getItem('${CHAVE}')||'sistema';var e=t==='escuro'||(t==='sistema'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=e?'dark':'light'}catch(_){document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}})()`;
 
 function aplicar(t: Tema) {
   const escuro = t === "escuro" || (t === "sistema" && matchMedia("(prefers-color-scheme: dark)").matches);
@@ -16,15 +16,15 @@ function aplicar(t: Tema) {
 }
 
 export function ThemeToggle() {
-  const [tema, setTema] = useState<Tema>("escuro");
+  const [tema, setTema] = useState<Tema>("sistema");
   useEffect(() => {
     try {
-      setTema((localStorage.getItem(CHAVE) as Tema) || "escuro");
+      setTema((localStorage.getItem(CHAVE) as Tema) || "sistema");
     } catch {}
     const mq = matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
       let t: Tema = "sistema";
-      try { t = (localStorage.getItem(CHAVE) as Tema) || "escuro"; } catch {}
+      try { t = (localStorage.getItem(CHAVE) as Tema) || "sistema"; } catch {}
       if (t === "sistema") aplicar("sistema");
     };
     mq.addEventListener("change", onChange);

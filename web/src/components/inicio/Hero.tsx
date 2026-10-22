@@ -27,14 +27,25 @@ export function Hero({ geradoEm, gastoTotal, media, presenca, maior, menor, aler
     <Inclinavel max={2.5} className="relative">
       <section className="hero-brasil relative overflow-hidden rounded-2xl p-5 text-white shadow-2xl sm:p-7">
         <div className="hero-brilho pointer-events-none absolute inset-0" aria-hidden />
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rotate-12 rounded-[3rem] bg-white/5" />
+        {/* KV da bandeira: losango amarelo e círculo azul, translúcidos; silhueta da cúpula ao fundo */}
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-28 hidden h-[26rem] w-[26rem] sm:block">
+          <div className="flutuar absolute inset-0">
+            <div className="absolute inset-[12%] rotate-45 rounded-[2.5rem] bg-[#ffdf00]/[0.13]" />
+            <div className="absolute inset-[30%] rounded-full bg-[#002776]/40 ring-1 ring-white/10" />
+          </div>
+        </div>
+        <svg aria-hidden viewBox="0 0 400 120" className="pointer-events-none absolute -bottom-6 right-6 hidden w-[28rem] text-white/[0.06] md:block">
+          <path fill="currentColor" d="M20 30 Q200 140 380 30 L372 22 Q200 112 28 22 Z" />
+          <rect x="180" y="0" width="16" height="70" fill="currentColor" />
+          <rect x="204" y="0" width="16" height="70" fill="currentColor" />
+        </svg>
         <div className="relative">
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
             <span className="rounded-full bg-[#ffdf00] px-2.5 py-1 text-[#0b1220]">Atualização diária</span>
-            <span className="rounded-full border border-white/40 px-2.5 py-1">Legislatura 2023–2027</span>
+            <span className="rounded-full bg-[#002776] px-2.5 py-1">Legislatura 2023–2027</span>
             <span className="font-medium normal-case tracking-normal text-white/80">dados até {data(geradoEm)}</span>
           </div>
-          <h1 className="font-display mt-3 text-4xl leading-none sm:text-5xl">Câmara · <span className="text-[#ffdf00]">Deputados federais</span></h1>
+          <h1 className="font-display mt-3 text-4xl uppercase leading-none tracking-wide sm:text-5xl">Câmara dos Deputados · <span className="text-[#ffdf00]">desempenho</span></h1>
 
           <div className="mt-5 grid gap-6 xl:grid-cols-[1.1fr_1fr]">
             <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">

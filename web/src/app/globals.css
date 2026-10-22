@@ -5,16 +5,16 @@
 /* Tokens em RGB (canais) para permitir opacidade no Tailwind. */
 :root {
   color-scheme: light;
-  --bg: 246 247 245;        /* fundo da página */
-  --card: 255 255 255;      /* superfície de cards e gráficos */
-  --subtle: 238 241 237;    /* fundos secundários */
-  --fg: 17 24 39;           /* texto principal */
-  --muted: 82 90 102;       /* texto secundário (AA sobre card) */
-  --border: 222 226 220;
-  --verde: 0 156 59;        /* #009C3B */
+  --bg: 238 240 239;        /* cinza institucional */
+  --card: 255 255 255;
+  --subtle: 236 242 239;
+  --fg: 23 33 29;
+  --muted: 84 96 91;
+  --border: 219 226 222;
+  --verde: 46 122 85;       /* verde Câmara #2E7A55 */
   --amarelo: 255 223 0;     /* #FFDF00 — nunca como texto sobre claro */
   --azul: 0 39 118;         /* #002776 */
-  --destaque: 0 122 46;     /* verde escurecido para texto/links (AA) */
+  --destaque: 31 102 68;    /* #1F6644 texto/links (AA) */
   --info: 42 120 214;
   --atencao: 250 178 25;
   --alta: 208 59 59;
@@ -26,16 +26,16 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: 6 11 22;            /* #060b16 */
-  --card: 13 22 40;         /* #0d1628 */
-  --subtle: 20 33 58;
-  --fg: 238 241 246;
-  --muted: 160 172 194;
-  --border: 30 44 72;
-  --verde: 26 166 78;
+  --bg: 8 18 17;            /* verde-noite */
+  --card: 14 29 27;
+  --subtle: 21 42 38;
+  --fg: 236 242 239;
+  --muted: 156 176 168;
+  --border: 31 56 50;
+  --verde: 58 160 110;
   --amarelo: 255 223 0;
   --azul: 120 156 230;
-  --destaque: 92 214 135;
+  --destaque: 110 210 150;
   --info: 57 135 229;
   --atencao: 250 178 25;
   --alta: 230 103 103;
@@ -45,24 +45,31 @@
 }
 
 html { background: rgb(var(--bg)); }
-.font-display { font-family: "Anton", "Impact", "Arial Narrow", sans-serif; letter-spacing: 0.01em; text-transform: uppercase; font-weight: 400; }
-.num-display { font-family: "Anton", "Impact", "Arial Narrow", sans-serif; font-variant-numeric: lining-nums; letter-spacing: 0.01em; }
+.font-display { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; letter-spacing: 0.005em; }
+.num-display { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-variant-numeric: lining-nums; }
 
-/* Barra lateral: verde-bandeira para azul profundo, com borda amarela */
-.sidebar-brasil { background: linear-gradient(180deg, #0a3a22 0%, #082a26 35%, #071a33 100%); }
-[data-theme="dark"] .sidebar-brasil { background: linear-gradient(180deg, #08311d 0%, #072320 35%, #050f22 100%); }
+/* Barra lateral: verde institucional da Câmara */
+.sidebar-brasil { background: linear-gradient(180deg, #2e7a55 0%, #23664a 45%, #1c5640 100%); }
+[data-theme="dark"] .sidebar-brasil { background: linear-gradient(180deg, #17402f 0%, #123527 50%, #0d2a20 100%); }
+/* Faixa com as cores da bandeira */
+.faixa-bandeira { background: linear-gradient(180deg, #009c3b 0 40%, #ffdf00 40% 70%, #002776 70% 100%); }
+.faixa-bandeira-h { background: linear-gradient(90deg, #009c3b 0 50%, #ffdf00 50% 78%, #002776 78% 100%); }
 
 /* Painel de destaque com gradiente animado */
 .hero-brasil {
-  background: radial-gradient(120% 140% at 0% 0%, #0b8a3f 0%, #066032 28%, #063a4f 58%, #062058 100%);
+  background: linear-gradient(120deg, #2e7a55 0%, #25694b 45%, #1d5a42 75%, #173f45 100%);
   background-size: 160% 160%;
-  animation: hero-mov 18s ease-in-out infinite alternate;
+  animation: hero-mov 20s ease-in-out infinite alternate;
 }
+[data-theme="dark"] .hero-brasil { background-image: linear-gradient(120deg, #1d5a42 0%, #164634 50%, #10343a 100%); }
 @keyframes hero-mov { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
-.hero-brilho { background: radial-gradient(40% 60% at 85% 20%, rgba(255, 223, 0, 0.18), transparent 70%); }
+.hero-brilho { background: radial-gradient(45% 70% at 88% 15%, rgba(255, 223, 0, 0.14), transparent 70%); }
+@keyframes flutuar { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(1.5deg); } }
+.flutuar { animation: flutuar 9s ease-in-out infinite; }
 
 .cartao { background: rgb(var(--card)); border: 1px solid rgb(var(--border)); border-radius: 1rem; }
-[data-theme="dark"] .cartao { background: linear-gradient(180deg, rgb(var(--card)) 0%, rgb(13 20 36) 100%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03); }
+.cartao { box-shadow: 0 1px 2px rgb(16 40 30 / 0.06); }
+[data-theme="dark"] .cartao { background: linear-gradient(180deg, rgb(var(--card)) 0%, rgb(11 24 22) 100%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03); }
 .brilho-hover { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
 .brilho-hover:hover { border-color: rgb(var(--verde) / 0.6); box-shadow: 0 0 0 1px rgb(var(--verde) / 0.25), 0 12px 40px -12px rgb(var(--verde) / 0.35); }
 
@@ -72,9 +79,8 @@ html { background: rgb(var(--bg)); }
 .pilula-amarela { background: rgb(var(--amarelo)); border-color: rgb(var(--amarelo)); color: #111827; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-brasil { animation: none; }
+  .hero-brasil, .flutuar { animation: none; }
   .brilho-hover { transition: none; }
 }
 body { background: rgb(var(--bg)); color: rgb(var(--fg)); font-feature-settings: "tnum" 1; }
 .num { font-variant-numeric: tabular-nums; }
-.faixa-brasil { background: linear-gradient(90deg, rgb(var(--verde)) 0 60%, rgb(var(--amarelo)) 60% 80%, rgb(var(--azul)) 80% 100%); }
