@@ -6,7 +6,7 @@ export function sqlVotosDeputado(id: number, limite: number): Consulta {
       CASE WHEN op.orientacao IN ('Sim', 'Não') THEN vt.voto = op.orientacao END AS seguiu_partido,
       CASE WHEN og.orientacao IN ('Sim', 'Não') THEN vt.voto = og.orientacao END AS seguiu_governo
     FROM votos vt JOIN votacoes v ON v.id = vt.votacao_id
-    LEFT JOIN orientacoes op ON op.votacao_id = vt.votacao_id AND op.bancada = vt.partido_na_data
+    LEFT JOIN orientacao_partido op ON op.votacao_id = vt.votacao_id AND op.partido = vt.partido_na_data
     LEFT JOIN orientacoes og ON og.votacao_id = vt.votacao_id AND og.bancada = 'Governo'
     WHERE vt.deputado_id = ? ORDER BY v.data DESC LIMIT ?`, params: [id, limite] };
 }

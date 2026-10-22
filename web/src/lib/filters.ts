@@ -20,6 +20,7 @@ export interface Filtros {
   tipo?: string;
   tema?: string;
   orgao?: string;
+  fornecedor?: string;
   regra?: string;
   severidade?: "info" | "atencao" | "alta";
   /** Uso interno (não vem da URL): só categorias de passagem. */
@@ -64,6 +65,7 @@ export function parseFiltros(sp: URLSearchParams, opcoes: Opcoes): Filtros {
   const dep = numero(g("deputado"));
   if (dep && Number.isInteger(dep)) f.deputado = dep;
   f.passageiro = texto(g("passageiro"));
+  f.fornecedor = texto(g("fornecedor"));
   f.busca = texto(g("busca"));
   const sit = g("situacao");
   if (sit === "exercicio" || sit === "fora") f.situacao = sit;

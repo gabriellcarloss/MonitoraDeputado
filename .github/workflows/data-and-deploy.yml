@@ -66,4 +66,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx --yes vercel@62.0.0 deploy out --prod --yes --token "$VERCEL_TOKEN"
+          # dados fictícios nunca vão para produção: só pré-visualização
+          ALVO: ${{ inputs.ficticio && '--target=preview' || '--prod' }}
+        run: npx --yes vercel@62.0.0 deploy out $ALVO --yes --token "$VERCEL_TOKEN"

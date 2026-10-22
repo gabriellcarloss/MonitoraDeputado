@@ -1,4 +1,6 @@
 {
+  "framework": null,
+  "buildCommand": "",
   "cleanUrls": false,
   "trailingSlash": true,
   "headers": [

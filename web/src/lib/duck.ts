@@ -4,7 +4,7 @@ import type { AsyncDuckDB, AsyncDuckDBConnection } from "@duckdb/duckdb-wasm";
 import { useEffect, useRef, useState } from "react";
 
 export const TABELAS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "sessoes", "presencas",
-  "proposicoes", "autorias", "relatorias", "rede_arestas", "deputados", "series"] as const;
+  "proposicoes", "autorias", "relatorias", "rede_arestas", "deputados", "series", "orientacao_partido"] as const;
 
 interface Motor {
   con: AsyncDuckDBConnection;

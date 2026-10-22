@@ -28,7 +28,7 @@ export function sqlVotosDaVotacao(id: string): Consulta {
   return { sql: `SELECT vt.deputado_id, d.nome, d.uf, vt.partido_na_data AS partido, vt.voto, o.orientacao AS orientacao_partido,
       coalesce(o.orientacao IN ('Sim', 'Não') AND vt.voto <> o.orientacao, false) AS dissidente
     FROM votos vt JOIN deputados d ON d.id = vt.deputado_id
-    LEFT JOIN orientacoes o ON o.votacao_id = vt.votacao_id AND o.bancada = vt.partido_na_data
+    LEFT JOIN orientacao_partido o ON o.votacao_id = vt.votacao_id AND o.partido = vt.partido_na_data
     WHERE vt.votacao_id = ? ORDER BY dissidente DESC, vt.partido_na_data, d.nome`, params: [id] };
 }
 
@@ -36,7 +36,7 @@ export function sqlPlacarPartidos(id: string): Consulta {
   return { sql: `SELECT vt.partido_na_data AS partido, count(*) AS total, count(*) FILTER (vt.voto = 'Sim') AS sim,
       count(*) FILTER (vt.voto = 'Não') AS nao, count(*) FILTER (vt.voto NOT IN ('Sim', 'Não')) AS outros,
       any_value(o.orientacao) AS orientacao
-    FROM votos vt LEFT JOIN orientacoes o ON o.votacao_id = vt.votacao_id AND o.bancada = vt.partido_na_data
+    FROM votos vt LEFT JOIN orientacao_partido o ON o.votacao_id = vt.votacao_id AND o.partido = vt.partido_na_data
     WHERE vt.votacao_id = ? GROUP BY 1 ORDER BY total DESC`, params: [id] };
 }
 

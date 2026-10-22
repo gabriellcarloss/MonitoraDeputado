@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { consultar, useConsulta } from "@/lib/duck";
 import type { Filtros } from "@/lib/filters";
+import { paraCsv } from "@/lib/csv";
 import { brl, data, num } from "@/lib/format";
 import { sqlContarNotas, sqlNotas } from "@/lib/queries/gastos";
 import { Carregando, Erro } from "../ui/StatTile";
@@ -19,10 +20,8 @@ interface Nota {
 const POR_PAGINA = 50;
 
 function csv(linhas: Nota[]): string {
-  const cols: (keyof Nota)[] = ["data", "ano_mes", "deputado", "partido", "uf", "categoria", "fornecedor", "cnpj_cpf",
-    "passageiro", "trecho", "valor_documento", "valor_glosa", "valor_liquido", "url_documento"];
-  const esc = (v: unknown) => (v === null || v === undefined ? "" : `"${String(v).replace(/"/g, '""')}"`);
-  return [cols.join(";"), ...linhas.map((l) => cols.map((c) => esc(l[c])).join(";"))].join("\n");
+  return paraCsv(linhas as unknown as Record<string, unknown>[], ["data", "ano_mes", "deputado", "partido", "uf", "categoria", "fornecedor",
+    "cnpj_cpf", "passageiro", "trecho", "valor_documento", "valor_glosa", "valor_liquido", "url_documento"]);
 }
 
 /** Tabela de notas fiscais da cota com paginação, link para o documento original e exportação CSV. */

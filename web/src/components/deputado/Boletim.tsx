@@ -33,7 +33,7 @@ export function Boletim({ indicadores, posicoes, total }: { indicadores: Indicad
                     <dt className="text-sm" title={info.ajuda}>{info.rotulo}</dt>
                     <dd className="text-right">
                       <span className="num font-semibold">{info.formato(indicadores?.[k])}</span>
-                      {pos ? <span className="block text-xs text-muted">{pos.brasil}º de {total}</span> : null}
+                      {pos ? <span className="block text-xs text-muted">{pos.brasil}º de {pos.total ?? total}</span> : null}
                     </dd>
                   </div>
                 );

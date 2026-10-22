@@ -68,3 +68,15 @@ describe("fornecedor", () => {
     expect(arestas.some((a) => a.origem_tipo === "deputado")).toBe(true);
   });
 });
+
+describe("filtro por nome de fornecedor", () => {
+  it("busca parcial, sem diferenciar caixa", async () => {
+    const r = await run<{ fornecedor: string }>(q.sqlNotas({ fornecedor: "exemplo 001" }, 100, 0));
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.every((x) => /EXEMPLO 001/i.test(x.fornecedor))).toBe(true);
+  });
+  it("vem da URL", async () => {
+    const { parseFiltros } = await import("@/lib/filters");
+    expect(parseFiltros(new URLSearchParams("fornecedor=Gol"), { ufs: [], partidos: [] }).fornecedor).toBe("Gol");
+  });
+});

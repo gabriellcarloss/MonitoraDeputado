@@ -41,3 +41,11 @@ describe("SeloAlerta", () => {
     expect(screen.getByRole("link", { name: /FULANO/ }).getAttribute("href")).toBe("https://doc/1.pdf");
   });
 });
+
+describe("Boletim — população do ranking", () => {
+  it("usa o total da posição, não o total geral", () => {
+    render(<Boletim indicadores={{ ...SUPLENTE, gasto_total: 1000, meses_exercicio: 20 }}
+      posicoes={{ gasto_total: { brasil: 12, uf: 3, partido: 2, percentil: 40, total: 498 } }} total={513} />);
+    expect(screen.getByText("12º de 498")).toBeTruthy();
+  });
+});

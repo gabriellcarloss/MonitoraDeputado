@@ -7,6 +7,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BuscaGlobal } from "./BuscaGlobal";
 import { ThemeToggle } from "./ThemeToggle";
 
 export const ROTAS = [
@@ -56,6 +57,7 @@ function Itens({ onNavegar }: { onNavegar?: () => void }) {
   }
   return (
     <>
+      <BuscaGlobal onNavegar={onNavegar} />
       <nav aria-label="Principal" className="px-3">
         <ul className="space-y-1">
           {ROTAS.map(({ href, rotulo, Icone }) => {

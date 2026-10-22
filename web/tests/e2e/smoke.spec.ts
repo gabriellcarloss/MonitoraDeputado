@@ -48,7 +48,7 @@ test("filtro inválido na URL mostra a lista completa", async ({ page }) => {
 
 test("filtro válido reduz a lista e fica na URL", async ({ page }) => {
   await page.goto("/deputados/");
-  await page.getByLabel("UF").selectOption("SP");
+  await page.locator("label", { hasText: /^UF/ }).locator("select").selectOption("SP");
   await expect(page).toHaveURL(/uf=SP/);
   await expect(page.getByText(`${deputados.length} deputado(s)`)).toHaveCount(0);
 });
@@ -56,4 +56,22 @@ test("filtro válido reduz a lista e fica na URL", async ({ page }) => {
 test("perfil: notas fiscais carregam via DuckDB", async ({ page }) => {
   await page.goto(`/deputado/${dep}/?aba=gastos`);
   await expect(page.getByText(/notas · R\$/)).toBeVisible({ timeout: 30_000 });
+});
+
+test("busca global leva ao deputado", async ({ page }) => {
+  const todos = JSON.parse(fs.readFileSync(path.join(DATA, "deputados.json"), "utf8")) as { id: number; nome: string }[];
+  const nome = todos.find((d) => todos.filter((x) => x.nome === d.nome).length === 1)!; // nome único (dados fictícios repetem nomes)
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await page.getByRole("combobox").first().fill(nome.nome);
+  await page.getByRole("option").filter({ hasText: nome.nome }).filter({ hasNotText: "“" }).first().click();
+  await expect(page).toHaveURL(new RegExp(`/deputado/${nome.id}/`));
+});
+
+test("CSV exportado traz datas legíveis", async ({ page }) => {
+  await page.goto(`/deputado/${dep}/?aba=gastos`);
+  await expect(page.getByText(/notas · R\$/)).toBeVisible({ timeout: 30_000 });
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Exportar CSV/ }).click()]);
+  const conteudo = fs.readFileSync((await download.path())!, "utf8");
+  expect(conteudo.split("\n")[1]).toMatch(/^"\d{4}-\d{2}-\d{2}"/);
 });

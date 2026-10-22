@@ -57,7 +57,7 @@ export function Fornecedor() {
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile rotulo="Recebido da cota" valor={deps.dados ? brlCurto(total) : "…"} />
         <StatTile rotulo="Deputados atendidos" valor={deps.dados ? num(deps.dados.length) : "…"} />
-        <StatTile rotulo="Situação na Receita" valor={r ? (r.sem_dados ? "Sem dados" : r.situacao ?? "—") : "…"} />
+        <StatTile rotulo="Situação na Receita" valor={!rec.dados ? "…" : r ? (r.sem_dados ? "Sem dados" : r.situacao ?? "—") : "Indisponível"} />
         <StatTile rotulo="Aberta em" valor={r?.abertura ? data(r.abertura) : "—"} detalhe={r?.cnae ?? undefined} />
       </div>
       <div className="space-y-6">
@@ -65,7 +65,7 @@ export function Fornecedor() {
           <SerieTemporal titulo="Pagamentos mensais da cota" formato="brl" linhas={[{ nome: "Recebido", pontos, picos: detectarPicos(pontos) }]} />
           <section className="cartao p-4">
             <h2 className="font-display text-xl leading-none">Dados da Receita Federal</h2>
-            {!r ? <Carregando /> : r.sem_dados ? <p className="mt-2 text-sm text-muted">CNPJ não encontrado nas bases públicas consultadas.</p> : (
+            {!rec.dados ? <Carregando /> : !r ? <p className="mt-2 text-sm text-muted">Dados da Receita indisponíveis para este CNPJ nesta atualização.</p> : r.sem_dados ? <p className="mt-2 text-sm text-muted">CNPJ não encontrado nas bases públicas consultadas.</p> : (
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                 <dt className="text-muted">Município</dt><dd>{r.municipio ?? "—"}{r.uf ? `/${r.uf}` : ""}</dd>
                 <dt className="text-muted">Atividade</dt><dd>{r.cnae ?? "—"}</dd>

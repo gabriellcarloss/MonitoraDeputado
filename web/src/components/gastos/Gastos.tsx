@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { Barras } from "@/components/charts/Barras";
 import { SerieTemporal } from "@/components/charts/SerieTemporal";
-import { BarraFiltros, Selecao, useFiltros } from "@/components/filtros/Filtros";
+import { BarraFiltros, Campo, Selecao, useFiltros } from "@/components/filtros/Filtros";
 import { Carregando, Erro, StatTile } from "@/components/ui/StatTile";
 import { useConsulta } from "@/lib/duck";
 import { paraQuery } from "@/lib/filters";
@@ -30,6 +30,10 @@ export function Gastos() {
       <BarraFiltros opcoes={opcoes}>
         <Selecao rotulo="Categoria" valor={filtros.categoria} todos="Todas" opcoes={(cats.dados ?? []).map((c) => c.categoria)}
           onChange={(categoria) => definir({ categoria })} />
+        <Campo rotulo="Fornecedor">
+          <input type="search" className="h-9 rounded-full border border-border bg-subtle/60 px-3 text-sm" defaultValue={filtros.fornecedor ?? ""}
+            placeholder="nome do fornecedor" onChange={(e) => definir({ fornecedor: e.target.value || undefined })} />
+        </Campo>
         {filtros.deputado ? (
           <button type="button" onClick={() => definir({ deputado: undefined })}
             className="inline-flex h-9 items-center gap-1 rounded-full border border-verde bg-verde/10 px-3 text-sm">

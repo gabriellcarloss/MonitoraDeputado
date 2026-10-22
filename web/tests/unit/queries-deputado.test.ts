@@ -22,3 +22,14 @@ describe("queries do perfil", () => {
     expect(r.length).toBe(n);
   });
 });
+
+describe("orientação resolvida por partido (federações e blocos)", () => {
+  it("usa orientacao_partido", async () => {
+    const c = sqlVotosDeputado(1, 50);
+    const r = await db.query<{ votacao_id: string; partido: string; orientacao_partido: string | null }>(c.sql, c.params);
+    for (const v of r.slice(0, 10)) {
+      const o = await db.query<{ orientacao: string }>("SELECT orientacao FROM orientacao_partido WHERE votacao_id = ? AND partido = ?", [v.votacao_id, v.partido]);
+      expect(v.orientacao_partido).toBe(o[0]?.orientacao ?? null);
+    }
+  });
+});

@@ -29,6 +29,8 @@ export interface Posicao {
   uf: number;
   partido: number;
   percentil: number;
+  /** Quantos deputados entraram neste ranking (≥ 1 mês de exercício e valor não nulo). */
+  total?: number;
 }
 export type Posicoes = Partial<Record<NomeIndicador, Posicao>>;
 
