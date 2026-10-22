@@ -36,6 +36,9 @@ importers:
         specifier: 19.1.1
         version: 19.1.1(react@19.1.1)
     devDependencies:
+      '@duckdb/node-api':
+        specifier: 1.4.0-r.1
+        version: 1.4.0-r.1
       '@playwright/test':
         specifier: 1.55.1
         version: 1.55.1
@@ -222,6 +225,37 @@ packages:
 
   '@duckdb/duckdb-wasm@1.29.0':
     resolution: {integrity: sha512-8Zq7vafQuIz9gklC/9375KE38UlkaS2n8+yvG+/JK7irm3DjwYNJHL4xfplIj0bSHFIg6we5XhWYFqtE/vO3+Q==}
+
+  '@duckdb/node-api@1.4.0-r.1':
+    resolution: {integrity: sha512-7ccHtcviASDUO3Dq23F/niJ8cB7wxARQXjg4u+jChy7r4hciZA4GEK+ZS1duifE2OJZP3bjWmTs0BpVenpoHWg==}
+
+  '@duckdb/node-bindings-darwin-arm64@1.4.0-r.1':
+    resolution: {integrity: sha512-d7Z1TcpcUV3CS6YNNPmJEgxvO4/8GvqFrDdJ1dquMuJSmOpA9XzVCBdXqYY3P1evr0ItZuT7ByTTCZgVZjbaAw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@duckdb/node-bindings-darwin-x64@1.4.0-r.1':
+    resolution: {integrity: sha512-KcX4vDXv4ZkwLwZROasBwnIlV99MevsFewWKekdF311C2fL33i+bw5ObO+aUA20D+0cBjFNPTGkRifk0vN6iCA==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@duckdb/node-bindings-linux-arm64@1.4.0-r.1':
+    resolution: {integrity: sha512-hJzYGJW+7NQPVI/vXtpju8m/pKl1atJmJ7hOzCzJ4FzYs8O592YRmOZKDz5a2l+fEOjlJKCp3MJOHh0ZfUly4A==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@duckdb/node-bindings-linux-x64@1.4.0-r.1':
+    resolution: {integrity: sha512-KoNVNN/2e48mrafShbZv4IUoU4UBKknnX93ub1Rp+ryVx725yszxpRxunhQ/m0v/ItnOF5++BEIhBFy7Um2gCg==}
+    cpu: [x64]
+    os: [linux]
+
+  '@duckdb/node-bindings-win32-x64@1.4.0-r.1':
+    resolution: {integrity: sha512-+JiUKyPz5StYuae/wG0QOGaTj0U4krYm/YgNm5tlV1ooNPGj2xR9YePCBjlEXgYPgc4MN5HMmE74p2aPXFBrXw==}
+    cpu: [x64]
+    os: [win32]
+
+  '@duckdb/node-bindings@1.4.0-r.1':
+    resolution: {integrity: sha512-XyVgC2ab3DyztoIdcZ1XEckShPYoo8nPyEawwtK0/T//ouayLxwYdpSP87Zgx9AVtv345n5PZInVYUNbUGaKuQ==}
 
   '@emnapi/runtime@1.11.3':
     resolution: {integrity: sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==}
@@ -2377,6 +2411,33 @@ snapshots:
   '@duckdb/duckdb-wasm@1.29.0':
     dependencies:
       apache-arrow: 17.0.0
+
+  '@duckdb/node-api@1.4.0-r.1':
+    dependencies:
+      '@duckdb/node-bindings': 1.4.0-r.1
+
+  '@duckdb/node-bindings-darwin-arm64@1.4.0-r.1':
+    optional: true
+
+  '@duckdb/node-bindings-darwin-x64@1.4.0-r.1':
+    optional: true
+
+  '@duckdb/node-bindings-linux-arm64@1.4.0-r.1':
+    optional: true
+
+  '@duckdb/node-bindings-linux-x64@1.4.0-r.1':
+    optional: true
+
+  '@duckdb/node-bindings-win32-x64@1.4.0-r.1':
+    optional: true
+
+  '@duckdb/node-bindings@1.4.0-r.1':
+    optionalDependencies:
+      '@duckdb/node-bindings-darwin-arm64': 1.4.0-r.1
+      '@duckdb/node-bindings-darwin-x64': 1.4.0-r.1
+      '@duckdb/node-bindings-linux-arm64': 1.4.0-r.1
+      '@duckdb/node-bindings-linux-x64': 1.4.0-r.1
+      '@duckdb/node-bindings-win32-x64': 1.4.0-r.1
 
   '@emnapi/runtime@1.11.3':
     dependencies:

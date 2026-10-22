@@ -87,6 +87,15 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument("--anos", type=lambda s: [int(x) for x in s.split(",")], default=ANOS)
     run.add_argument("--sem-cnpj", action="store_true", help="não consulta a Receita")
     run.add_argument("--offline", action="store_true", help="usa somente o cache local")
+    fic = sub.add_parser("ficticio", help="gera dados FICTÍCIOS de demonstração para o site")
+    fic.add_argument("--out", type=Path, default=OUT_DIR)
+    fic.add_argument("--deputados", type=int, default=513)
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    if a.cmd == "ficticio":
+        from monitora.fixtures import gerar_ficticios
+        shutil.rmtree(a.out, ignore_errors=True)
+        gerar_ficticios(a.out, a.deputados)
+        log.info("dados fictícios gravados em %s", a.out)
+        return
     sys.exit(0 if executar(a.anos, a.sem_cnpj, a.offline) else 1)

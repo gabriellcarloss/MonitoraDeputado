@@ -49,7 +49,7 @@ def _linhas(con, sql: str, params=None) -> list[dict]:
 
 
 def exportar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict], stale: set[str],
-             anterior: dict | None = None) -> None:
+             anterior: dict | None = None, extra_meta: dict | None = None) -> None:
     out_dir = Path(out_dir)
     agora = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -121,4 +121,6 @@ def exportar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict],
         "regras": [{"id": r.id, "titulo": r.titulo, "severidade": r.severidade, "descricao": r.descricao}
                    for r in REGRAS.values()],
         "rodape_alerta": RODAPE,
+        "ficticio": False,
+        **(extra_meta or {}),
     })

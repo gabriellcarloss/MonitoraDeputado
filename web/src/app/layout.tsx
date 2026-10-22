@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { scriptTema } from "@/components/layout/ThemeToggle";
+import { getMeta } from "@/lib/data";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const meta = getMeta();
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
@@ -17,8 +19,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen font-sans antialiased">
         <Header />
+        {meta?.ficticio ? (
+          <div role="note" className="border-b border-atencao/40 bg-atencao/15 px-4 py-2 text-center text-sm">
+            <strong>Dados fictícios de demonstração.</strong> Nomes, partidos e empresas são inventados; nenhum valor
+            se refere a pessoas reais.
+          </div>
+        ) : null}
         <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
-        <Footer />
+        <Footer geradoEm={meta?.gerado_em} />
       </body>
     </html>
   );
