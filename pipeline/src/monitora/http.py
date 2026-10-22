@@ -1,4 +1,6 @@
 """Cliente HTTP com limite de taxa por host, retry exponencial e cache em disco."""
+import hashlib
+import json
 import logging
 import time
 from pathlib import Path
@@ -12,7 +14,10 @@ _RETRY_STATUS = {429, 500, 502, 503, 504}
 
 
 class Client:
-    def __init__(self, rate_per_host: float = 5.0, retries: int = 5, backoff: float = 1.0, timeout: float = 120):
+    def __init__(self, rate_per_host: float = 5.0, retries: int = 5, backoff: float = 1.0, timeout: float = 120,
+                 cache_dir: Path | None = None, offline: bool = False):
+        self.cache_dir = cache_dir
+        self.offline = offline
         self.min_interval = 1.0 / rate_per_host
         self.retries = retries
         self.backoff = backoff
@@ -30,6 +35,8 @@ class Client:
 
     def _get(self, url: str, params=None) -> httpx.Response:
         host = urlparse(url).hostname or ""
+        if self.offline:
+            raise httpx.ConnectError(f"offline: {url}")
         for tentativa in range(self.retries):
             self._wait(host)
             try:
@@ -46,8 +53,26 @@ class Client:
                 time.sleep(espera)
         raise RuntimeError("unreachable")
 
+    def _cache_json(self, url: str, params) -> Path | None:
+        if not self.cache_dir:
+            return None
+        chave = hashlib.sha1(json.dumps([url, params], sort_keys=True, default=str).encode()).hexdigest()
+        return self.cache_dir / "api" / f"{chave}.json"
+
     def get_json(self, url: str, params=None) -> dict:
-        return self._get(url, params).json()
+        """GET JSON; com cache_dir, guarda a resposta e a reutiliza se a fonte estiver fora do ar."""
+        arq = self._cache_json(url, params)
+        try:
+            dados = self._get(url, params).json()
+        except httpx.HTTPError:
+            if arq and arq.exists():
+                self.stale_sources.add(urlparse(url).hostname or url)
+                return json.loads(arq.read_text())
+            raise
+        if arq:
+            arq.parent.mkdir(parents=True, exist_ok=True)
+            arq.write_text(json.dumps(dados, ensure_ascii=False))
+        return dados
 
     def get_all_pages(self, url: str, params=None) -> list[dict]:
         dados: list[dict] = []

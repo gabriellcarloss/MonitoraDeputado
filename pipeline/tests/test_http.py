@@ -74,3 +74,26 @@ def test_retry_on_503_then_success():
             side_effect=[httpx.Response(503), httpx.Response(200, json={"ok": True})]
         )
         assert Client(backoff=0, rate_per_host=1000).get_json("https://api.ex/x") == {"ok": True}
+
+
+def test_get_json_usa_cache_quando_api_cai(tmp_path):
+    c = Client(backoff=0, retries=2, rate_per_host=1000, cache_dir=tmp_path)
+    with respx.mock:
+        respx.get("https://api.ex/y").respond(200, json={"v": 1})
+        assert c.get_json("https://api.ex/y", {"a": 1}) == {"v": 1}
+    with respx.mock:
+        respx.get("https://api.ex/y").respond(503)
+        assert c.get_json("https://api.ex/y", {"a": 1}) == {"v": 1}
+    assert "api.ex" in c.stale_sources
+
+
+def test_offline_nao_acessa_rede(tmp_path):
+    dest = tmp_path / "a.csv"
+    dest.write_text("cached")
+    old = time.time() - 5 * 3600
+    os.utime(dest, (old, old))
+    c = Client(offline=True)
+    with respx.mock(assert_all_called=False) as m:
+        r = m.get("https://ex.com/a.csv").respond(200, text="new")
+        assert c.download("https://ex.com/a.csv", dest, max_age_hours=1).read_text() == "cached"
+    assert not r.called
