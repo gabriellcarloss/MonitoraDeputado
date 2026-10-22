@@ -74,7 +74,25 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           # dados fictícios nunca vão para produção: só pré-visualização
           ALVO: ${{ inputs.ficticio && '--target=preview' || '--prod' }}
-        run: npx --yes vercel@62.0.0 deploy out $ALVO --yes --token "$VERCEL_TOKEN"
+        run: |
+          # até 3 tentativas; o motivo da falha vai para o resumo da execução
+          for tentativa in 1 2 3; do
+            if npx --yes vercel@62.0.0 deploy out $ALVO --yes --token "$VERCEL_TOKEN" > deploy.log 2>&1; then
+              cat deploy.log
+              exit 0
+            fi
+            echo "tentativa $tentativa falhou"
+            tail -20 deploy.log
+            sleep $((tentativa * 30))
+          done
+          {
+            echo "### Falha ao publicar na Vercel"
+            echo '```'
+            tail -30 deploy.log | grep -v -i token
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=Publicar na Vercel::$(grep -i -m1 'error' deploy.log | cut -c1-300)"
+          exit 1
 
       - name: Inspeção (fotos e resumo no ramo 'inspecao')
         if: ${{ inputs.inspecao }}
