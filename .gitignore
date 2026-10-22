@@ -1,0 +1,12 @@
+.superpowers/
+pipeline/.cache/
+pipeline/.venv/
+web/public/data/
+web/node_modules/
+web/.next/
+web/out/
+web/test-results/
+web/playwright-report/
+__pycache__/
+*.pyc
+.pytest_cache/
