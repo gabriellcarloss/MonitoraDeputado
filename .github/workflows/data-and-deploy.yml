@@ -1,0 +1,69 @@
+name: Atualizar dados e publicar
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # 04:00 em Brasília
+  workflow_dispatch:
+    inputs:
+      ficticio:
+        description: "Publicar dados FICTÍCIOS (só para testar a publicação)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: data-and-deploy
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Cache das fontes (downloads, respostas da API e CNPJs)
+        uses: actions/cache@v4
+        with:
+          path: pipeline/.cache
+          key: fontes-${{ github.run_id }}
+          restore-keys: fontes-
+
+      - name: Meta da versão publicada (para validar variações)
+        if: ${{ env.SITE_URL != '' }}
+        run: |
+          mkdir -p web/public/data
+          curl -fsSL "$SITE_URL/data/meta.json" -o web/public/data/meta.json || echo "sem versão anterior"
+
+      - name: Pipeline de dados
+        if: ${{ !inputs.ficticio }}
+        run: make data
+
+      - name: Dados fictícios
+        if: ${{ inputs.ficticio }}
+        working-directory: web
+        run: pnpm fixtures
+
+      - name: Build do site
+        working-directory: web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Publicar na Vercel
+        working-directory: web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@62.0.0 deploy out --prod --yes --token "$VERCEL_TOKEN"
