@@ -3,25 +3,23 @@
 import { useState } from "react";
 import { Mapa3D } from "@/components/charts/Mapa3D";
 import { type PontoQuadrante, Quadrante } from "@/components/charts/Quadrante";
-import { brl, ouTraco, pct } from "@/lib/format";
-import type { Grupo } from "@/lib/types";
+import { brl, brlCurto, ouTraco, pct } from "@/lib/format";
+import { valoresPorUf } from "@/lib/mapa";
+import type { Grupo, NomeIndicador } from "@/lib/types";
 
 type MetricaMapa = "gasto" | "presenca" | "projetos";
-const METRICAS: Record<MetricaMapa, { rotulo: string; campo: keyof Grupo; fmt: (v: number) => string }> = {
-  gasto: { rotulo: "Gasto médio por deputado", campo: "gasto_total", fmt: brl },
-  presenca: { rotulo: "Presença média em sessões", campo: "pct_presenca_sessoes", fmt: (v) => pct(v) },
-  projetos: { rotulo: "Projetos por deputado", campo: "n_proposicoes_relevantes", fmt: (v) => ouTraco(v, (x) => x.toLocaleString("pt-BR", { maximumFractionDigits: 1 })) },
+const METRICAS: Record<MetricaMapa, { rotulo: string; campo: NomeIndicador; fmt: (v: number) => string; curto?: (v: number) => string }> = {
+  gasto: { rotulo: "Gasto mensal típico por deputado (mediana)", campo: "gasto_medio_mensal", fmt: brl, curto: brlCurto },
+  presenca: { rotulo: "Presença típica em sessões (mediana)", campo: "pct_presenca_sessoes", fmt: (v) => pct(v) },
+  projetos: { rotulo: "Projetos apresentados por deputado (mediana)", campo: "n_proposicoes_relevantes", fmt: (v) => ouTraco(v, (x) => x.toLocaleString("pt-BR", { maximumFractionDigits: 1 })) },
 };
 
 export function MapaUfs({ ufs }: { ufs: Record<string, Grupo> }) {
   const [m, setM] = useState<MetricaMapa>("gasto");
   const info = METRICAS[m];
-  const valores = Object.fromEntries(Object.entries(ufs).map(([uf, g]) => {
-    const e = g[info.campo] as { media: number | null };
-    return [uf, e?.media ?? null];
-  }));
+  const valores = valoresPorUf(ufs, info.campo);
   return (
-    <Mapa3D titulo="Mapa 3D por estado" subtitulo={`${info.rotulo}. Altura e cor proporcionais ao valor.`} valores={valores} formato={info.fmt}
+    <Mapa3D titulo="Mapa por estado" subtitulo={info.rotulo} valores={valores} formato={info.fmt} formatoCurto={info.curto}
       onSelecionar={(uf) => { window.location.href = `/deputados/?uf=${uf}`; }}
       acoes={
         <div className="flex flex-wrap gap-1" role="group" aria-label="Métrica do mapa">

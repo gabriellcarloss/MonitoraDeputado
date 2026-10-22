@@ -8,6 +8,7 @@ import { type ItemRanking, Ranking } from "@/components/ui/Ranking";
 import { Secao, StatTile, Titulo } from "@/components/ui/StatTile";
 import { getAlertas, getBrasil, getDeputados, getMeta } from "@/lib/data";
 import { gerarDestaques } from "@/lib/destaques";
+import { alertasEmDestaque, contrasteGasto, indiceDesempenho } from "@/lib/indice";
 import { brl, num, pct } from "@/lib/format";
 import type { DeputadoResumo, Indicadores } from "@/lib/types";
 
@@ -35,8 +36,16 @@ export default function Inicio() {
   const votacoes = serie("votacoes");
   const props = serie("proposicoes");
   const ativos = deps.filter((d) => d.indicadores && d.indicadores.meses_exercicio >= 1);
-  const porGasto = [...ativos].sort((a, b) => b.indicadores!.gasto_total - a.indicadores!.gasto_total);
-  const lado = (d?: DeputadoResumo) => d && ({ id: d.id, nome: d.nome, partido: d.partido_atual, uf: d.uf, foto: d.foto, valor: d.indicadores!.gasto_total });
+  const pessoa = (d: DeputadoResumo) => ({ id: d.id, nome: d.nome, partido: d.partido_atual, uf: d.uf, foto: d.foto });
+  const indice = indiceDesempenho(deps);
+  const podio = indice.slice(0, 3).map(({ deputado: d, nota }) => ({ ...pessoa(d), nota, presenca: d.indicadores!.pct_presenca_sessoes,
+    projetos: d.indicadores!.n_proposicoes_relevantes, gastoMensal: d.indicadores!.gasto_medio_mensal }));
+  const contraste = contrasteGasto(deps);
+  const porId = new Map(deps.map((d) => [d.id, d]));
+  const vitrine = alertasEmDestaque(alertas, 12).flatMap((a) => {
+    const d = porId.get(a.deputado_id);
+    return d ? [{ ...pessoa(d), titulo: a.titulo, descricao: a.descricao }] : [];
+  });
   const pontos = ativos.map((d) => ({ id: d.id, nome: d.nome, partido: d.partido_atual, uf: d.uf,
     x: d.indicadores!.gasto_total, y: d.indicadores!.n_proposicoes_relevantes }));
   const fmtPct = (v: number) => pct(v);
@@ -44,9 +53,18 @@ export default function Inicio() {
   const emExercicio = deps.filter((d) => d.em_exercicio).length;
   return (
     <div className="space-y-8">
-      <Hero geradoEm={meta.gerado_em} gastoTotal={brasil.totais.gasto_total ?? 0} media={ag.gasto_total.media ?? 0}
-        presenca={ag.pct_presenca_sessoes.media} maior={lado(porGasto[0])} menor={lado(porGasto.at(-1))}
-        alertas={{ alta: contar("alta"), atencao: contar("atencao"), info: contar("info") }} />
+      <Hero geradoEm={meta.gerado_em} podio={podio} alertas={vitrine}
+        kpis={[
+          { rotulo: "Gasto da cota", valor: brasil.totais.gasto_total ?? 0, formato: "brl" },
+          { rotulo: "Gasto mensal típico", valor: ag.gasto_medio_mensal.mediana, formato: "brl" },
+          { rotulo: "Presença média", valor: ag.pct_presenca_sessoes.media, formato: "pct" },
+          { rotulo: "Participação em votações", valor: ag.pct_participacao_votacoes.media, formato: "pct" },
+          { rotulo: "Projetos apresentados", valor: brasil.totais.n_proposicoes_relevantes, formato: "num" },
+          { rotulo: "Votações nominais", valor: brasil.totais.n_votacoes, formato: "num" },
+        ]}
+        maior={contraste ? { ...pessoa(contraste.maior), gastoMensal: contraste.maior.indicadores!.gasto_medio_mensal } : undefined}
+        menor={contraste ? { ...pessoa(contraste.menor), gastoMensal: contraste.menor.indicadores!.gasto_medio_mensal } : undefined}
+        contagem={{ alta: contar("alta"), atencao: contar("atencao"), info: contar("info") }} />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <StatTile rotulo="Em exercício" valor={num(emExercicio)} detalhe={`${num(deps.length)} passaram pela legislatura`} cor="azul" barra={emExercicio / 513} />

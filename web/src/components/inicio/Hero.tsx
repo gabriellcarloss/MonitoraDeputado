@@ -1,112 +1,166 @@
 "use client";
 
+import { AlertOctagon, Trophy } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { Foto } from "@/components/ui/Foto";
 import { Contador, Inclinavel } from "@/components/ui/Movimento";
 import { brl, brlCurto, data, num, pct } from "@/lib/format";
 
-export interface Lado {
+export interface Pessoa {
   id: number;
   nome: string;
   partido: string;
   uf: string;
   foto: string | null;
-  valor: number;
+}
+export interface Destaque extends Pessoa {
+  nota: number;
+  presenca: number | null;
+  projetos: number;
+  gastoMensal: number;
+}
+export interface AlertaVitrine extends Pessoa {
+  titulo: string;
+  descricao: string;
+}
+export interface Kpi {
+  rotulo: string;
+  valor: number | null;
+  formato: "brl" | "pct" | "num";
 }
 
-/** Painel principal: totais da legislatura e o contraste entre quem mais e quem menos gastou. */
-export function Hero({ geradoEm, gastoTotal, media, presenca, maior, menor, alertas }: {
-  geradoEm: string; gastoTotal: number; media: number; presenca: number | null; maior?: Lado; menor?: Lado;
-  alertas: { alta: number; atencao: number; info: number };
+const FMT = { brl: brlCurto, pct: (v: number) => pct(v), num };
+const MEDALHAS = ["ring-[#ffdf00]", "ring-white/80", "ring-[#d9a066]"];
+
+function Pessoa({ p, tamanho = 44, anel }: { p: Pessoa; tamanho?: number; anel?: string }) {
+  return (
+    <span className={`inline-flex shrink-0 rounded-full ring-[3px] ${anel ?? "ring-white/30"}`}>
+      <Foto src={p.foto} nome={p.nome} tamanho={tamanho} sobreEscuro />
+    </span>
+  );
+}
+
+/** Faixa de alertas que desliza continuamente (para ao passar o mouse; estática com movimento reduzido). */
+function FaixaAlertas({ itens }: { itens: AlertaVitrine[] }) {
+  const reduzir = useReducedMotion();
+  const cartao = (a: AlertaVitrine, k: string) => (
+    <Link key={k} href={`/deputado/${a.id}/`} className="flex w-[320px] shrink-0 items-center gap-3 rounded-xl border border-white/15 bg-black/25 p-2.5 transition hover:bg-black/40">
+      <Pessoa p={a} tamanho={38} anel="ring-[#d03b3b]" />
+      <span className="min-w-0">
+        <span className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-[#ffb4b4]"><AlertOctagon size={12} aria-hidden /> {a.titulo}</span>
+        <span className="block truncate text-sm font-semibold">{a.nome} <span className="font-normal text-white/70">{a.partido}-{a.uf}</span></span>
+        <span className="block truncate text-xs text-white/75">{a.descricao}</span>
+      </span>
+    </Link>
+  );
+  if (!itens.length) return null;
+  if (reduzir) return <div className="flex gap-3 overflow-x-auto pb-1">{itens.map((a, i) => cartao(a, String(i)))}</div>;
+  return (
+    <div className="group relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_4%,#000_96%,transparent)]">
+      <motion.div className="flex w-max gap-3 group-hover:[animation-play-state:paused]"
+        animate={{ x: ["0%", "-50%"] }} transition={{ duration: itens.length * 6, ease: "linear", repeat: Infinity }}>
+        {[...itens, ...itens].map((a, i) => cartao(a, String(i)))}
+      </motion.div>
+    </div>
+  );
+}
+
+/** Painel principal: números da legislatura, pódio do índice de desempenho, contraste de gastos e alertas em destaque. */
+export function Hero({ geradoEm, kpis, podio, maior, menor, alertas, contagem }: {
+  geradoEm: string; kpis: Kpi[]; podio: Destaque[]; maior?: Pessoa & { gastoMensal: number }; menor?: Pessoa & { gastoMensal: number };
+  alertas: AlertaVitrine[]; contagem: { alta: number; atencao: number; info: number };
 }) {
   const reduzir = useReducedMotion();
-  const totalAlertas = alertas.alta + alertas.atencao + alertas.info || 1;
-  const fator = maior && menor && menor.valor > 0 ? maior.valor / menor.valor : null;
+  const total = contagem.alta + contagem.atencao + contagem.info || 1;
   return (
-    <Inclinavel max={2.5} className="relative">
+    <Inclinavel max={1.5} className="relative">
       <section className="hero-brasil relative overflow-hidden rounded-2xl p-5 text-white shadow-2xl sm:p-7">
         <div className="hero-brilho pointer-events-none absolute inset-0" aria-hidden />
-        {/* KV da bandeira: losango amarelo e círculo azul, translúcidos; silhueta da cúpula ao fundo */}
         <div aria-hidden className="pointer-events-none absolute -right-20 -top-28 hidden h-[26rem] w-[26rem] sm:block">
           <div className="flutuar absolute inset-0">
-            <div className="absolute inset-[12%] rotate-45 rounded-[2.5rem] bg-[#ffdf00]/[0.13]" />
+            <div className="absolute inset-[12%] rotate-45 rounded-[2.5rem] bg-[#ffdf00]/[0.12]" />
             <div className="absolute inset-[30%] rounded-full bg-[#002776]/40 ring-1 ring-white/10" />
           </div>
         </div>
-        <svg aria-hidden viewBox="0 0 400 120" className="pointer-events-none absolute -bottom-6 right-6 hidden w-[28rem] text-white/[0.06] md:block">
-          <path fill="currentColor" d="M20 30 Q200 140 380 30 L372 22 Q200 112 28 22 Z" />
-          <rect x="180" y="0" width="16" height="70" fill="currentColor" />
-          <rect x="204" y="0" width="16" height="70" fill="currentColor" />
-        </svg>
-        <div className="relative">
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
-            <span className="rounded-full bg-[#ffdf00] px-2.5 py-1 text-[#0b1220]">Atualização diária</span>
-            <span className="rounded-full bg-[#002776] px-2.5 py-1">Legislatura 2023–2027</span>
-            <span className="font-medium normal-case tracking-normal text-white/80">dados até {data(geradoEm)}</span>
+        <div className="relative space-y-6">
+          <div>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
+              <span className="rounded-full bg-[#ffdf00] px-2.5 py-1 text-[#0b1220]">Atualização diária</span>
+              <span className="rounded-full bg-[#002776] px-2.5 py-1">Legislatura 2023–2027</span>
+              <span className="font-medium normal-case tracking-normal text-white/80">dados até {data(geradoEm)}</span>
+            </div>
+            <h1 className="font-display mt-3 text-4xl uppercase leading-none tracking-wide sm:text-5xl">Câmara dos Deputados · <span className="text-[#ffdf00]">desempenho</span></h1>
           </div>
-          <h1 className="font-display mt-3 text-4xl uppercase leading-none tracking-wide sm:text-5xl">Câmara dos Deputados · <span className="text-[#ffdf00]">desempenho</span></h1>
 
-          <div className="mt-5 grid gap-6 xl:grid-cols-[1.1fr_1fr]">
-            <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-              <div>
-                <p className="num-display whitespace-nowrap text-[1.6rem] leading-none sm:text-4xl 2xl:text-5xl"><Contador valor={gastoTotal} formato={brlCurto} /></p>
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">Gasto da cota</p>
-              </div>
-              <div>
-                <p className="num-display whitespace-nowrap text-[1.6rem] leading-none sm:text-4xl 2xl:text-5xl"><Contador valor={media} formato={brlCurto} /></p>
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">Média por deputado</p>
-              </div>
-              <div>
-                <p className="num-display whitespace-nowrap text-[1.6rem] leading-none sm:text-4xl 2xl:text-5xl">{presenca === null ? "—" : <Contador valor={presenca} formato={(v) => pct(v)} />}</p>
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">Presença média</p>
-              </div>
+          <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr]">
+            <div className="grid min-w-0 grid-cols-2 content-start gap-x-4 gap-y-6 self-start sm:grid-cols-3 xl:pt-4">
+              {kpis.map((k) => (
+                <div key={k.rotulo} className="min-w-0">
+                  <p className="num-display whitespace-nowrap text-[1.6rem] leading-none sm:text-4xl">
+                    {k.valor === null ? "—" : <Contador valor={k.valor} formato={FMT[k.formato]} />}
+                  </p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">{k.rotulo}</p>
+                </div>
+              ))}
             </div>
 
-            {maior && menor ? (
-              <div className="min-w-0 rounded-xl bg-black/20 p-3 backdrop-blur-sm">
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-white/70">Quem mais × quem menos gastou</p>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <Link href={`/deputado/${maior.id}/?aba=gastos`} className="flex min-w-0 items-center gap-3 hover:opacity-90">
-                    <span className="rounded-full ring-4 ring-[#e34948]"><Foto src={maior.foto} nome={maior.nome} tamanho={56} /></span>
-                    <span className="min-w-0">
-                      <span className="num-display block text-2xl leading-none">{brlCurto(maior.valor)}</span>
-                      <span className="block truncate text-sm font-bold uppercase">{maior.nome}</span>
-                      <span className="block text-xs text-white/70">{maior.partido}-{maior.uf}</span>
-                    </span>
+            <div className="min-w-0 rounded-xl bg-black/20 p-3 backdrop-blur-sm">
+              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/80">
+                <Trophy size={13} className="text-[#ffdf00]" aria-hidden /> Destaques do mandato · índice de desempenho
+              </p>
+              <ol className="grid gap-2 sm:grid-cols-3">
+                {podio.map((p, i) => (
+                  <li key={p.id}>
+                    <Link href={`/deputado/${p.id}/`} className="flex h-full items-center gap-2.5 rounded-lg bg-white/5 p-2 transition hover:bg-white/10 sm:flex-col sm:text-center">
+                      <span className="relative">
+                        <Pessoa p={p} tamanho={52} anel={MEDALHAS[i]} />
+                        <span className="num-display absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-[#ffdf00] text-xs text-[#0b1220]">{i + 1}</span>
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-bold uppercase">{p.nome}</span>
+                        <span className="block text-xs text-white/70">{p.partido}-{p.uf}</span>
+                        <span className="num-display block text-xl leading-tight text-[#ffdf00]">{p.nota}<span className="text-xs text-white/70">/100</span></span>
+                        <span className="block text-[10px] leading-tight text-white/75">
+                          {p.presenca === null ? "—" : pct(p.presenca, 0)} presença · {num(p.projetos)} projetos · {brlCurto(p.gastoMensal)}/mês
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+              {maior && menor ? (
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2 text-xs">
+                  <span className="text-white/70">Gasto mensal na cota:</span>
+                  <Link href={`/deputado/${maior.id}/?aba=gastos`} className="flex items-center gap-1.5 hover:underline">
+                    <Pessoa p={maior} tamanho={24} anel="ring-[#e34948]" /> maior <b>{maior.nome}</b> {brlCurto(maior.gastoMensal)}
                   </Link>
-                  <Link href={`/deputado/${menor.id}/?aba=gastos`} className="flex min-w-0 items-center gap-3 hover:opacity-90 sm:flex-row-reverse sm:text-right">
-                    <span className="rounded-full ring-4 ring-[#ffdf00]"><Foto src={menor.foto} nome={menor.nome} tamanho={56} /></span>
-                    <span className="min-w-0">
-                      <span className="num-display block text-2xl leading-none">{brlCurto(menor.valor)}</span>
-                      <span className="block truncate text-sm font-bold uppercase">{menor.nome}</span>
-                      <span className="block text-xs text-white/70">{menor.partido}-{menor.uf}</span>
-                    </span>
+                  <Link href={`/deputado/${menor.id}/?aba=gastos`} className="flex items-center gap-1.5 hover:underline">
+                    <Pessoa p={menor} tamanho={24} anel="ring-[#ffdf00]" /> menor <b>{menor.nome}</b> {brlCurto(menor.gastoMensal)}
                   </Link>
+                  <span className="text-white/60">({brl(maior.gastoMensal - menor.gastoMensal)} de diferença por mês)</span>
                 </div>
-                {fator ? (
-                  <p className="mt-3 rounded-lg border border-white/15 bg-white/5 py-1.5 text-center text-xs">
-                    diferença <span className="num-display mx-1 text-xl text-[#ffdf00]">{fator.toFixed(1).replace(".", ",")}×</span>
-                    {brl(maior.valor - menor.valor)}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+              ) : null}
+              <p className="mt-1.5 text-[10px] text-white/60">Índice: média dos percentis de presença, participação em votações, projetos por mês e economia na cota (6+ meses de exercício). <Link href="/sobre/#indice" className="underline">Metodologia</Link></p>
+            </div>
           </div>
 
-          <div className="mt-5">
-            <div className="flex h-2.5 overflow-hidden rounded-full bg-white/10" aria-hidden>
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-sm">
+                <span className="font-bold text-[#ffdf00]">{num(total)} pontos de atenção</span> — {num(contagem.alta)} alta, {num(contagem.atencao)} atenção, {num(contagem.info)} informativos.
+              </p>
+              <Link href="/alertas/?severidade=alta" className="text-sm underline underline-offset-2">Ver todos →</Link>
+            </div>
+            <div className="flex h-2 overflow-hidden rounded-full bg-white/10" aria-hidden>
               {([["alta", "#d03b3b"], ["atencao", "#fab219"], ["info", "#3987e5"]] as const).map(([k, cor], i) => (
                 <motion.span key={k} style={{ background: cor }} className="h-full"
-                  initial={reduzir ? false : { width: 0 }} animate={{ width: `${(alertas[k] / totalAlertas) * 100}%` }}
+                  initial={reduzir ? false : { width: 0 }} animate={{ width: `${(contagem[k] / total) * 100}%` }}
                   transition={{ duration: 1.1, delay: 0.3 + i * 0.15, ease: [0.22, 1, 0.36, 1] }} />
               ))}
             </div>
-            <p className="mt-2 text-sm">
-              <span className="font-bold text-[#ffdf00]">{num(alertas.alta + alertas.atencao + alertas.info)} pontos de atenção</span> gerados automaticamente:{" "}
-              {num(alertas.alta)} de severidade alta, {num(alertas.atencao)} de atenção e {num(alertas.info)} informativos.{" "}
-              <Link href="/alertas/" className="underline underline-offset-2">Ver alertas →</Link>
-            </p>
+            <FaixaAlertas itens={alertas} />
+            <p className="text-[10px] text-white/60">Pontos de atenção são gerados automaticamente a partir de dados públicos. Não constituem acusação.</p>
           </div>
         </div>
       </section>

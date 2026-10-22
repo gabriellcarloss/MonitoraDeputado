@@ -3,6 +3,7 @@ import { BadgeSeveridade, RODAPE } from "@/components/deputado/SeloAlerta";
 import { Secao, Titulo } from "@/components/ui/StatTile";
 import { getMeta } from "@/lib/data";
 import { data, num } from "@/lib/format";
+import { COMPONENTES } from "@/lib/indice";
 import { INDICADORES } from "@/lib/indicadores";
 
 export const metadata: Metadata = { title: "Sobre os dados e metodologia" };
@@ -41,6 +42,7 @@ export default function Page() {
             </li>
           ))}
         </ul>
+        <p className="mt-3 text-sm text-muted">Contornos dos estados: <a className="text-destaque underline" href="https://github.com/VictorCazanave/svg-maps" target="_blank" rel="noopener noreferrer">@svg-maps/brazil</a>, licença CC BY 4.0.</p>
         {meta ? <p className="mt-3 text-sm text-muted">Registros: {Object.entries(meta.contagens).map(([k, v]) => `${k} ${num(v)}`).join(" · ")}.</p> : null}
       </Secao>
 
@@ -51,6 +53,20 @@ export default function Page() {
           ))}
         </dl>
       </Secao>
+
+      <section id="indice">
+        <Secao titulo="Índice de desempenho">
+          <div className="cartao space-y-2 p-4 text-sm">
+            <p>Nota de 0 a 100 usada nos destaques da página inicial. Para cada deputado com <strong>pelo menos 6 meses de exercício</strong>,
+              calculamos o percentil (a posição relativa entre os colegas) em quatro dimensões e tiramos a média simples:</p>
+            <ul className="list-disc pl-6">
+              {COMPONENTES.map((c) => <li key={c.rotulo}>{c.rotulo}{c.menorMelhor ? " (quanto menor, melhor)" : ""}</li>)}
+            </ul>
+            <p className="text-muted">Dimensões sem dado são ignoradas na média. O índice resume indicadores quantitativos; não mede a qualidade dos projetos,
+              o trabalho em comissões ou a atuação fora do Plenário.</p>
+          </div>
+        </Secao>
+      </section>
 
       <Secao titulo="Regras dos pontos de atenção">
         <p className="mb-3 text-sm text-muted">{meta?.rodape_alerta ?? RODAPE} Picos: mês acima de mediana + 3 desvios absolutos medianos (escalados) da própria série, ou acima de 2,5× a média dos 12 meses anteriores.</p>

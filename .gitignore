@@ -13,3 +13,4 @@ __pycache__/
 next-env.d.ts
 web/public/duckdb/
 *.tmp.mjs
+web/public/geo/
