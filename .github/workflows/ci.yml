@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Testes do pipeline
+        working-directory: pipeline
+        run: uv run pytest -q
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Dependências
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+      - name: Dados fictícios de teste
+        working-directory: web
+        run: pnpm fixtures
+      - name: Testes unitários
+        working-directory: web
+        run: pnpm test
+      - name: Build
+        working-directory: web
+        run: pnpm build
+      - name: Navegador do Playwright
+        working-directory: web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Testes de ponta a ponta
+        working-directory: web
+        run: pnpm e2e
