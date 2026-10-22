@@ -4,6 +4,7 @@ import logging
 
 import duckdb
 
+from monitora import db
 from monitora.config import API, LEGISLATURA
 from monitora.http import Client
 
@@ -50,7 +51,7 @@ def _periodos_partido(hist: list[dict]) -> list[tuple[str, str, str | None]]:
 def extract_deputados(client: Client, con: duckdb.DuckDBPyConnection) -> None:
     con.execute(_SCHEMA)
     lista = client.get_all_pages(f"{API}/deputados", {"idLegislatura": LEGISLATURA, "itens": 100})
-    vistos = set()
+    vistos, exercicios, partidos = set(), [], []
     for item in lista:
         id_ = item["id"]
         if id_ in vistos:
@@ -63,8 +64,8 @@ def extract_deputados(client: Client, con: duckdb.DuckDBPyConnection) -> None:
             key=lambda h: h["dataHora"],
         )
         exerc = _periodos_exercicio(hist)
-        con.executemany("INSERT INTO exercicios VALUES (?, ?, ?)", [(id_, i, f) for i, f in exerc])
-        con.executemany("INSERT INTO deputado_partidos VALUES (?, ?, ?, ?)", [(id_, *p) for p in _periodos_partido(hist)])
+        exercicios += [(id_, i, f) for i, f in exerc]
+        partidos += [(id_, *p) for p in _periodos_partido(hist)]
         con.execute(
             "INSERT INTO deputados VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [id_, st.get("nome") or item.get("nome"), d.get("nomeCivil"), d.get("sexo"), st.get("siglaUf") or item.get("siglaUf"),
@@ -73,4 +74,6 @@ def extract_deputados(client: Client, con: duckdb.DuckDBPyConnection) -> None:
              d.get("dataNascimento"), st.get("situacao"), st.get("condicaoEleitoral"),
              exerc[0][0] if exerc else None, exerc[-1][1] if exerc else None],
         )
+    db.inserir(con, "exercicios", exercicios)
+    db.inserir(con, "deputado_partidos", partidos)
     log.info("deputados: %d", len(vistos))
