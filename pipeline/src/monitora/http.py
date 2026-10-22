@@ -45,6 +45,13 @@ class Client:
                     raise httpx.HTTPStatusError(f"status {r.status_code}", request=r.request, response=r)
                 r.raise_for_status()
                 return r
+            except httpx.HTTPStatusError as e:
+                # 4xx (ex.: 404) não melhora com nova tentativa
+                if e.response.status_code not in _RETRY_STATUS or tentativa == self.retries - 1:
+                    raise
+                espera = self.backoff * 2 ** tentativa
+                log.warning("falha em %s (%s); nova tentativa em %.1fs", url, e, espera)
+                time.sleep(espera)
             except httpx.HTTPError as e:
                 if tentativa == self.retries - 1:
                     raise

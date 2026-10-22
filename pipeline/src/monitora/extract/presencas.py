@@ -3,8 +3,10 @@ import json
 import logging
 from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 
 import duckdb
+import httpx
 from dateutil.relativedelta import relativedelta
 
 from monitora import db
@@ -20,11 +22,20 @@ def _tipos_deliberativos(client: Client) -> list[str]:
 
 
 def _meses(desde: date, ate: date):
+    """Meses completos (o fim é sempre o último dia do mês, para a chave do cache da API ser estável)."""
     ini = desde.replace(day=1)
     while ini <= ate:
-        fim = min(ini + relativedelta(months=1) - timedelta(days=1), ate)
-        yield max(ini, desde), fim
+        yield ini, ini + relativedelta(months=1) - timedelta(days=1)
         ini += relativedelta(months=1)
+
+
+def _do_cache(pasta: Path, desde: date, ate: date) -> dict[int, dict]:
+    sessoes = {}
+    for arq in pasta.glob("*.json"):
+        info = json.loads(arq.read_text())
+        if desde.isoformat() <= info["data"] <= ate.isoformat():
+            sessoes[int(arq.stem)] = info
+    return sessoes
 
 
 def extract_presencas(client: Client, con: duckdb.DuckDBPyConnection, desde: date, ate: date | None = None,
@@ -32,22 +43,30 @@ def extract_presencas(client: Client, con: duckdb.DuckDBPyConnection, desde: dat
     ate = ate or date.today()
     pasta = cache_dir / "sessoes"
     pasta.mkdir(parents=True, exist_ok=True)
-    tipos = _tipos_deliberativos(client)
     sessoes: dict[int, dict] = {}
-    for ini, fim in _meses(desde, ate):
-        eventos = client.get_all_pages(f"{API}/eventos", {
-            "codTipoEvento": tipos, "dataInicio": ini.isoformat(), "dataFim": fim.isoformat(), "itens": 100})
-        for ev in eventos:
-            if (ev.get("situacao") or "").lower() != "encerrada":
-                continue
-            arq = pasta / f"{ev['id']}.json"
-            if arq.exists():
-                sessoes[ev["id"]] = json.loads(arq.read_text())
-                continue
-            presentes = [d["id"] for d in client.get_json(f"{API}/eventos/{ev['id']}/deputados")["dados"]]
-            info = {"data": ev["dataHoraInicio"][:10], "tipo": ev.get("descricaoTipo"), "presentes": presentes}
-            arq.write_text(json.dumps(info))
-            sessoes[ev["id"]] = info
+    try:
+        tipos = _tipos_deliberativos(client)
+        for ini, fim in _meses(desde, ate):
+            eventos = client.get_all_pages(f"{API}/eventos", {
+                "codTipoEvento": tipos, "dataInicio": ini.isoformat(), "dataFim": fim.isoformat(), "itens": 100})
+            for ev in eventos:
+                dia = ev["dataHoraInicio"][:10]
+                if not (ev.get("situacao") or "").lower().startswith("encerrada") or not desde.isoformat() <= dia <= ate.isoformat():
+                    continue
+                arq = pasta / f"{ev['id']}.json"
+                if arq.exists():
+                    sessoes[ev["id"]] = json.loads(arq.read_text())
+                    continue
+                presentes = [d["id"] for d in client.get_json(f"{API}/eventos/{ev['id']}/deputados")["dados"]]
+                if not presentes:  # lista vazia = presença ainda não registrada; tenta de novo na próxima execução
+                    continue
+                info = {"data": dia, "tipo": ev.get("descricaoTipo"), "presentes": presentes}
+                arq.write_text(json.dumps(info))
+                sessoes[ev["id"]] = info
+    except httpx.HTTPError as e:
+        log.warning("API de eventos indisponível (%s); usando sessões em cache", e)
+        client.stale_sources.add(urlparse(API).hostname)
+        sessoes = _do_cache(pasta, desde, ate)
 
     con.execute("CREATE OR REPLACE TABLE sessoes (id BIGINT, data DATE, tipo VARCHAR)")
     con.execute("CREATE OR REPLACE TEMP TABLE _presentes (sessao_id BIGINT, deputado_id BIGINT)")

@@ -5,14 +5,14 @@ from pathlib import Path
 import duckdb
 
 from monitora.config import CACHE_DIR, TIPOS_RELEVANTES
-from monitora.extract.arquivos import arquivo_anual, ler_csv
+from monitora.extract.arquivos import anuais, ler_csv
 from monitora.http import Client
 
 log = logging.getLogger(__name__)
 
 
 def extract_proposicoes(client: Client, con: duckdb.DuckDBPyConnection, anos: list[int], cache_dir: Path = CACHE_DIR) -> None:
-    arq = {n: [arquivo_anual(client, n, a, cache_dir) for a in anos]
+    arq = {n: anuais(client, n, anos, cache_dir)
            for n in ("proposicoes", "proposicoesAutores", "proposicoesTemas")}
     con.execute(f"""
     CREATE OR REPLACE TABLE proposicoes AS

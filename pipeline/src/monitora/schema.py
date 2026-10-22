@@ -17,6 +17,7 @@ CREATE TABLE votacoes (id VARCHAR, data DATE, sigla_orgao VARCHAR, descricao VAR
   proposicao_id BIGINT, votos_sim INTEGER, votos_nao INTEGER, votos_outros INTEGER);
 CREATE TABLE votos (votacao_id VARCHAR, deputado_id BIGINT, voto VARCHAR, partido_na_data VARCHAR, data DATE);
 CREATE TABLE orientacoes (votacao_id VARCHAR, bancada VARCHAR, orientacao VARCHAR);
+CREATE TABLE orientacao_partido (votacao_id VARCHAR, partido VARCHAR, orientacao VARCHAR, bancada VARCHAR);
 CREATE TABLE sessoes (id BIGINT, data DATE, tipo VARCHAR);
 CREATE TABLE presencas (sessao_id BIGINT, deputado_id BIGINT, presente BOOLEAN);
 CREATE TABLE proposicoes (id BIGINT, sigla_tipo VARCHAR, numero INTEGER, ano INTEGER, ementa VARCHAR, tema VARCHAR,

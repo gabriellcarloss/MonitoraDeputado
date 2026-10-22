@@ -92,4 +92,14 @@ def test_erro_de_rede_nao_grava_cache(con, client, tmp_path):
         respx.get(MINHA_RECEITA.format(cnpj=C2)).respond(200, json=receita(C2, "DOIS"))
         enrich_cnpj(client, con, cache_dir=tmp_path)
     assert not (tmp_path / "cnpj" / f"{C1}.json").exists()
-    assert con.execute(f"SELECT sem_dados FROM fornecedores WHERE cnpj='{C1}'").fetchone()[0] is True
+
+
+def test_receita_fora_do_ar_marca_fonte_desatualizada(con, client, tmp_path):
+    preparar(con)
+    with respx.mock:
+        respx.get(MINHA_RECEITA.format(cnpj=C1)).respond(503)
+        respx.get(BRASIL_API.format(cnpj=C1)).respond(503)
+        respx.get(MINHA_RECEITA.format(cnpj=C2)).respond(200, json=receita(C2, "DOIS"))
+        enrich_cnpj(client, con, cache_dir=tmp_path)
+    assert "minhareceita.org" in client.stale_sources
+    assert con.execute(f"SELECT count(*) FROM fornecedores WHERE cnpj='{C1}'").fetchone()[0] == 0

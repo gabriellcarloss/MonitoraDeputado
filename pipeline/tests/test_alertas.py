@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 
 from conftest import deputado
+from monitora.extract.votacoes import resolver_orientacoes
 from monitora.metrics.alertas import REGRAS, gerar_alertas
 from monitora.metrics.indicadores import calcular_indicadores
 from monitora.metrics.series import gerar_series
@@ -11,6 +12,7 @@ INI, FIM = date(2023, 2, 1), date(2024, 12, 31)
 
 
 def rodar(con, regra):
+    resolver_orientacoes(con)
     calcular_indicadores(con, INI, FIM)
     gerar_series(con)
     return {a["deputado_id"] for a in REGRAS[regra].fn(con)}
@@ -326,3 +328,32 @@ def test_alerta_formato_e_evidencia_com_url(base):
     assert set(a) == {"id", "regra", "deputado_id", "severidade", "titulo", "descricao", "evidencias"}
     assert a["id"] == "G04-1"
     assert a["evidencias"][0]["url"] == "https://doc/1.pdf"
+
+
+def test_G01_suplentes_curtos_nao_diluem_mediana(base):
+    deputado(base, 1)  # mandato inteiro: ~100/mês
+    gasto(base, 1, 2300)
+    for d in (2, 3):   # suplentes de 2 meses: ~100/mês
+        deputado(base, d, inicio="2024-11-01")
+        gasto(base, d, 200)
+    assert rodar(base, "G01") == set()
+
+
+def test_L02_usa_taxas_mensais_entre_quem_tem_6_meses_ou_mais(base):
+    deputado(base, 1)
+    gasto(base, 1, 99999)
+    _prop(base, 1, 1)
+    for d, n in ((2, 5), (3, 6), (4, 7)):
+        deputado(base, d)
+        gasto(base, d, 1000 * d)
+        _prop(base, d, n)
+    for d in (10, 11, 12, 13, 14):  # suplentes recentes sem projetos não puxam o P25 para zero
+        deputado(base, d, inicio="2024-11-01")
+    assert rodar(base, "L02") == {1}
+
+
+def _prop(base, dep, n):
+    for k in range(n):
+        pid = dep * 1000 + k
+        base.execute("INSERT INTO proposicoes (id, sigla_tipo, data_apresentacao, relevante) VALUES (?, 'PL', '2024-01-01', true)", [pid])
+        base.execute("INSERT INTO autorias VALUES (?, ?, true, 1)", [pid, dep])

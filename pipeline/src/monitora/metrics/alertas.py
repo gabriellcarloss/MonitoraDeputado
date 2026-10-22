@@ -52,18 +52,18 @@ def _forn_url(cnpj: str) -> str:
 
 
 @regra("G01", "Gasto muito acima da média do estado", "atencao",
-       "Gasto da cota no período maior que o dobro da mediana dos deputados da mesma UF.")
+       "Gasto médio mensal da cota (por mês em exercício) maior que o dobro da mediana dos deputados da mesma UF.")
 def _g01(con):
     rows = con.execute("""
-        WITH b AS (SELECT i.deputado_id, d.uf, i.gasto_total FROM indicadores i JOIN deputados d ON d.id = i.deputado_id
-                   WHERE i.meses_exercicio > 0),
-             m AS (SELECT uf, median(gasto_total) AS med FROM b GROUP BY 1)
-        SELECT b.deputado_id, b.gasto_total, m.med, b.uf FROM b JOIN m USING (uf)
-        WHERE m.med > 0 AND b.gasto_total > 2 * m.med""").fetchall()
+        WITH b AS (SELECT i.deputado_id, d.uf, i.gasto_medio_mensal AS g FROM indicadores i JOIN deputados d ON d.id = i.deputado_id
+                   WHERE i.meses_exercicio >= 1),
+             m AS (SELECT uf, median(g) AS med FROM b GROUP BY 1)
+        SELECT b.deputado_id, b.g, m.med, b.uf FROM b JOIN m USING (uf)
+        WHERE m.med > 0 AND b.g > 2 * m.med""").fetchall()
     for dep, g, med, uf in rows:
         fator = f"{g / med:.1f}".replace(".", ",")
-        yield dep, f"Gastou {_brl(g)}, {fator}× a mediana de {uf} ({_brl(med)})", \
-            [_ev("indicador", "gasto_total", g), _ev("mediana_uf", uf, med)], None
+        yield dep, f"Gasta {_brl(g)} por mês, {fator}× a mediana de {uf} ({_brl(med)}/mês)", \
+            [_ev("indicador", "gasto_medio_mensal", g), _ev("mediana_uf", uf, med)], None
 
 
 @regra("G02", "Pico mensal de gastos", "atencao",
@@ -246,13 +246,13 @@ def _l01(con):
 
 
 @regra("L02", "Gasta muito e entrega pouco", "alta",
-       "Gasto entre os 25% maiores e proposições relevantes entre os 25% menores.")
+       "Entre deputados com 6 meses ou mais de exercício: gasto mensal entre os 25% maiores e projetos por mês entre os 25% menores.")
 def _l02(con):
     rows = con.execute("""
-        WITH b AS (SELECT * FROM indicadores WHERE meses_exercicio > 0),
-             q AS (SELECT quantile_cont(gasto_total, 0.75) AS g75, quantile_cont(n_proposicoes_relevantes, 0.25) AS e25 FROM b)
+        WITH b AS (SELECT *, n_proposicoes_relevantes / meses_exercicio AS e FROM indicadores WHERE meses_exercicio >= 6),
+             q AS (SELECT quantile_cont(gasto_medio_mensal, 0.75) AS g75, quantile_cont(e, 0.25) AS e25 FROM b)
         SELECT b.deputado_id, b.gasto_total, b.n_proposicoes_relevantes FROM b, q
-        WHERE b.gasto_total >= q.g75 AND b.n_proposicoes_relevantes <= q.e25 AND b.gasto_total > 0""").fetchall()
+        WHERE b.gasto_medio_mensal >= q.g75 AND b.e <= q.e25 AND b.gasto_total > 0""").fetchall()
     for dep, g, n in rows:
         yield dep, f"Gastou {_brl(g)} e apresentou {n} proposição(ões) relevante(s)", \
             [_ev("indicador", "gasto_total", g), _ev("indicador", "n_proposicoes_relevantes", n)], None

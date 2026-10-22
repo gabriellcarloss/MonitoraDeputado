@@ -60,7 +60,7 @@ def calcular_indicadores(con: duckdb.DuckDBPyConnection, inicio: date, fim: date
     alin_partido AS (
       SELECT vt.deputado_id, avg((vt.voto = o.orientacao)::INT) AS pct_alinhamento_partido,
              count(*) FILTER (vt.voto <> o.orientacao) AS n_votos_contra_bancada
-      FROM votos_periodo vt JOIN orientacoes o ON o.votacao_id = vt.votacao_id AND o.bancada = vt.partido_na_data
+      FROM votos_periodo vt JOIN orientacao_partido o ON o.votacao_id = vt.votacao_id AND o.partido = vt.partido_na_data
       WHERE o.orientacao IN ('Sim', 'Não') AND vt.voto IN ('Sim', 'Não', 'Abstenção', 'Obstrução') GROUP BY 1),
     alin_gov AS (
       SELECT vt.deputado_id, avg((vt.voto = o.orientacao)::INT) AS pct_alinhamento_governo
@@ -110,9 +110,10 @@ def _posicoes(con: duckdb.DuckDBPyConnection) -> None:
           rank() OVER (ORDER BY i.{ind} {ordem} NULLS LAST) AS brasil,
           rank() OVER (PARTITION BY d.uf ORDER BY i.{ind} {ordem} NULLS LAST) AS uf,
           rank() OVER (PARTITION BY d.partido_atual ORDER BY i.{ind} {ordem} NULLS LAST) AS partido,
-          round(100 * percent_rank() OVER (ORDER BY i.{ind} ASC NULLS FIRST), 1) AS percentil
+          round(100 * percent_rank() OVER (ORDER BY i.{ind} ASC NULLS FIRST), 1) AS percentil,
+          count(*) OVER () AS total
         FROM indicadores i JOIN deputados d ON d.id = i.deputado_id
-        WHERE i.meses_exercicio > 0 AND i.{ind} IS NOT NULL""")
+        WHERE i.meses_exercicio >= 1 AND i.{ind} IS NOT NULL""")
     con.execute("CREATE OR REPLACE TABLE posicoes AS " + " UNION ALL ".join(partes))
 
 
@@ -123,7 +124,7 @@ def agregados(con: duckdb.DuckDBPyConnection) -> dict:
     for escopo, chave in (("brasil", "'BR'"), ("uf", "d.uf"), ("partido", "d.partido_atual")):
         cur = con.execute(f"""
             SELECT {chave} AS k, count(*) AS n, {stats}
-            FROM indicadores i JOIN deputados d ON d.id = i.deputado_id WHERE i.meses_exercicio > 0 GROUP BY 1""")
+            FROM indicadores i JOIN deputados d ON d.id = i.deputado_id WHERE i.meses_exercicio >= 1 GROUP BY 1""")
         cols = [c[0] for c in cur.description]
         grupos = {}
         for row in cur.fetchall():

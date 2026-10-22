@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 
 from conftest import deputado
+from monitora.extract.votacoes import resolver_orientacoes
 from monitora.metrics.indicadores import agregados, calcular_indicadores
 
 INI, FIM = date(2024, 1, 1), date(2024, 12, 31)
@@ -59,6 +60,7 @@ def test_alinhamento_ignora_liberado(base):
     base.execute("INSERT INTO votos VALUES ('a', 1, 'Sim', 'AAA', NULL), ('b', 1, 'Sim', 'AAA', NULL), ('c', 1, 'Não', 'AAA', NULL)")
     base.execute("INSERT INTO orientacoes VALUES ('a', 'AAA', 'Sim'), ('b', 'AAA', 'Liberado'), ('c', 'AAA', 'Sim'),"
                  " ('a', 'Governo', 'Não')")
+    resolver_orientacoes(base)
     calcular_indicadores(base, INI, FIM)
     i = ind(base, 1)
     assert i["pct_alinhamento_partido"] == pytest.approx(0.5)
@@ -91,3 +93,13 @@ def test_agregados_por_uf(base):
     assert ag["uf"]["SP"]["gasto_total"]["mediana"] == 200
     assert ag["brasil"]["gasto_total"]["soma"] == 450
     assert ag["partido"]["AAA"]["n"] == 3
+
+
+def test_ranking_exclui_menos_de_1_mes_e_informa_total(base):
+    deputado(base, 1)
+    deputado(base, 2)
+    deputado(base, 3, inicio="2024-12-20")  # ~0,4 mês
+    base.execute("INSERT INTO despesas (deputado_id, ano_mes, valor_liquido) VALUES (1, '2024-01', 100), (2, '2024-01', 900)")
+    calcular_indicadores(base, INI, FIM)
+    rows = base.execute("SELECT deputado_id, brasil, total FROM posicoes WHERE indicador='gasto_total' ORDER BY 1").fetchall()
+    assert rows == [(1, 1, 2), (2, 2, 2)]

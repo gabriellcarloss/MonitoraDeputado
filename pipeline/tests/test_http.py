@@ -97,3 +97,12 @@ def test_offline_nao_acessa_rede(tmp_path):
         r = m.get("https://ex.com/a.csv").respond(200, text="new")
         assert c.download("https://ex.com/a.csv", dest, max_age_hours=1).read_text() == "cached"
     assert not r.called
+
+
+def test_404_nao_e_repetido():
+    c = Client(backoff=0, rate_per_host=1000)
+    with respx.mock:
+        rota = respx.get("https://api.ex/nao").respond(404)
+        with pytest.raises(httpx.HTTPStatusError):
+            c.get_json("https://api.ex/nao")
+    assert rota.call_count == 1

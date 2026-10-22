@@ -87,3 +87,28 @@ def test_passageiro_terceiro_false(con, client, tmp_path):
 
 def test_sem_passageiro_null(con, client, tmp_path):
     assert _com_deputados(con, client, tmp_path)[103] is None
+
+
+def test_despesas_fora_da_legislatura_ou_de_quem_nao_e_deputado_excluidas(con, client, tmp_path):
+    con.execute("CREATE TABLE deputados (id BIGINT, nome VARCHAR, nome_civil VARCHAR)")
+    con.execute("INSERT INTO deputados VALUES (1, 'Ana Titular', 'Ana Maria Titular')")
+    linhas = LINHAS + [
+        linha(1, "Ana Titular", "TELEFONIA", "OP", "22222222000122", "2023-01-20T00:00:00", "10", "0", "10", 1, 2023, 201),
+        linha(77, "Ex Deputado", "TELEFONIA", "OP", "22222222000122", "2024-03-01T00:00:00", "10", "0", "10", 3, 2024, 202),
+    ]
+    with respx.mock:
+        respx.get(CEAP_URL.format(ano=2024)).respond(200, content=zip_bytes("\n".join([HEADER, *linhas]) + "\n"))
+        extract_ceap(client, con, [2024], cache_dir=tmp_path)
+    ides = {r[0] for r in con.execute("SELECT ide_documento FROM despesas").fetchall()}
+    assert 201 not in ides and 202 not in ides
+    assert 101 in ides
+
+
+def test_ceap_ano_corrente_404_ignorado(con, client, tmp_path):
+    from datetime import date
+    ano = date.today().year
+    with respx.mock:
+        respx.get(CEAP_URL.format(ano=2024)).respond(200, content=zip_bytes("\n".join([HEADER, *LINHAS]) + "\n"))
+        respx.get(CEAP_URL.format(ano=ano)).respond(404)
+        extract_ceap(client, con, [2024, ano], cache_dir=tmp_path)
+    assert con.execute("SELECT count(*) FROM despesas").fetchone()[0] == 4

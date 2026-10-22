@@ -3,6 +3,7 @@ import json
 import logging
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 import duckdb
 import httpx
@@ -73,7 +74,9 @@ def enrich_cnpj(client: Client, con: duckdb.DuckDBPyConnection, max_novos: int =
         try:
             dados = _consultar(client, cnpj)
         except _Indisponivel:
-            linhas.append(_linha(cnpj, cache["dados"] if cache else None))
+            client.stale_sources.add(urlparse(MINHA_RECEITA).hostname)
+            if cache:
+                linhas.append(_linha(cnpj, cache["dados"]))
             continue
         arq.write_text(json.dumps({"consultado_em": time.time(), "dados": dados}, ensure_ascii=False))
         linhas.append(_linha(cnpj, dados))

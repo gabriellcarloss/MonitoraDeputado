@@ -13,7 +13,7 @@ from monitora.metrics.indicadores import INDICADORES, agregados
 from monitora.metrics.rede import ego_rede
 from monitora.metrics.series import series_de
 
-PARQUETS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "sessoes", "presencas", "proposicoes",
+PARQUETS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "orientacao_partido", "sessoes", "presencas", "proposicoes",
             "autorias", "relatorias", "rede_arestas", "deputados", "series"]
 
 FONTES = {
@@ -60,7 +60,7 @@ def exportar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict],
     inds = {r.pop("deputado_id"): r for r in _linhas(con, "SELECT * FROM indicadores")}
     pos: dict[int, dict] = {}
     for r in _linhas(con, "SELECT * FROM posicoes"):
-        pos.setdefault(r["deputado_id"], {})[r["indicador"]] = {k: r[k] for k in ("brasil", "uf", "partido", "percentil")}
+        pos.setdefault(r["deputado_id"], {})[r["indicador"]] = {k: r[k] for k in ("brasil", "uf", "partido", "percentil", "total")}
     alertas_por_dep: dict[int, list] = {}
     for a in alertas:
         alertas_por_dep.setdefault(a["deputado_id"], []).append(a)
@@ -85,7 +85,8 @@ def exportar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict],
                 WHERE e.deputado_id = ? GROUP BY e.cnpj_cpf ORDER BY valor DESC LIMIT 10""", [id_]),
             "proposicoes": _linhas(con, """
                 SELECT p.*, a.proponente_principal AS principal FROM autorias a JOIN proposicoes p ON p.id = a.proposicao_id
-                WHERE a.deputado_id = ? ORDER BY p.data_apresentacao DESC""", [id_]),
+                WHERE a.deputado_id = ? ORDER BY p.relevante DESC, a.proponente_principal DESC, p.data_apresentacao DESC
+                LIMIT 200""", [id_]),
             "rede": ego_rede(con, "deputado", str(id_)),
         })
     _grava(out_dir / "deputados.json", resumo)
@@ -106,8 +107,12 @@ def exportar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict],
     })
 
     (out_dir / "parquet").mkdir(parents=True, exist_ok=True)
+    # Ordenar pelas colunas mais filtradas permite que o navegador pule blocos inteiros do arquivo.
+    ordem = {"despesas": "deputado_id, ano_mes", "votos": "deputado_id, votacao_id", "presencas": "deputado_id",
+             "series": "escopo, chave, metrica, periodo", "autorias": "deputado_id"}
     for t in PARQUETS:
-        con.execute(f"COPY (SELECT * FROM {t}) TO '{out_dir / 'parquet' / f'{t}.parquet'}' (FORMAT parquet, COMPRESSION zstd)")
+        ob = f" ORDER BY {ordem[t]}" if t in ordem else ""
+        con.execute(f"COPY (SELECT * FROM {t}{ob}) TO '{out_dir / 'parquet' / f'{t}.parquet'}' (FORMAT parquet, COMPRESSION zstd)")
 
     fontes_ant = (anterior or {}).get("fontes", {})
     fontes = {}

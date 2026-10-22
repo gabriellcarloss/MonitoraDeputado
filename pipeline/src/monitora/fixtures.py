@@ -9,6 +9,7 @@ from pathlib import Path
 
 from monitora import db
 from monitora.export import exportar
+from monitora.extract.votacoes import resolver_orientacoes
 from monitora.metrics.alertas import gerar_alertas
 from monitora.metrics.indicadores import calcular_indicadores
 from monitora.metrics.rede import gerar_rede
@@ -118,6 +119,7 @@ def _popular(con, n_deputados: int, rnd: random.Random) -> None:
     db.inserir(con, "votacoes", votacoes)
     db.inserir(con, "votos", votos)
     db.inserir(con, "orientacoes", orient)
+    resolver_orientacoes(con)
 
     sessoes, pres = [], []
     for s in range(240):

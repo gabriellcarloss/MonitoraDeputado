@@ -5,9 +5,11 @@ from datetime import date
 from pathlib import Path
 
 import duckdb
+import httpx
 
 from monitora import db
-from monitora.config import CACHE_DIR, CEAP_URL
+from monitora.config import CACHE_DIR, CEAP_URL, INICIO_LEGISLATURA
+from monitora.extract.arquivos import ainda_nao_publicado
 from monitora.http import Client
 
 log = logging.getLogger(__name__)
@@ -19,9 +21,15 @@ def _num(col: str) -> str:
             f"ELSE {col} END AS DOUBLE)")
 
 
-def _csv(client: Client, ano: int, cache_dir: Path) -> Path:
+def _csv(client: Client, ano: int, cache_dir: Path) -> Path | None:
     max_age = 20 if ano >= date.today().year else 24 * 30
-    zip_path = client.download(CEAP_URL.format(ano=ano), cache_dir / "ceap" / f"Ano-{ano}.csv.zip", max_age_hours=max_age)
+    try:
+        zip_path = client.download(CEAP_URL.format(ano=ano), cache_dir / "ceap" / f"Ano-{ano}.csv.zip", max_age_hours=max_age)
+    except httpx.HTTPStatusError as e:
+        if ainda_nao_publicado(e, ano):
+            log.warning("CEAP %s ainda não publicada; ignorada", ano)
+            return None
+        raise
     csv_path = zip_path.with_suffix("")
     if not csv_path.exists() or csv_path.stat().st_mtime < zip_path.stat().st_mtime:
         with zipfile.ZipFile(zip_path) as z:
@@ -31,7 +39,11 @@ def _csv(client: Client, ano: int, cache_dir: Path) -> Path:
 
 
 def extract_ceap(client: Client, con: duckdb.DuckDBPyConnection, anos: list[int], cache_dir: Path = CACHE_DIR) -> None:
-    arquivos = [str(_csv(client, ano, cache_dir)) for ano in anos]
+    arquivos = [str(c) for c in (_csv(client, ano, cache_dir) for ano in anos) if c]
+    tem_deputados = con.execute(
+        "SELECT count(*) FROM information_schema.tables WHERE table_name = 'deputados'").fetchone()[0] > 0
+    # Só a legislatura atual e só quem consta como deputado dela (o arquivo de 2023 traz janeiro da anterior).
+    so_deputados = "AND TRY_CAST(ideCadastro AS BIGINT) IN (SELECT id FROM deputados)" if tem_deputados else ""
     con.execute(f"""
     CREATE OR REPLACE TABLE despesas AS
     SELECT
@@ -54,6 +66,7 @@ def extract_ceap(client: Client, con: duckdb.DuckDBPyConnection, anos: list[int]
       CAST(NULL AS BOOLEAN) AS passageiro_e_deputado
     FROM read_csv({arquivos!r}, delim=';', header=true, all_varchar=true, quote='"', union_by_name=true)
     WHERE TRY_CAST(ideCadastro AS BIGINT) IS NOT NULL
+      AND numAno || '-' || lpad(numMes, 2, '0') >= '{INICIO_LEGISLATURA:%Y-%m}' {so_deputados}
     """)
     log.info("despesas: %d", con.execute("SELECT count(*) FROM despesas").fetchone()[0])
 

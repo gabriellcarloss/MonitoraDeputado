@@ -51,3 +51,47 @@ def test_votos_referenciam_votacoes(con, client, tmp_path):
     carregar(con, client, tmp_path)
     assert con.execute("SELECT count(*) FROM votos WHERE votacao_id NOT IN (SELECT id FROM votacoes)").fetchone()[0] == 0
     assert con.execute("SELECT count(*) FROM votos").fetchone()[0] == 2
+
+
+def test_arquivo_do_ano_corrente_inexistente_e_ignorado(con, client, tmp_path):
+    from datetime import date
+    ano = date.today().year
+    with respx.mock:
+        for n, txt in (("votacoes", VOTACOES), ("votacoesVotos", VOTOS), ("votacoesOrientacoes", ORIENT), ("votacoesProposicoes", PROPS)):
+            respx.get(f"{ARQ}/{n}/csv/{n}-2024.csv").respond(200, text=txt)
+            respx.get(f"{ARQ}/{n}/csv/{n}-{ano}.csv").respond(404)
+        extract_votacoes(client, con, [2024, ano], cache_dir=tmp_path)
+    assert con.execute("SELECT count(*) FROM votacoes").fetchone()[0] == 1
+
+
+def _orientacoes_reais(con):
+    from monitora.schema import criar_tabelas
+    criar_tabelas(con)
+    con.execute("""INSERT INTO votos VALUES ('v1', 1, 'Sim', 'PT', NULL), ('v1', 2, 'Não', 'PCdoB', NULL),
+        ('v1', 3, 'Sim', 'PP', NULL), ('v1', 4, 'Não', 'PTB', NULL), ('v1', 5, 'Sim', 'UNIÃO', NULL), ('v1', 6, 'Sim', 'PL', NULL)""")
+    con.execute("""INSERT INTO orientacoes VALUES ('v1', 'Fdr PT-PCdoB-PV', 'Sim'), ('v1', 'Bl UniãoPpPdtPsb', 'Não'),
+        ('v1', 'PL', 'Não'), ('v1', 'Bl PlRepublicanos', 'Sim'), ('v1', 'Governo', 'Sim'), ('v1', 'Minoria', 'Não')""")
+
+
+def test_orientacao_de_federacao_e_bloco_resolvida_por_partido(con):
+    from monitora.extract.votacoes import resolver_orientacoes
+    _orientacoes_reais(con)
+    resolver_orientacoes(con)
+    o = dict(con.execute("SELECT partido, orientacao FROM orientacao_partido WHERE votacao_id='v1'").fetchall())
+    assert o["PT"] == "Sim" and o["PCdoB"] == "Sim"   # federação
+    assert o["PP"] == "Não" and o["UNIÃO"] == "Não"   # bloco em CamelCase, com acento
+    assert o["PL"] == "Não"                           # orientação do próprio partido vence a do bloco
+    assert "PTB" not in o                             # PT não casa com PTB
+
+
+def test_alinhamento_usa_orientacao_da_federacao(con):
+    from datetime import date
+    from conftest import deputado
+    from monitora.extract.votacoes import resolver_orientacoes
+    from monitora.metrics.indicadores import calcular_indicadores
+    _orientacoes_reais(con)
+    con.execute("INSERT INTO votacoes (id, data, sigla_orgao) VALUES ('v1', '2024-03-01', 'PLEN')")
+    deputado(con, 2, partido="PCdoB")
+    resolver_orientacoes(con)
+    calcular_indicadores(con, date(2023, 2, 1), date(2024, 12, 31))
+    assert con.execute("SELECT pct_alinhamento_partido, n_votos_contra_bancada FROM indicadores WHERE deputado_id=2").fetchone() == (0.0, 1)
