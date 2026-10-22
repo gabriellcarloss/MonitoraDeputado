@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tokens em RGB (canais) para permitir opacidade no Tailwind. */
+:root {
+  color-scheme: light;
+  --bg: 246 247 245;        /* fundo da página */
+  --card: 255 255 255;      /* superfície de cards e gráficos */
+  --subtle: 238 241 237;    /* fundos secundários */
+  --fg: 17 24 39;           /* texto principal */
+  --muted: 82 90 102;       /* texto secundário (AA sobre card) */
+  --border: 222 226 220;
+  --verde: 0 156 59;        /* #009C3B */
+  --amarelo: 255 223 0;     /* #FFDF00 — nunca como texto sobre claro */
+  --azul: 0 39 118;         /* #002776 */
+  --destaque: 0 122 46;     /* verde escurecido para texto/links (AA) */
+  --info: 42 120 214;
+  --atencao: 250 178 25;
+  --alta: 208 59 59;
+  /* Séries de gráficos (paleta validada, ordem fixa) */
+  --serie-1: #009c3b; --serie-2: #2a78d6; --serie-3: #eda100; --serie-4: #6250d6; --serie-5: #e34948;
+  --seq-0: #e3f4e8; --seq-1: #b5e2c2; --seq-2: #7fcb98; --seq-3: #40ad69; --seq-4: #008a35; --seq-5: #005c23;
+  --grade: #e5e7eb; --eixo: #6b7280;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: 10 15 28;
+  --card: 17 26 46;         /* #111a2e */
+  --subtle: 26 37 61;
+  --fg: 236 239 244;
+  --muted: 166 176 194;
+  --border: 39 52 80;
+  --verde: 26 166 78;
+  --amarelo: 255 223 0;
+  --azul: 120 156 230;
+  --destaque: 92 214 135;
+  --info: 57 135 229;
+  --atencao: 250 178 25;
+  --alta: 230 103 103;
+  --serie-1: #1aa64e; --serie-2: #3987e5; --serie-3: #c98500; --serie-4: #9085e9; --serie-5: #e66767;
+  --seq-0: #12301f; --seq-1: #14512c; --seq-2: #127338; --seq-3: #1a9a4a; --seq-4: #43c172; --seq-5: #8fe0ab;
+  --grade: #24324f; --eixo: #94a3b8;
+}
+
+html { background: rgb(var(--bg)); }
+body { background: rgb(var(--bg)); color: rgb(var(--fg)); font-feature-settings: "tnum" 1; }
+.num { font-variant-numeric: tabular-nums; }
+.faixa-brasil { background: linear-gradient(90deg, rgb(var(--verde)) 0 60%, rgb(var(--amarelo)) 60% 80%, rgb(var(--azul)) 80% 100%); }
