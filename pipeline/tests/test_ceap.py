@@ -4,7 +4,7 @@ import zipfile
 import respx
 
 from monitora.config import CEAP_URL
-from monitora.extract.ceap import extract_ceap
+from monitora.extract.ceap import extract_ceap, marcar_passageiros
 
 HEADER = ('"txNomeParlamentar";"cpf";"ideCadastro";"nuCarteiraParlamentar";"nuLegislatura";"sgUF";"sgPartido";'
           '"codLegislatura";"numSubCota";"txtDescricao";"numEspecificacaoSubCota";"txtDescricaoEspecificacao";'
@@ -63,3 +63,27 @@ def test_exclui_liderancas(con, client, tmp_path):
 def test_valor_liquido_negativo_preservado(con, client, tmp_path):
     carregar(con, client, tmp_path)
     assert con.execute("SELECT valor_liquido FROM despesas WHERE ide_documento=104").fetchone()[0] == -200.0
+
+
+def _com_deputados(con, client, tmp_path):
+    carregar(con, client, tmp_path)
+    con.execute("CREATE TABLE deputados (id BIGINT, nome VARCHAR, nome_civil VARCHAR)")
+    con.execute("INSERT INTO deputados VALUES (1, 'Ana Titular', 'Ana Maria Títular')")
+    marcar_passageiros(con)
+    return dict(con.execute("SELECT ide_documento, passageiro_e_deputado FROM despesas").fetchall())
+
+
+def test_passageiro_igual_nome_parlamentar(con, client, tmp_path):
+    assert _com_deputados(con, client, tmp_path)[104] is True
+
+
+def test_passageiro_igual_nome_civil_sem_acento(con, client, tmp_path):
+    assert _com_deputados(con, client, tmp_path)[101] is True
+
+
+def test_passageiro_terceiro_false(con, client, tmp_path):
+    assert _com_deputados(con, client, tmp_path)[102] is False
+
+
+def test_sem_passageiro_null(con, client, tmp_path):
+    assert _com_deputados(con, client, tmp_path)[103] is None

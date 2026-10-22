@@ -55,3 +55,21 @@ def extract_ceap(client: Client, con: duckdb.DuckDBPyConnection, anos: list[int]
     WHERE TRY_CAST(ideCadastro AS BIGINT) IS NOT NULL
     """)
     log.info("despesas: %d", con.execute("SELECT count(*) FROM despesas").fetchone()[0])
+
+
+def marcar_passageiros(con: duckdb.DuckDBPyConnection) -> None:
+    """Preenche despesas.passageiro_e_deputado comparando com nome parlamentar e nome civil."""
+    from monitora.normalize import mesmo_nome
+
+    pares = con.execute("""
+        SELECT DISTINCT e.deputado_id, e.passageiro, d.nome, d.nome_civil
+        FROM despesas e JOIN deputados d ON d.id = e.deputado_id WHERE e.passageiro IS NOT NULL
+    """).fetchall()
+    con.execute("CREATE OR REPLACE TEMP TABLE _pass (deputado_id BIGINT, passageiro VARCHAR, eh BOOLEAN)")
+    con.executemany("INSERT INTO _pass VALUES (?, ?, ?)",
+                    [(dep, p, mesmo_nome(p, n) or mesmo_nome(p, c)) for dep, p, n, c in pares])
+    con.execute("""
+        UPDATE despesas SET passageiro_e_deputado = _pass.eh FROM _pass
+        WHERE _pass.deputado_id = despesas.deputado_id AND _pass.passageiro = despesas.passageiro
+    """)
+    con.execute("DROP TABLE _pass")
