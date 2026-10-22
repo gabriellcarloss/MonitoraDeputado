@@ -20,6 +20,8 @@ export interface Filtros {
   tipo?: string;
   tema?: string;
   orgao?: string;
+  regra?: string;
+  severidade?: "info" | "atencao" | "alta";
   /** Uso interno (não vem da URL): só categorias de passagem. */
   so_passagens?: boolean;
 }
@@ -78,6 +80,10 @@ export function parseFiltros(sp: URLSearchParams, opcoes: Opcoes): Filtros {
   f.tema = texto(g("tema"));
   const orgao = g("orgao")?.toUpperCase();
   if (orgao && /^[A-Z0-9]{2,12}$/.test(orgao)) f.orgao = orgao;
+  const regra = g("regra")?.toUpperCase();
+  if (regra && /^[A-Z]\d{2}$/.test(regra)) f.regra = regra;
+  const sev = g("severidade");
+  if (sev === "info" || sev === "atencao" || sev === "alta") f.severidade = sev;
   return Object.fromEntries(Object.entries(f).filter(([, v]) => v !== undefined)) as Filtros;
 }
 

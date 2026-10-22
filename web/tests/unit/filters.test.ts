@@ -32,3 +32,16 @@ describe("parseFiltros", () => {
     expect(paraQuery({})).toBe("");
   });
 });
+
+describe("filtros de alertas", () => {
+  it("regra e severidade válidas", () => {
+    const f = parseFiltros(new URLSearchParams("regra=g04&severidade=alta"), opcoes);
+    expect(f.regra).toBe("G04");
+    expect(f.severidade).toBe("alta");
+  });
+  it("valores inválidos descartados", () => {
+    const f = parseFiltros(new URLSearchParams("regra=DROP&severidade=urgente"), opcoes);
+    expect(f.regra).toBeUndefined();
+    expect(f.severidade).toBeUndefined();
+  });
+});

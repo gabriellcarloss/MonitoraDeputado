@@ -32,9 +32,9 @@ export function Rede({ rede, titulo = "Rede de relações", subtitulo, centro }:
       return `<b>${d.data.name}</b><br/>${NOMES[d.data.tipo as keyof typeof NOMES]}${d.data.valor ? `<br/>${brl(d.data.valor)}` : ""}`;
     } },
     series: [{
-      type: "graph", layout: "force", roam: true, draggable: true, top: 32,
+      type: "graph", layout: "force", roam: true, draggable: true, top: 48, bottom: 12, left: 12, right: 12,
       categories: TIPOS.map((t, i) => ({ name: NOMES[t], itemStyle: { color: c.series[i] } })),
-      force: { repulsion: 120, edgeLength: [40, 140], gravity: 0.08 },
+      force: { repulsion: 90, edgeLength: [30, 110], gravity: 0.2 },
       label: { show: true, position: "right", color: c.texto, fontSize: 10, formatter: (p) => {
         const d = p.data as { name: string; valor: number };
         return d.valor / max > 0.08 ? d.name.slice(0, 28) : "";
