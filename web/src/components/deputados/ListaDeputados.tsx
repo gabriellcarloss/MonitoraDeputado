@@ -1,12 +1,14 @@
 "use client";
 
 import clsx from "clsx";
-import { AlertTriangle, LayoutGrid, Rows3 } from "lucide-react";
+import { AlertTriangle, LayoutGrid, Link2, Rows3, Star } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { BotaoFavorito } from "@/components/favoritos/BotaoFavorito";
 import { BarraFiltros, Campo, Selecao, useFiltros } from "@/components/filtros/Filtros";
 import { Foto } from "@/components/ui/Foto";
 import { Carregando, Erro } from "@/components/ui/StatTile";
+import { linkLista, useFavoritos } from "@/lib/favoritos";
 import { INDICADORES, UFS } from "@/lib/indicadores";
 import type { DeputadoResumo, NomeIndicador } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
@@ -21,6 +23,8 @@ export function ListaDeputados() {
   const { filtros, definir } = useFiltros(opcoes);
   const [modo, setModo] = useState<"cards" | "tabela">("tabela");
   const [selecionados, setSelecionados] = useState<number[]>([]);
+  const fav = useFavoritos();
+  const [copiado, setCopiado] = useState(false);
 
   const ordem = (filtros.ordem && filtros.ordem.replace(/^-/, "") in INDICADORES ? filtros.ordem : "-gasto_total");
   const campo = ordem.replace(/^-/, "") as NomeIndicador;
@@ -29,6 +33,8 @@ export function ListaDeputados() {
   const lista = useMemo(() => {
     const busca = filtros.busca?.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
     return (dados ?? [])
+      .filter((d) => !filtros.lista || filtros.lista.includes(d.id))
+      .filter((d) => !filtros.favoritos || fav.ids.includes(d.id))
       .filter((d) => !filtros.uf || d.uf === filtros.uf)
       .filter((d) => !filtros.partido || d.partido_atual === filtros.partido)
       .filter((d) => !filtros.sexo || d.sexo === filtros.sexo)
@@ -45,7 +51,7 @@ export function ListaDeputados() {
         if (vb === null) return -1;
         return ((va as number) - (vb as number)) * (desc ? -1 : 1);
       });
-  }, [dados, filtros, campo, desc]);
+  }, [dados, filtros, campo, desc, fav.ids]);
 
   if (erro) return <Erro texto={erro} />;
   if (!dados) return <Carregando />;
@@ -53,9 +59,30 @@ export function ListaDeputados() {
   const alternar = (id: number) =>
     setSelecionados((s) => (s.includes(id) ? s.filter((x) => x !== id) : s.length >= 4 ? s : [...s, id]));
 
+  async function copiarLista() {
+    const url = `${window.location.origin}${linkLista(fav.ids)}`;
+    try {
+      if (navigator.share) await navigator.share({ title: "Meus deputados no MonitoraDeputado", url });
+      else { await navigator.clipboard.writeText(url); setCopiado(true); setTimeout(() => setCopiado(false), 1800); }
+    } catch {}
+  }
+
   return (
     <>
+      {filtros.lista ? (
+        <div role="note" className="cartao mb-4 flex flex-wrap items-center gap-3 border-verde/40 p-3 text-sm">
+          <Star size={16} className="text-[#b58900] dark:text-[#ffdf00]" aria-hidden />
+          <p className="flex-1">Você está vendo uma <strong>lista compartilhada</strong> com {filtros.lista.length} deputado(s).</p>
+          <button type="button" className="pilula" onClick={() => fav.definir(Array.from(new Set([...fav.ids, ...filtros.lista!])))}>
+            Adicionar aos meus deputados
+          </button>
+          <button type="button" className="pilula" onClick={() => definir({ lista: undefined })}>Ver todos</button>
+        </div>
+      ) : null}
       <BarraFiltros opcoes={opcoes} periodo={false}>
+        <Selecao rotulo="Meus deputados" valor={filtros.favoritos} todos="Todos"
+          opcoes={[["sim", `Só os marcados com ★ (${fav.ids.length})`]]}
+          onChange={(v) => definir({ favoritos: v as "sim" | undefined })} />
         <Campo rotulo="Buscar nome">
           <input type="search" className="h-9 rounded-md border border-border bg-card px-2 text-sm" defaultValue={filtros.busca ?? ""}
             placeholder="ex.: Silva" onChange={(e) => definir({ busca: e.target.value || undefined })} />
@@ -83,6 +110,11 @@ export function ListaDeputados() {
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
         <p className="flex-1 text-muted">{lista.length} deputado(s)</p>
+        {filtros.favoritos && fav.ids.length ? (
+          <button type="button" onClick={copiarLista} className="pilula">
+            <Link2 size={14} aria-hidden /> {copiado ? "Link copiado!" : "Compartilhar minha lista"}
+          </button>
+        ) : null}
         {selecionados.length ? (
           <Link href={`/deputados/comparar/?ids=${selecionados.join(",")}`}
             className="rounded-md bg-verde px-3 py-1.5 font-medium text-white">Comparar {selecionados.length} selecionado(s)</Link>
@@ -99,6 +131,7 @@ export function ListaDeputados() {
             <thead className="text-left text-muted">
               <tr>
                 <th className="p-2"><span className="sr-only">Comparar</span></th>
+                <th className="p-2"><span className="sr-only">Meu deputado</span></th>
                 <th className="p-2 font-medium">Deputado</th>
                 {COLUNAS.map((c) => (
                   <th key={c} className="p-2 text-right font-medium">
@@ -115,6 +148,7 @@ export function ListaDeputados() {
               {lista.map((d) => (
                 <tr key={d.id} className="border-t border-border hover:bg-subtle/60">
                   <td className="p-2"><input type="checkbox" aria-label={`Comparar ${d.nome}`} checked={selecionados.includes(d.id)} onChange={() => alternar(d.id)} /></td>
+                  <td className="p-1"><BotaoFavorito id={d.id} nome={d.nome} /></td>
                   <td className="p-2">
                     <Link href={`/deputado/${d.id}/`} className="flex items-center gap-2 hover:underline">
                       <Foto src={d.foto} nome={d.nome} tamanho={32} />
@@ -138,6 +172,7 @@ export function ListaDeputados() {
                   <Link href={`/deputado/${d.id}/`} className="font-semibold hover:underline">{d.nome}</Link>
                   <p className="text-xs text-muted">{d.partido_atual}-{d.uf}</p>
                 </div>
+                <BotaoFavorito id={d.id} nome={d.nome} />
                 <input type="checkbox" aria-label={`Comparar ${d.nome}`} checked={selecionados.includes(d.id)} onChange={() => alternar(d.id)} />
               </div>
               <dl className="num mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">

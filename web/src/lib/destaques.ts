@@ -43,8 +43,8 @@ export function gerarDestaques(deps: DeputadoResumo[], seriesBrasil: Serie[]): D
     texto: `${plural(q)} entre os 25% que mais gastam e os 25% que menos apresentam projetos.` });
 
   const t = ativos.filter((d) => d.regras_alerta.includes("G04")).length;
-  out.push({ tipo: "passagens", titulo: "Passagens para terceiros", href: "/gastos/passagens/",
-    texto: `${plural(t)} emitiram passagens pela cota para outras pessoas.` });
+  out.push({ tipo: "passagens", titulo: "Passagens fora da equipe", href: "/alertas/?regra=G04",
+    texto: `${plural(t)} emitiram passagens pela cota para pessoas que não estão na equipe atual do gabinete.` });
 
   const e = maior("n_proposicoes_relevantes");
   if (e) out.push({ tipo: "entrega", titulo: "Mais projetos", href: `/deputado/${e.id}/?aba=proposicoes`,

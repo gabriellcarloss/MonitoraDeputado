@@ -12,12 +12,19 @@ const FONTES_DESC: Record<string, string> = {
   "Câmara — Dados Abertos": "dadosabertos.camara.leg.br — deputados, histórico partidário, votações, votos, orientações, proposições, autorias e presenças.",
   "Câmara — Cota parlamentar (CEAP)": "camara.leg.br/cotas — cada nota fiscal reembolsada, com fornecedor, passageiro, trecho e link do documento.",
   "Receita Federal (CNPJ)": "Dados públicos do CNPJ via Minha Receita e BrasilAPI — abertura, situação, atividade e quadro de sócios.",
+  "Câmara — Frequência com justificativas": "Serviço SitCamaraWS (ListarPresencasDia) — frequência diária no Plenário e o motivo de cada ausência justificada.",
+  "Câmara — Equipe de gabinete": "Arquivo de funcionários dos Dados Abertos — secretários parlamentares lotados em cada gabinete, com o nível (SP01 a SP25).",
+  "CGU — Emendas parlamentares": "Portal da Transparência — emendas por autor, com valores empenhados, pagos, destino e quem recebeu.",
 };
 
 const LIMITACOES = [
   "O salário (subsídio) é igual para todos os deputados e não diferencia desempenho; por isso ele não entra nos indicadores.",
   "A situação cadastral do fornecedor é a atual, não a da data do pagamento.",
-  "Passageiro diferente do deputado pode ser assessor em missão oficial; o painel mostra o dado, sem julgamento.",
+  "Passagens para secretários da equipe atual não geram alerta. Como o arquivo de funcionários só traz a lotação de hoje, ex-assessores aparecem como pessoas fora da equipe.",
+  "O custo da equipe é uma estimativa pelo salário-base de cada nível; não inclui gratificações, auxílios nem encargos.",
+  "Emendas são atribuídas pelo nome do autor no Portal da Transparência. Emendas de bancada, de comissão e de relator não entram no perfil individual.",
+  "Regras relativas (presença abaixo do percentil 10, \"gasta muito e entrega pouco\") sempre apontam alguém, mesmo que todos estejam bem: indicam quem está no extremo, não que exista irregularidade.",
+  "Se o serviço de frequência da Câmara estiver fora do ar, ausências ainda não consultadas contam como falta comum; a fonte aparece como desatualizada acima.",
   "Presença e participação consideram apenas o período em exercício — suplentes não são penalizados.",
   "Projetos contam pela data de apresentação; requerimentos e indicações são contados à parte.",
   "Os dados são atualizados uma vez por dia; mudanças muito recentes podem levar até 24 horas para aparecer.",
@@ -62,11 +69,43 @@ export default function Page() {
             <ul className="list-disc pl-6">
               {COMPONENTES.map((c) => <li key={c.rotulo}>{c.rotulo}{c.menorMelhor ? " (quanto menor, melhor)" : ""}</li>)}
             </ul>
+            <ul className="list-disc pl-6 text-muted">
+              {COMPONENTES.filter((c) => c.nota).map((c) => <li key={c.rotulo}><strong className="text-fg">{c.rotulo}:</strong> {c.nota}.</li>)}
+            </ul>
             <p className="text-muted">Dimensões sem dado são ignoradas na média. O índice resume indicadores quantitativos; não mede a qualidade dos projetos,
               o trabalho em comissões ou a atuação fora do Plenário.</p>
           </div>
         </Secao>
       </section>
+
+      <section id="presenca">
+        <Secao titulo="Presença e faltas">
+          <div className="cartao space-y-2 p-4 text-sm">
+            <p>A presença vem da lista de presentes de cada sessão deliberativa do Plenário. O registro oficial de frequência diária da Câmara informa,
+              para cada ausência, se ela foi <strong>justificada</strong> (licença para tratamento de saúde, missão autorizada, licença-maternidade…).</p>
+            <p>Ausência justificada <strong>não conta como falta</strong>: sai do cálculo da presença e dos rankings e aparece em azul no calendário do perfil.
+              Faltas sem justificativa aparecem em vermelho e têm ranking próprio.</p>
+          </div>
+        </Secao>
+      </section>
+
+      <section id="emendas">
+        <Secao titulo="Emendas e equipe de gabinete">
+          <div className="cartao space-y-2 p-4 text-sm">
+            <p><strong>Emendas:</strong> consideramos as emendas individuais a partir do orçamento de 2024, o primeiro elaborado por esta legislatura.
+              Empenhado é o valor reservado no orçamento; pago é o que efetivamente saiu. &ldquo;Pix&rdquo; é a transferência especial, que vai direto ao
+              caixa do município ou estado sem convênio nem objeto definido.</p>
+            <p><strong>Equipe:</strong> secretários parlamentares lotados hoje em cada gabinete. O limite é de 25 secretários e a verba de gabinete é
+              definida pela Mesa da Câmara; o custo exibido é estimado pelo salário-base de cada nível.</p>
+          </div>
+        </Secao>
+      </section>
+
+      <Secao titulo="Seus dados">
+        <p className="cartao p-4 text-sm">A lista &ldquo;Meus deputados&rdquo; (estrela ★) fica guardada <strong>só no seu navegador</strong>. Ela não é enviada
+          a nenhum servidor, não exige cadastro e some se você limpar os dados do site. O link &ldquo;Compartilhar minha lista&rdquo; só mostra os
+          deputados escolhidos; quem abrir decide se quer salvar.</p>
+      </Secao>
 
       <Secao titulo="Regras dos pontos de atenção">
         <p className="mb-3 text-sm text-muted">{meta?.rodape_alerta ?? RODAPE} Picos: mês acima de mediana + 3 desvios absolutos medianos (escalados) da própria série, ou acima de 2,5× a média dos 12 meses anteriores.</p>

@@ -13,8 +13,25 @@ describe("data (build-time)", () => {
   });
   it("meta tem regras e flag fictício", () => {
     const m = getMeta();
-    expect(m?.regras.length).toBe(16);
+    expect(m?.regras.length).toBe(21);
     expect(typeof m?.ficticio).toBe("boolean");
+  });
+});
+
+describe("dados da fase 3", () => {
+  it("perfil traz equipe e emendas; resumo traz os totais", () => {
+    const id = getDeputadoIds()[0];
+    const d = getDeputado(id)!;
+    expect(d.gabinete?.n).toBeGreaterThan(0);
+    expect(d.emendas?.empenhado).toBeGreaterThan(0);
+    expect(getDeputados()[0].n_secretarios).toBeGreaterThan(0);
+    expect(getBrasil()!.totais.emendas_empenhado).toBeGreaterThan(0);
+  });
+  it("ausências justificadas aparecem no parquet e nos indicadores", async () => {
+    const db = await conectar();
+    const [r] = await db.query<{ n: number }>("SELECT count(*)::INT AS n FROM presencas WHERE justificada");
+    expect(r.n).toBeGreaterThan(0);
+    expect(getDeputados().some((d) => (d.indicadores?.n_faltas_justificadas ?? 0) > 0)).toBe(true);
   });
 });
 

@@ -2,11 +2,13 @@
 
 import clsx from "clsx";
 import {
-  AlertTriangle, BarChart3, BookOpen, FileText, Landmark, LayoutDashboard, Menu, Network, Plane, Share2, UserCheck, Users, Vote, X,
+  AlertTriangle, BarChart3, BookOpen, ExternalLink, FileText, Landmark, LayoutDashboard, Menu, MessageCircle, Network, Plane, Share2,
+  UserCheck, UserRound, Users, Vote, X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AUTOR } from "@/lib/site";
 import { BuscaGlobal } from "./BuscaGlobal";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -84,6 +86,21 @@ function Itens({ onNavegar }: { onNavegar?: () => void }) {
           <Share2 size={18} aria-hidden /> {copiado ? "Link copiado!" : "Compartilhar"}
         </button>
         <ThemeToggle />
+      </div>
+      <p className="mt-6 px-6 text-[11px] font-bold uppercase tracking-widest text-white/50">Quem fez</p>
+      <div className="mt-2 space-y-1 px-3">
+        <a href={AUTOR.whatsapp} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-lg bg-[#25d366] px-3 py-2 text-sm font-bold text-[#0b3d1f] hover:brightness-110">
+          <MessageCircle size={18} aria-hidden /> Fale comigo no WhatsApp
+        </a>
+        <a href={AUTOR.linkedin} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/85 hover:bg-white/10 hover:text-white">
+          <UserRound size={18} aria-hidden /> LinkedIn de {AUTOR.nome.split(" ")[0]}
+        </a>
+        <a href={AUTOR.apuracao} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/85 hover:bg-white/10 hover:text-white">
+          <ExternalLink size={18} aria-hidden /> Apuração Eleições 2026
+        </a>
       </div>
     </>
   );

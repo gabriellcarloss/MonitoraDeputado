@@ -6,11 +6,22 @@ import { Footer } from "@/components/layout/Footer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { scriptTema } from "@/components/layout/ThemeToggle";
 import { getMeta } from "@/lib/data";
+import { AUTOR, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
+const DESCRICAO = "Quanto custam, o que entregam e como votam os deputados federais — dados públicos atualizados diariamente.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: "MonitoraDeputado", template: "%s · MonitoraDeputado" },
-  description: "Quanto custam, o que entregam e como votam os deputados federais — dados públicos atualizados diariamente.",
+  description: DESCRICAO,
+  applicationName: "MonitoraDeputado",
+  authors: [{ name: AUTOR.nome, url: AUTOR.linkedin }],
+  openGraph: {
+    type: "website", locale: "pt_BR", siteName: "MonitoraDeputado", title: "MonitoraDeputado", description: DESCRICAO,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "MonitoraDeputado — fiscalização cidadã dos deputados federais" }],
+  },
+  twitter: { card: "summary_large_image", title: "MonitoraDeputado", description: DESCRICAO, images: ["/og.png"] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -12,7 +12,8 @@ export function sqlVotosDeputado(id: number, limite: number): Consulta {
 }
 
 export function sqlPresencaDeputado(id: number): Consulta {
-  return { sql: `SELECT s.id, s.data, s.tipo, p.presente FROM presencas p JOIN sessoes s ON s.id = p.sessao_id
+  return { sql: `SELECT s.id, s.data, s.tipo, p.presente, coalesce(p.justificada, false) AS justificada, p.justificativa
+    FROM presencas p JOIN sessoes s ON s.id = p.sessao_id
     WHERE p.deputado_id = ? ORDER BY s.data`, params: [id] };
 }
 

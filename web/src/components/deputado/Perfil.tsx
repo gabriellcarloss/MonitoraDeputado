@@ -2,9 +2,11 @@
 
 import { AtSign, Building2, Globe, Mail } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Barras } from "@/components/charts/Barras";
 import { Rede } from "@/components/charts/Rede";
 import { SerieTemporal } from "@/components/charts/SerieTemporal";
+import { BotaoFavorito } from "@/components/favoritos/BotaoFavorito";
 import { TabelaNotas } from "@/components/gastos/TabelaNotas";
 import { Foto } from "@/components/ui/Foto";
 import { Carregando, Erro } from "@/components/ui/StatTile";
@@ -16,10 +18,14 @@ import type { Brasil, DeputadoDetalhe, Serie } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
 import { Abas, useAba } from "./Abas";
 import { Boletim } from "./Boletim";
+import { EmendasDeputado } from "./Emendas";
+import { EquipeDeputado } from "./Equipe";
 import { SeloAlerta } from "./SeloAlerta";
 
-const ABAS = ["resumo", "gastos", "votacoes", "presenca", "proposicoes", "rede"] as const;
-const ROTULOS = { resumo: "Resumo", gastos: "Gastos", votacoes: "Votações", presenca: "Presença", proposicoes: "Proposições", rede: "Rede" };
+const ABAS = ["resumo", "gastos", "emendas", "equipe", "votacoes", "presenca", "proposicoes", "rede"] as const;
+type Aba = (typeof ABAS)[number];
+const ROTULOS: Record<Aba, string> = { resumo: "Resumo", gastos: "Gastos", emendas: "Emendas", equipe: "Equipe", votacoes: "Votações",
+  presenca: "Presença", proposicoes: "Proposições", rede: "Rede" };
 
 function serie(series: Serie[], m: string) {
   return series.find((s) => s.metrica === m);
@@ -36,7 +42,10 @@ function Cabecalho({ d }: { d: DeputadoDetalhe }) {
     <header className="mb-4 flex flex-wrap items-start gap-4">
       <Foto src={p.foto} nome={p.nome} tamanho={88} />
       <div className="min-w-0 flex-1">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{p.nome}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{p.nome}</h1>
+          <BotaoFavorito id={p.id} nome={p.nome} rotulo />
+        </div>
         <p className="text-muted">
           {p.partido_atual}-{p.uf} · {p.condicao_eleitoral ?? "—"} · {p.em_exercicio ? "em exercício" : "fora do exercício"}
           {p.trocou_partido ? " · trocou de partido no mandato" : ""}
@@ -171,37 +180,50 @@ function Kpi({ rotulo, valor }: { rotulo: string; valor: string }) {
   return <div className="cartao p-3"><p className="text-xs text-muted">{rotulo}</p><p className="num text-xl font-bold">{valor}</p></div>;
 }
 
+interface RegPresenca { id: number; data: string; presente: boolean; justificada: boolean; justificativa: string | null }
+
 function Presenca({ d }: { d: DeputadoDetalhe }) {
-  const r = useConsulta<{ id: number; data: string; presente: boolean }>(sqlPresencaDeputado(d.deputado.id));
+  const r = useConsulta<RegPresenca>(sqlPresencaDeputado(d.deputado.id));
   const s = serie(d.series, "presenca");
-  const meses = new Map<string, { data: string; presente: boolean }[]>();
+  const i = d.indicadores;
+  const meses = new Map<string, RegPresenca[]>();
   for (const x of r.dados ?? []) {
     const m = (iso(x.data) ?? "").slice(0, 7);
     meses.set(m, [...(meses.get(m) ?? []), x]);
   }
   return (
     <div className="space-y-6">
-      <SerieTemporal titulo="Presença mensal em sessões deliberativas" formato="pct" linhas={[{ nome: "Presença", pontos: s?.pontos ?? [] }]} altura={220} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Kpi rotulo="Presença em sessões" valor={i?.pct_presenca_sessoes == null ? "—" : pct(i.pct_presenca_sessoes)} />
+        <Kpi rotulo="Faltas sem justificativa" valor={i?.n_faltas_sem_justificativa == null ? "—" : num(i.n_faltas_sem_justificativa)} />
+        <Kpi rotulo="Ausências justificadas" valor={num(i?.n_faltas_justificadas ?? 0)} />
+        <Kpi rotulo="Participação em votações" valor={i?.pct_participacao_votacoes == null ? "—" : pct(i.pct_participacao_votacoes)} />
+      </div>
+      <SerieTemporal titulo="Presença mensal em sessões deliberativas" formato="pct" linhas={[{ nome: "Presença", pontos: s?.pontos ?? [] }]} altura={220}
+        subtitulo="Ausências com justificativa oficial (licença médica, missão autorizada) ficam fora da conta." />
       <section className="cartao p-4">
         <h2 className="font-display text-xl leading-none">Calendário de sessões</h2>
         <p className="mb-3 flex flex-wrap gap-4 text-sm text-muted">
           <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-verde" aria-hidden /> Presente</span>
-          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-alta" aria-hidden /> Ausente</span>
+          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-info" aria-hidden /> Ausência justificada</span>
+          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-alta" aria-hidden /> Falta sem justificativa</span>
         </p>
         {r.erro ? <Erro texto={r.erro} /> : !r.dados ? <Carregando /> : r.dados.length === 0 ? <p className="text-sm text-muted">Sem sessões no período de exercício.</p> : (
           <div className="space-y-2">
             {[...meses.entries()].reverse().map(([m, xs]) => {
               const pres = xs.filter((x) => x.presente).length;
+              const contadas = xs.filter((x) => x.presente || !x.justificada).length;
               return (
                 <div key={m} className="flex flex-wrap items-center gap-2 text-sm">
                   <span className="w-20 text-muted">{m.slice(5)}/{m.slice(0, 4)}</span>
                   <div className="flex flex-wrap gap-1">
                     {xs.map((x) => (
-                      <span key={x.data + String(x.presente)} title={`${data(x.data)}: ${x.presente ? "presente" : "ausente"}`}
-                        className={`h-4 w-4 rounded-sm ${x.presente ? "bg-verde" : "bg-alta"}`} />
+                      <span key={`${x.id}`}
+                        title={`${data(x.data)}: ${x.presente ? "presente" : x.justificada ? `ausência justificada${x.justificativa ? ` (${x.justificativa})` : ""}` : "falta sem justificativa"}`}
+                        className={`h-4 w-4 rounded-sm ${x.presente ? "bg-verde" : x.justificada ? "bg-info" : "bg-alta"}`} />
                     ))}
                   </div>
-                  <span className="num text-muted">{pres}/{xs.length}</span>
+                  <span className="num text-muted">{pres}/{contadas}{contadas < xs.length ? ` · ${xs.length - contadas} just.` : ""}</span>
                 </div>
               );
             })}
@@ -245,18 +267,38 @@ function Proposicoes({ d }: { d: DeputadoDetalhe }) {
   );
 }
 
-export function Perfil({ d, total }: { d: DeputadoDetalhe; total: number }) {
-  const [aba, setAba] = useAba(ABAS);
+function Conteudo({ d, total, aba, onChange }: { d: DeputadoDetalhe; total: number; aba: Aba; onChange: (a: Aba) => void }) {
   return (
     <>
-      <Cabecalho d={d} />
-      <Abas abas={ABAS} rotulos={ROTULOS} atual={aba} onChange={setAba} />
+      <Abas abas={ABAS} rotulos={ROTULOS} atual={aba} onChange={onChange} />
       {aba === "resumo" ? <Resumo d={d} total={total} /> : null}
       {aba === "gastos" ? <Gastos d={d} /> : null}
+      {aba === "emendas" ? <EmendasDeputado d={d} /> : null}
+      {aba === "equipe" ? <EquipeDeputado d={d} /> : null}
       {aba === "votacoes" ? <Votacoes d={d} /> : null}
       {aba === "presenca" ? <Presenca d={d} /> : null}
       {aba === "proposicoes" ? <Proposicoes d={d} /> : null}
       {aba === "rede" ? <Rede rede={d.rede} centro={`deputado:${d.deputado.id}`} subtitulo="Fornecedores e passageiros ligados a este deputado e outros deputados que usam os mesmos." /> : null}
+    </>
+  );
+}
+
+function ComAbas({ d, total }: { d: DeputadoDetalhe; total: number }) {
+  const [aba, setAba] = useAba(ABAS);
+  return <Conteudo d={d} total={total} aba={aba} onChange={setAba} />;
+}
+
+/**
+ * Perfil do deputado. Cabeçalho e Resumo saem prontos no HTML estático (para buscadores e prévias de link);
+ * só a troca de aba depende da URL (?aba=), por isso só ela fica dentro do Suspense.
+ */
+export function Perfil({ d, total }: { d: DeputadoDetalhe; total: number }) {
+  return (
+    <>
+      <Cabecalho d={d} />
+      <Suspense fallback={<Conteudo d={d} total={total} aba="resumo" onChange={() => {}} />}>
+        <ComAbas d={d} total={total} />
+      </Suspense>
     </>
   );
 }

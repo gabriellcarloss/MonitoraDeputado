@@ -29,7 +29,8 @@ jobs:
     permissions:
       contents: write
     env:
-      SITE_URL: ${{ vars.SITE_URL }}
+      # endereço público: usado para comparar com a versão no ar (trava de queda de registros), no sitemap e nas prévias de link
+      SITE_URL: ${{ vars.SITE_URL || 'https://monitoradeputado.vercel.app' }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

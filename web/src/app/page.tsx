@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SerieTemporal } from "@/components/charts/SerieTemporal";
+import { MeusDeputados } from "@/components/favoritos/MeusDeputados";
 import { Destaques } from "@/components/inicio/Destaques";
 import { Hero } from "@/components/inicio/Hero";
 import { MapaUfs, QuadranteInicio } from "@/components/inicio/InicioCliente";
@@ -9,7 +10,7 @@ import { Secao, StatTile, Titulo } from "@/components/ui/StatTile";
 import { getAlertas, getBrasil, getDeputados, getMeta } from "@/lib/data";
 import { gerarDestaques } from "@/lib/destaques";
 import { alertasEmDestaque, contrasteGasto, indiceDesempenho } from "@/lib/indice";
-import { brl, num, pct } from "@/lib/format";
+import { brl, brlCurto, num, pct } from "@/lib/format";
 import type { DeputadoResumo, Indicadores } from "@/lib/types";
 
 function top(deps: DeputadoResumo[], campo: keyof Indicadores, fmt: (v: number) => string, asc: boolean, n = 8): ItemRanking[] {
@@ -68,12 +69,17 @@ export default function Inicio() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <StatTile rotulo="Em exercício" valor={num(emExercicio)} detalhe={`${num(deps.length)} passaram pela legislatura`} cor="azul" barra={emExercicio / 513} />
-        <StatTile rotulo="Votações nominais" valor={num(brasil.totais.n_votacoes)} cor="verde" />
+        {brasil.totais.emendas_empenhado ? (
+          <StatTile rotulo="Emendas individuais" valor={brlCurto(brasil.totais.emendas_empenhado)}
+            detalhe={`empenhado desde 2024 · ${brlCurto(brasil.totais.emendas_pago ?? 0)} pagos`} cor="verde" />
+        ) : <StatTile rotulo="Votações nominais" valor={num(brasil.totais.n_votacoes)} cor="verde" />}
         <StatTile rotulo="Sessões deliberativas" valor={num(brasil.totais.n_sessoes)} cor="verde" />
         <StatTile rotulo="Projetos apresentados" valor={num(brasil.totais.n_proposicoes_relevantes)} detalhe="PL, PLP, PEC e PDL" cor="amarelo" />
         <StatTile rotulo="Participação em votações" valor={ag.pct_participacao_votacoes.media == null ? "—" : pct(ag.pct_participacao_votacoes.media)} cor="verde" barra={ag.pct_participacao_votacoes.media ?? 0} />
         <StatTile rotulo="Cota utilizada (média)" valor={ag.pct_cota_usada.media == null ? "—" : pct(ag.pct_cota_usada.media)} cor="laranja" barra={ag.pct_cota_usada.media ?? 0} />
       </div>
+
+      <MeusDeputados />
 
       <Secao titulo="Destaques" sub="gerados a cada atualização dos dados">
         <Destaques itens={gerarDestaques(deps, brasil.series)} />

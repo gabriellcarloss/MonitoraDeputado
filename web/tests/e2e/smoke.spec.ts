@@ -12,7 +12,8 @@ const cnpj = alerta?.url?.split("cnpj=")[1] ?? "00000000000000";
 const ROTAS = [
   "/", "/deputados/", `/deputados/comparar/?ids=${deputados[0].id},${deputados[1].id}`,
   `/deputado/${dep}/`, `/deputado/${dep}/?aba=gastos`, `/deputado/${dep}/?aba=votacoes`, `/deputado/${dep}/?aba=presenca`,
-  `/deputado/${dep}/?aba=proposicoes`, `/deputado/${dep}/?aba=rede`,
+  `/deputado/${dep}/?aba=proposicoes`, `/deputado/${dep}/?aba=rede`, `/deputado/${dep}/?aba=emendas`, `/deputado/${dep}/?aba=equipe`,
+  "/deputados/?favoritos=sim", `/deputados/?lista=${deputados[0].id},${deputados[1].id}`,
   "/gastos/", "/gastos/passagens/", `/fornecedor/?cnpj=${cnpj}`, "/votacoes/", "/presenca/", "/proposicoes/",
   "/alertas/", "/rede/", "/sobre/",
 ];
@@ -74,4 +75,41 @@ test("CSV exportado traz datas legíveis", async ({ page }) => {
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Exportar CSV/ }).click()]);
   const conteudo = fs.readFileSync((await download.path())!, "utf8");
   expect(conteudo.split("\n")[1]).toMatch(/^"\d{4}-\d{2}-\d{2}"/);
+});
+
+test("perfil sai pronto no HTML estático, com prévia de link", async ({ request }) => {
+  const html = await (await request.get(`/deputado/${dep}/`)).text();
+  expect(html).toContain("Boletim de desempenho");
+  expect(html).toContain('property="og:description"');
+  expect(html).toMatch(/<meta name="description" content="[^"]+\(/);
+});
+
+test("sitemap e robots publicados", async ({ request }) => {
+  const sm = await (await request.get("/sitemap.xml")).text();
+  expect(sm).toContain(`/deputado/${dep}/`);
+  expect(await (await request.get("/robots.txt")).text()).toContain("Sitemap:");
+});
+
+test("meus deputados: marcar com estrela, filtrar e ver na página inicial", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/deputados/");
+  const estrela = page.getByRole("button", { name: /^Marcar .* como meu deputado$/ }).first();
+  const rotulo = (await estrela.getAttribute("aria-label"))!;
+  const nome = rotulo.replace(/^Marcar /, "").replace(/ como meu deputado$/, "");
+  await estrela.click();
+  await expect(page.getByRole("button", { name: `Remover ${nome} dos meus deputados` }).first()).toBeVisible();
+  await page.locator("label", { hasText: /^Meus deputados/ }).locator("select").selectOption("sim");
+  await expect(page).toHaveURL(/favoritos=sim/);
+  await expect(page.getByText("1 deputado(s)")).toBeVisible();
+  await page.goto("/");
+  await expect(page.locator("#meus-deputados")).toBeVisible();
+  await expect(page.locator("section[aria-labelledby=meus-deputados]").getByText(nome).first()).toBeVisible();
+});
+
+test("botões de contato do autor", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/sobre/");
+  await expect(page.locator('a[href^="https://wa.me/5511918737727"]').first()).toBeVisible();
+  await expect(page.locator('a[href="https://www.linkedin.com/in/gabriel-carlos-moreira/"]').first()).toBeVisible();
+  await expect(page.locator('a[href^="https://apuracao-2026-five.vercel.app/"]').first()).toBeVisible();
 });

@@ -45,3 +45,17 @@ describe("filtros de alertas", () => {
     expect(f.severidade).toBeUndefined();
   });
 });
+
+describe("meus deputados", () => {
+  it("favoritos=sim e lista compartilhada (ids válidos, sem repetição)", () => {
+    const f = parseFiltros(new URLSearchParams("favoritos=sim&lista=3,abc,3,-1,7"), opcoes);
+    expect(f.favoritos).toBe("sim");
+    expect(f.lista).toEqual([3, 7]);
+    expect(paraQuery({ lista: f.lista })).toBe("?lista=3%2C7");
+  });
+  it("valores estranhos são ignorados", () => {
+    const f = parseFiltros(new URLSearchParams("favoritos=talvez&lista="), opcoes);
+    expect(f.favoritos).toBeUndefined();
+    expect(f.lista).toBeUndefined();
+  });
+});

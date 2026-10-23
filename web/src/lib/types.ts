@@ -19,6 +19,10 @@ export interface Indicadores {
   n_votos_contra_bancada: number;
   custo_por_proposicao: number | null;
   custo_por_sessao: number | null;
+  /** Sessões com ausência sem justificativa oficial. */
+  n_faltas_sem_justificativa: number | null;
+  /** Ausências justificadas (licença médica, missão autorizada…): não entram na presença nem nos rankings. */
+  n_faltas_justificadas: number;
   meses_exercicio: number;
 }
 
@@ -79,6 +83,10 @@ export interface DeputadoResumo {
   posicoes: Posicoes;
   n_alertas: number;
   regras_alerta: string[];
+  n_secretarios?: number;
+  custo_equipe_estimado?: number;
+  emendas_empenhado?: number | null;
+  emendas_pago?: number | null;
 }
 
 export interface Deputado {
@@ -127,6 +135,48 @@ export interface Rede {
   arestas: { origem: string; destino: string; valor: number | null; n: number }[];
 }
 
+export interface Secretario {
+  nome: string;
+  cargo: string | null;
+  nivel: number | null;
+  salario_estimado: number | null;
+  nomeacao: string | null;
+  inicio: string | null;
+}
+export interface Gabinete {
+  secretarios: Secretario[];
+  n: number;
+  custo_estimado: number;
+  nomeados_12m: number;
+  verba: number;
+  limite: number;
+}
+
+export interface Emenda {
+  codigo: string;
+  ano: number | null;
+  tipo: string | null;
+  localidade: string | null;
+  uf: string | null;
+  funcao: string | null;
+  empenhado: number;
+  pago: number;
+  pix: boolean;
+}
+export interface Emendas {
+  n: number;
+  empenhado: number;
+  pago: number;
+  restos_pagos: number;
+  pix: number;
+  fora_uf: number;
+  por_ano: { ano: number; empenhado: number; pago: number; pix: number | null }[];
+  por_funcao: { rotulo: string; valor: number }[];
+  por_local: { rotulo: string; uf: string | null; valor: number }[];
+  favorecidos: { nome: string; natureza: string | null; uf: string | null; municipio: string | null; valor: number }[];
+  lista: Emenda[];
+}
+
 export interface DeputadoDetalhe {
   deputado: Deputado;
   indicadores: Indicadores | null;
@@ -136,6 +186,9 @@ export interface DeputadoDetalhe {
   top_fornecedores: { cnpj: string | null; nome: string; valor: number; n: number }[];
   proposicoes: Proposicao[];
   rede: Rede;
+  /** Ausentes em publicações anteriores à Fase 3. */
+  gabinete?: Gabinete;
+  emendas?: Emendas;
 }
 
 export interface Estatistica {
@@ -150,7 +203,8 @@ export interface Brasil {
   series: Serie[];
   series_uf: Record<string, Serie[]>;
   series_partido: Record<string, Serie[]>;
-  totais: { gasto_total: number; n_votacoes: number; n_proposicoes_relevantes: number; n_sessoes: number; n_alertas: number };
+  totais: { gasto_total: number; n_votacoes: number; n_proposicoes_relevantes: number; n_sessoes: number; n_alertas: number;
+    emendas_empenhado?: number; emendas_pago?: number; n_secretarios?: number };
 }
 
 export interface Regra {
