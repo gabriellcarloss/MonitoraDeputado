@@ -15,6 +15,10 @@ from monitora.export import exportar
 from monitora.extract.ceap import extract_ceap, marcar_passageiros
 from monitora.extract.cnpj import enrich_cnpj
 from monitora.extract.deputados import extract_deputados
+from monitora.extract.emendas import criar_tabelas as criar_tabelas_emendas
+from monitora.extract.emendas import extract_emendas
+from monitora.extract.frequencia import extract_frequencia
+from monitora.extract.gabinete import extract_gabinete
 from monitora.extract.presencas import extract_presencas
 from monitora.extract.proposicoes import extract_proposicoes
 from monitora.extract.votacoes import extract_votacoes
@@ -49,6 +53,18 @@ def publicar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict],
     return True
 
 
+def _opcional(client: Client, fonte: str, fn, ddl_vazio: str | None, con, depois=None) -> None:
+    try:
+        fn()
+    except Exception:
+        log.exception("fonte complementar %s falhou; seguindo sem ela", fonte)
+        client.stale_sources.add(fonte)
+        if ddl_vazio:
+            con.execute(ddl_vazio)
+        if depois:
+            depois()
+
+
 def executar(anos: list[int], sem_cnpj: bool, offline: bool, out_dir: Path = OUT_DIR, cache_dir: Path = CACHE_DIR) -> bool:
     client = Client(cache_dir=cache_dir, offline=offline)
     con = db.connect()
@@ -63,6 +79,17 @@ def executar(anos: list[int], sem_cnpj: bool, offline: bool, out_dir: Path = OUT
     extract_proposicoes(client, con, anos, cache_dir)
     log.info("extraindo presenças")
     extract_presencas(client, con, INICIO_LEGISLATURA, cache_dir=cache_dir)
+    # Fontes complementares: se o formato mudar ou a fonte falhar, o painel sai sem elas em vez de não sair.
+    log.info("extraindo frequência com justificativas")
+    _opcional(client, "SitCamaraWS", lambda: extract_frequencia(client, con, cache_dir=cache_dir),
+              "CREATE OR REPLACE TABLE frequencia_dia (data DATE, deputado_id BIGINT, frequencia VARCHAR, justificativa VARCHAR)", con)
+    log.info("extraindo equipe de gabinete")
+    _opcional(client, "funcionarios", lambda: extract_gabinete(client, con, cache_dir=cache_dir),
+              """CREATE OR REPLACE TABLE secretarios (deputado_id BIGINT, nome VARCHAR, cargo VARCHAR, nivel INTEGER,
+                 salario_estimado DOUBLE, nomeacao DATE, inicio DATE)""", con)
+    log.info("extraindo emendas parlamentares")
+    _opcional(client, "dadosabertos-download.cgu.gov.br", lambda: extract_emendas(client, con, cache_dir=cache_dir),
+              None, con, depois=lambda: criar_tabelas_emendas(con))
     if sem_cnpj:
         con.execute("""CREATE OR REPLACE TABLE fornecedores (cnpj VARCHAR, razao_social VARCHAR, nome_fantasia VARCHAR,
             abertura DATE, situacao VARCHAR, cnae VARCHAR, municipio VARCHAR, uf VARCHAR,

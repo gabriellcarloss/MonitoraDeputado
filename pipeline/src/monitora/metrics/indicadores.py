@@ -8,12 +8,13 @@ from monitora.config import COTA_MENSAL_UF, TIPOS_REQUERIMENTO
 
 # Indicadores em que o menor valor ocupa a posição 1.
 MENOR_MELHOR = {"gasto_total", "gasto_medio_mensal", "pct_cota_usada", "pct_maior_fornecedor",
-                "custo_por_proposicao", "custo_por_sessao", "n_votos_contra_bancada"}
+                "custo_por_proposicao", "custo_por_sessao", "n_votos_contra_bancada", "n_faltas_sem_justificativa"}
 
 INDICADORES = ["gasto_total", "gasto_medio_mensal", "pct_cota_usada", "pct_maior_fornecedor", "n_proposicoes_relevantes",
                "n_proposicoes_coautor", "n_requerimentos", "n_relatorias", "n_aprovadas", "pct_presenca_sessoes",
                "pct_participacao_votacoes", "pct_alinhamento_partido", "pct_alinhamento_governo",
-               "n_votos_contra_bancada", "custo_por_proposicao", "custo_por_sessao"]
+               "n_votos_contra_bancada", "custo_por_proposicao", "custo_por_sessao", "n_faltas_sem_justificativa"]
+# Ausências justificadas (licença médica, missão autorizada…) não são boas nem ruins: aparecem, mas sem ranking.
 
 
 def calcular_indicadores(con: duckdb.DuckDBPyConnection, inicio: date, fim: date) -> None:
@@ -43,10 +44,20 @@ def calcular_indicadores(con: duckdb.DuckDBPyConnection, inicio: date, fim: date
         count(*) FILTER (p.relevante AND a.proponente_principal AND p.situacao ILIKE '%transformad%norma%') AS n_aprovadas
       FROM autorias a JOIN proposicoes p ON p.id = a.proposicao_id
       WHERE p.data_apresentacao BETWEEN $ini AND $fim GROUP BY 1),
-    relat AS (SELECT deputado_id, count(DISTINCT proposicao_id) AS n_relatorias FROM relatorias GROUP BY 1),
+    relat AS (
+      SELECT r.deputado_id, count(DISTINCT r.proposicao_id) AS n_relatorias
+      FROM relatorias r JOIN proposicoes p ON p.id = r.proposicao_id
+      WHERE p.data_apresentacao BETWEEN $ini AND $fim GROUP BY 1),
+    justif AS (  -- dias com ausência justificada no registro oficial de frequência
+      SELECT DISTINCT data, deputado_id FROM frequencia_dia WHERE lower(frequencia) LIKE 'aus%ncia justificada'),
     pres AS (
-      SELECT pr.deputado_id, avg(pr.presente::INT) AS pct_presenca_sessoes, count(*) FILTER (pr.presente) AS n_presente
-      FROM presencas pr JOIN sessoes s ON s.id = pr.sessao_id WHERE s.data BETWEEN $ini AND $fim GROUP BY 1),
+      SELECT pr.deputado_id,
+        count(*) FILTER (pr.presente) AS n_presente,
+        count(*) FILTER (NOT pr.presente AND j.deputado_id IS NOT NULL) AS n_justificadas,
+        count(*) AS n_sessoes
+      FROM presencas pr JOIN sessoes s ON s.id = pr.sessao_id
+      LEFT JOIN justif j ON j.data = s.data AND j.deputado_id = pr.deputado_id
+      WHERE s.data BETWEEN $ini AND $fim GROUP BY 1),
     plen AS (
       SELECT e.deputado_id, v.id AS votacao_id FROM votacoes v
       JOIN exerc e ON v.data >= e.ini AND v.data < e.fim
@@ -77,7 +88,11 @@ def calcular_indicadores(con: duckdb.DuckDBPyConnection, inicio: date, fim: date
       coalesce(pp.n_requerimentos, 0) AS n_requerimentos,
       coalesce(r.n_relatorias, 0) AS n_relatorias,
       coalesce(pp.n_aprovadas, 0) AS n_aprovadas,
-      pr.pct_presenca_sessoes,
+      -- ausência justificada sai do denominador: não conta como presença nem como falta
+      CASE WHEN pr.n_sessoes - pr.n_justificadas > 0 THEN pr.n_presente / (pr.n_sessoes - pr.n_justificadas) END
+        AS pct_presenca_sessoes,
+      coalesce(pr.n_justificadas, 0) AS n_faltas_justificadas,
+      CASE WHEN pr.n_sessoes IS NOT NULL THEN pr.n_sessoes - pr.n_presente - pr.n_justificadas END AS n_faltas_sem_justificativa,
       pa.pct_participacao_votacoes,
       ap.pct_alinhamento_partido,
       ag.pct_alinhamento_governo,

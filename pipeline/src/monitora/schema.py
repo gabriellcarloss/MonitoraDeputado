@@ -20,6 +20,14 @@ CREATE TABLE orientacoes (votacao_id VARCHAR, bancada VARCHAR, orientacao VARCHA
 CREATE TABLE orientacao_partido (votacao_id VARCHAR, partido VARCHAR, orientacao VARCHAR, bancada VARCHAR);
 CREATE TABLE sessoes (id BIGINT, data DATE, tipo VARCHAR);
 CREATE TABLE presencas (sessao_id BIGINT, deputado_id BIGINT, presente BOOLEAN);
+CREATE TABLE frequencia_dia (data DATE, deputado_id BIGINT, frequencia VARCHAR, justificativa VARCHAR);
+CREATE TABLE secretarios (deputado_id BIGINT, nome VARCHAR, cargo VARCHAR, nivel INTEGER, salario_estimado DOUBLE,
+  nomeacao DATE, inicio DATE);
+CREATE TABLE emendas (codigo VARCHAR, ano INTEGER, tipo VARCHAR, deputado_id BIGINT, autor VARCHAR, localidade VARCHAR,
+  municipio VARCHAR, uf VARCHAR, funcao VARCHAR, empenhado DOUBLE, liquidado DOUBLE, pago DOUBLE, restos_pagos DOUBLE,
+  pix BOOLEAN);
+CREATE TABLE emendas_favorecidos (codigo VARCHAR, deputado_id BIGINT, ano_mes VARCHAR, favorecido VARCHAR,
+  codigo_favorecido VARCHAR, natureza VARCHAR, tipo_favorecido VARCHAR, uf VARCHAR, municipio VARCHAR, valor DOUBLE);
 CREATE TABLE proposicoes (id BIGINT, sigla_tipo VARCHAR, numero INTEGER, ano INTEGER, ementa VARCHAR, tema VARCHAR,
   data_apresentacao DATE, situacao VARCHAR, relevante BOOLEAN, url_inteiro_teor VARCHAR);
 CREATE TABLE autorias (proposicao_id BIGINT, deputado_id BIGINT, proponente_principal BOOLEAN, ordem INTEGER);

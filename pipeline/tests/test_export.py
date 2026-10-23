@@ -30,7 +30,9 @@ def test_export_escreve_todos_arquivos(base, tmp_path):
     assert {p.stem for p in (tmp_path / "parquet").iterdir()} == PARQUETS
     assert {p.name for p in (tmp_path / "deputado").iterdir()} == {"1.json", "2.json"}
     d = json.loads((tmp_path / "deputado" / "1.json").read_text())
-    assert set(d) == {"deputado", "indicadores", "posicoes", "series", "alertas", "top_fornecedores", "proposicoes", "rede"}
+    assert set(d) == {"deputado", "indicadores", "posicoes", "series", "alertas", "top_fornecedores", "proposicoes", "rede",
+                      "gabinete", "emendas"}
+    assert d["gabinete"]["n"] == 0 and d["emendas"]["n"] == 0
 
 
 def test_export_json_sem_nan(base, tmp_path):
@@ -51,10 +53,10 @@ def test_meta_marca_fonte_desatualizada(base, tmp_path):
     assert meta["contagens"]["despesas"] == 1
 
 
-def test_meta_lista_16_regras(base, tmp_path):
+def test_meta_lista_21_regras(base, tmp_path):
     exportar(base, tmp_path, preparar(base), stale=set())
     meta = json.loads((tmp_path / "meta.json").read_text())
-    assert len(meta["regras"]) == 16
+    assert len(meta["regras"]) == 21
     assert set(meta["regras"][0]) == {"id", "titulo", "severidade", "descricao"}
     assert meta["rodape_alerta"] == "Ponto de atenção gerado automaticamente a partir de dados públicos. Não constitui acusação."
 
@@ -85,3 +87,28 @@ def test_parquet_de_despesas_ordenado_por_deputado(base, tmp_path):
     exportar(base, tmp_path, [], stale=set())
     ids = [r[0] for r in duckdb.sql(f"SELECT deputado_id FROM '{tmp_path}/parquet/despesas.parquet'").fetchall()]
     assert ids == [1, 2, 3]
+
+
+def test_export_gabinete_emendas_e_justificativa(base, tmp_path):
+    import duckdb
+    deputado(base, 1, nome="Ana", uf="SP")
+    base.execute("INSERT INTO secretarios VALUES (1, 'MARIA SOUZA', 'SP10', 10, 5699.90, '2026-01-10', '2023-02-01')")
+    base.execute("INSERT INTO emendas (codigo, ano, tipo, deputado_id, uf, funcao, empenhado, pago, pix) VALUES "
+                 "('a', 2025, 'Individual', 1, 'BA', 'Saúde', 1000, 500, true), ('b', 2024, 'Individual', 1, 'SP', 'Saúde', 3000, 3000, false)")
+    base.execute("INSERT INTO sessoes VALUES (10, '2024-05-02', 'S')")
+    base.execute("INSERT INTO presencas VALUES (10, 1, false)")
+    base.execute("INSERT INTO frequencia_dia VALUES ('2024-05-02', 1, 'Ausência justificada', 'Missão Autorizada')")
+    calcular_indicadores(base, date(2023, 2, 1), date(2024, 12, 31))
+    gerar_series(base)
+    gerar_rede(base)
+    exportar(base, tmp_path, gerar_alertas(base), stale=set())
+    d = json.loads((tmp_path / "deputado" / "1.json").read_text())
+    assert d["gabinete"]["n"] == 1 and d["gabinete"]["custo_estimado"] == 5699.90
+    e = d["emendas"]
+    assert (e["empenhado"], e["pago"], e["pix"], e["fora_uf"]) == (4000, 3500, 1000, 1000)
+    assert [x["ano"] for x in e["por_ano"]] == [2024, 2025]
+    resumo = json.loads((tmp_path / "deputados.json").read_text())[0]
+    assert (resumo["n_secretarios"], resumo["emendas_empenhado"]) == (1, 4000)
+    pres = duckdb.sql(f"SELECT presente, justificada, justificativa FROM '{tmp_path}/parquet/presencas.parquet'").fetchall()
+    assert pres == [(False, True, "Missão Autorizada")]
+    assert d["indicadores"]["pct_presenca_sessoes"] is None  # única sessão foi ausência justificada
