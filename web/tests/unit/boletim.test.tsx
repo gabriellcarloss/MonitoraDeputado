@@ -8,7 +8,8 @@ const SUPLENTE: Indicadores = {
   gasto_total: 0, gasto_medio_mensal: 0, pct_cota_usada: 0, pct_maior_fornecedor: 0, n_proposicoes_relevantes: 0,
   n_proposicoes_coautor: 0, n_requerimentos: 0, n_relatorias: 0, n_aprovadas: 0, pct_presenca_sessoes: null,
   pct_participacao_votacoes: null, pct_alinhamento_partido: null, pct_alinhamento_governo: null,
-  n_votos_contra_bancada: 0, custo_por_proposicao: null, custo_por_sessao: null, meses_exercicio: 0.4,
+  n_votos_contra_bancada: 0, custo_por_proposicao: null, custo_por_sessao: null, n_faltas_sem_justificativa: null,
+  n_faltas_justificadas: 0, meses_exercicio: 0.4,
 };
 
 describe("Boletim", () => {

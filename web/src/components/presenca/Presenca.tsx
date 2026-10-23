@@ -10,7 +10,7 @@ import { sqlPresencaMensal, sqlRankingPresenca } from "@/lib/queries/presenca";
 import { useOpcoes } from "@/lib/useOpcoes";
 import Link from "next/link";
 
-interface Linha { deputado_id: number; nome: string; partido: string; uf: string; sessoes: number; presentes: number; pct: number }
+interface Linha { deputado_id: number; nome: string; partido: string; uf: string; sessoes: number; presentes: number; justificadas: number; pct: number }
 
 export function Presenca() {
   const { opcoes, deputados } = useOpcoes();
@@ -42,13 +42,15 @@ export function Presenca() {
         )}
         <section className="cartao p-4">
           <h2 className="font-display mb-1 text-xl leading-none">Todos os deputados</h2>
-          <p className="mb-3 text-sm text-muted">Presença em sessões deliberativas no período filtrado. Participação em votações refere-se à legislatura inteira.</p>
+          <p className="mb-3 text-sm text-muted">Presença em sessões deliberativas no período filtrado. Ausências justificadas oficialmente
+            (licença médica, missão autorizada) não contam como falta e ficam fora da conta. Participação em votações refere-se à legislatura inteira.</p>
           {!r.dados ? <Carregando /> : (
             <div className="max-h-[560px] overflow-auto">
               <table className="w-full min-w-[620px] text-sm">
                 <thead className="sticky top-0 bg-card text-left text-muted"><tr>
                   <th className="py-2 pr-3 font-medium">Deputado</th><th className="py-2 pr-3 text-right font-medium">Sessões</th>
-                  <th className="py-2 pr-3 text-right font-medium">Presente</th><th className="py-2 pr-3 font-medium">Presença</th>
+                  <th className="py-2 pr-3 text-right font-medium">Presente</th><th className="py-2 pr-3 text-right font-medium">Justificadas</th>
+                  <th className="py-2 pr-3 font-medium">Presença</th>
                   <th className="py-2 text-right font-medium">Participação em votações</th></tr></thead>
                 <tbody className="num">{r.dados.map((x) => {
                   const part = deputados.get(x.deputado_id)?.indicadores?.pct_participacao_votacoes;
@@ -57,6 +59,7 @@ export function Presenca() {
                       <td className="py-1.5 pr-3"><Link href={`/deputado/${x.deputado_id}/?aba=presenca`} className="hover:underline">{x.nome}</Link> <span className="text-muted">({x.partido}-{x.uf})</span></td>
                       <td className="py-1.5 pr-3 text-right">{x.sessoes}</td>
                       <td className="py-1.5 pr-3 text-right">{x.presentes}</td>
+                      <td className="py-1.5 pr-3 text-right">{x.justificadas || "—"}</td>
                       <td className="py-1.5 pr-3"><span className="flex items-center gap-2"><span className="h-1.5 w-24 overflow-hidden rounded-full bg-subtle"><span className={`block h-full ${x.pct < 0.7 ? "bg-alta" : "bg-verde"}`} style={{ width: `${x.pct * 100}%` }} /></span>{pct(x.pct)}</span></td>
                       <td className="py-1.5 text-right">{part == null ? "—" : pct(part)}</td>
                     </tr>

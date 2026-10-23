@@ -4,7 +4,7 @@ import type { Indicadores, NomeIndicador, Posicoes } from "@/lib/types";
 const GRUPOS: { titulo: string; itens: NomeIndicador[] }[] = [
   { titulo: "Custo", itens: ["gasto_total", "gasto_medio_mensal", "pct_cota_usada", "pct_maior_fornecedor"] },
   { titulo: "Entrega", itens: ["n_proposicoes_relevantes", "n_aprovadas", "n_relatorias", "n_proposicoes_coautor", "n_requerimentos"] },
-  { titulo: "Presença", itens: ["pct_presenca_sessoes", "pct_participacao_votacoes"] },
+  { titulo: "Presença", itens: ["pct_presenca_sessoes", "pct_participacao_votacoes", "n_faltas_sem_justificativa", "n_faltas_justificadas"] },
   { titulo: "Comportamento", itens: ["pct_alinhamento_partido", "pct_alinhamento_governo", "n_votos_contra_bancada"] },
   { titulo: "Eficiência", itens: ["custo_por_proposicao", "custo_por_sessao"] },
 ];

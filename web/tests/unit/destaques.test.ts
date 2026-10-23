@@ -6,7 +6,8 @@ const ind = (o: Partial<Indicadores>): Indicadores => ({
   gasto_total: 0, gasto_medio_mensal: 0, pct_cota_usada: 0, pct_maior_fornecedor: 0, n_proposicoes_relevantes: 0,
   n_proposicoes_coautor: 0, n_requerimentos: 0, n_relatorias: 0, n_aprovadas: 0, pct_presenca_sessoes: 0.9,
   pct_participacao_votacoes: 0.9, pct_alinhamento_partido: 0.9, pct_alinhamento_governo: 0.5, n_votos_contra_bancada: 0,
-  custo_por_proposicao: null, custo_por_sessao: null, meses_exercicio: 20, ...o,
+  custo_por_proposicao: null, custo_por_sessao: null, n_faltas_sem_justificativa: 0, n_faltas_justificadas: 0,
+  meses_exercicio: 20, ...o,
 });
 const dep = (id: number, nome: string, o: Partial<Indicadores>, regras: string[] = []): DeputadoResumo => ({
   id, nome, uf: "SP", partido_atual: "AAA", foto: null, sexo: null, situacao: null, condicao_eleitoral: null,

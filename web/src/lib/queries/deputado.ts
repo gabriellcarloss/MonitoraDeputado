@@ -12,6 +12,14 @@ export function sqlVotosDeputado(id: number, limite: number): Consulta {
 }
 
 export function sqlPresencaDeputado(id: number): Consulta {
-  return { sql: `SELECT s.id, s.data, s.tipo, p.presente FROM presencas p JOIN sessoes s ON s.id = p.sessao_id
+  return { sql: `SELECT s.id, s.data, s.tipo, p.presente, coalesce(p.justificada, false) AS justificada, p.justificativa
+    FROM presencas p JOIN sessoes s ON s.id = p.sessao_id
     WHERE p.deputado_id = ? ORDER BY s.data`, params: [id] };
+}
+
+/** Série mensal de gasto de até 4 deputados (ids como texto, chave da tabela series). */
+export function sqlSeriesGasto(ids: number[]): Consulta {
+  const marcadores = ids.map(() => "?").join(", ");
+  return { sql: `SELECT chave, periodo, valor FROM series WHERE escopo = 'deputado' AND metrica = 'gasto' AND chave IN (${marcadores || "NULL"})
+    ORDER BY chave, periodo`, params: ids.map(String) };
 }

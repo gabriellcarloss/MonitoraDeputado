@@ -128,6 +128,42 @@ def _popular(con, n_deputados: int, rnd: random.Random) -> None:
         pres += [(s + 1, dep, rnd.random() < p["presenca"]) for dep, p in perfil.items() if p["ini"] <= dia < p["fim"]]
     db.inserir(con, "sessoes", sessoes)
     db.inserir(con, "presencas", pres)
+    # parte das ausências tem justificativa oficial (licença, missão autorizada)
+    dia_sessao = {sid: dia for sid, dia, _ in sessoes}
+    motivos = ["Missão Autorizada", "Licença para Tratamento de Saúde", "Licença Maternidade"]
+    freq = {(dia_sessao[sid], dep): (("Ausência justificada", rnd.choice(motivos)) if rnd.random() < 0.35 else ("Ausência", None))
+            for sid, dep, presente in pres if not presente}
+    db.inserir(con, "frequencia_dia", [(d, dep, f, j) for (d, dep), (f, j) in freq.items()])
+
+    # equipe de gabinete e emendas (fictícias)
+    from monitora.config import SALARIO_SP
+    secs, emendas, favs = [], [], []
+    funcoes = ["Saúde", "Urbanismo", "Educação", "Agricultura", "Assistência Social", "Desporto e Lazer"]
+    for dep, p in perfil.items():
+        n = rnd.randint(8, 27 if dep % 50 == 0 else 22)
+        for k in range(n):
+            nivel = rnd.randint(1, 25)
+            nome = f"{rnd.choice(NOMES)} {rnd.choice(SOBRENOMES)}".upper()
+            secs.append((dep, nome, f"SP{nivel:02d}", nivel, SALARIO_SP[nivel], date(2023 + k % 3, 1 + k % 12, 1), INICIO))
+        if p["terceiros"]:  # alguns passageiros "terceiros" são da equipe
+            secs.append((dep, f"{rnd.choice(NOMES)} {rnd.choice(SOBRENOMES)}".upper(), "SP10", 10, SALARIO_SP[10], date(2024, 1, 1), INICIO))
+        for ano in (2024, 2025):
+            for k in range(rnd.randint(2, 8)):
+                uf = p["uf"] if rnd.random() > 0.15 else rnd.choice(list(BANCADAS))
+                empenhado = round(rnd.uniform(1e5, 3e6), 2)
+                pago = round(empenhado * rnd.uniform(0, 1), 2)
+                pix = rnd.random() < 0.4
+                cod = f"{ano}{dep:04d}{k:02d}"
+                tipo = "Emenda Individual - Transferências Especiais" if pix else "Emenda Individual - Transferências com Finalidade Definida"
+                emendas.append((cod, ano, tipo, dep, p["nome"].upper(), f"CIDADE EXEMPLO {k} - {uf}", f"CIDADE EXEMPLO {k}", uf,
+                                rnd.choice(funcoes), empenhado, pago * 0.9, pago, 0.0, pix))
+                privado = rnd.random() < 0.2
+                favs.append((cod, dep, f"{ano}0{rnd.randint(3, 9)}", f"ASSOCIACAO EXEMPLO {dep % 40}" if privado else f"MUNICIPIO DE CIDADE EXEMPLO {k}",
+                             f"F{dep % 40 if privado else k}", "Associação Privada" if privado else "Município",
+                             "Pessoa Jurídica", uf, f"CIDADE EXEMPLO {k}", pago))
+    db.inserir(con, "secretarios", secs)
+    db.inserir(con, "emendas", emendas)
+    db.inserir(con, "emendas_favorecidos", favs)
 
     props, aut, rel, pid = [], [], [], 1
     for dep, p in perfil.items():

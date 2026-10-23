@@ -30,8 +30,8 @@ def tres_sp(con):
 
 
 def test_regras_sao_16():
-    assert sorted(REGRAS) == sorted(["G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09", "G10",
-                                     "P01", "P02", "L01", "L02", "V01", "V02"])
+    assert sorted(REGRAS) == sorted(["G01", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09", "G10", "G11", "G12",
+                                     "E01", "E02", "E03", "P01", "P02", "L01", "L02", "V01", "V02"])
 
 
 # G01 — gasto > 2× mediana da UF
@@ -98,11 +98,119 @@ def test_G04_nao_dispara(base):
     assert rodar(base, "G04") == set()
 
 
-def test_G04_severidade_alta_com_5(base):
+def secretario(con, dep, nome, nivel=10):
+    con.execute("INSERT INTO secretarios (deputado_id, nome, cargo, nivel) VALUES (?, ?, ?, ?)", [dep, nome, f"SP{nivel}", nivel])
+
+
+def test_G04_ignora_passageiro_da_equipe(base):
     deputado(base, 1)
-    for i in range(5):
-        gasto(base, 1, 900, categoria="PASSAGEM AÉREA - SIGEPA", passageiro=f"P{i}", passageiro_e_deputado=False)
-    assert REGRAS["G04"].fn(base)[0]["severidade"] == "alta"
+    secretario(base, 1, "MARIA DA SILVA SOUZA")
+    gasto(base, 1, 900, categoria="PASSAGEM AÉREA - SIGEPA", passageiro="MARIA SOUZA", passageiro_e_deputado=False)
+    assert REGRAS["G04"].fn(base) == []
+    gasto(base, 1, 700, categoria="PASSAGEM AÉREA - SIGEPA", passageiro="JOSE PEREIRA LIMA", passageiro_e_deputado=False)
+    alertas = REGRAS["G04"].fn(base)
+    assert len(alertas) == 1 and alertas[0]["descricao"].startswith("1 passagens para 1 pessoa")
+    assert alertas[0]["evidencias"][0]["valor"] == 700
+
+
+def test_G04_equipe_de_outro_deputado_nao_conta(base):
+    deputado(base, 1)
+    deputado(base, 2)
+    secretario(base, 2, "MARIA SOUZA")
+    gasto(base, 1, 900, categoria="PASSAGEM AÉREA - SIGEPA", passageiro="MARIA SOUZA", passageiro_e_deputado=False)
+    assert [a["deputado_id"] for a in REGRAS["G04"].fn(base)] == [1]
+
+
+# G11 — fornecedor pessoa física com nome de secretário do gabinete
+def test_G11_dispara(base):
+    deputado(base, 1)
+    secretario(base, 1, "JOAO CARLOS PEREIRA")
+    gasto(base, 1, 3000, cnpj="12345678901", fornecedor="JOAO CARLOS PEREIRA")
+    assert rodar(base, "G11") == {1}
+
+
+def test_G11_nao_dispara_para_empresa_ou_outro_nome(base):
+    deputado(base, 1)
+    secretario(base, 1, "JOAO CARLOS PEREIRA")
+    gasto(base, 1, 3000, cnpj="12345678000199", fornecedor="JOAO CARLOS PEREIRA")  # CNPJ: empresa
+    gasto(base, 1, 3000, cnpj="98765432100", fornecedor="ANA LUIZA MOTA")
+    assert rodar(base, "G11") == set()
+
+
+# G12 — equipe acima do limite
+def test_G12(base):
+    deputado(base, 1)
+    deputado(base, 2)
+    for k in range(26):
+        secretario(base, 1, f"PESSOA {k} TESTE")
+    for k in range(25):
+        secretario(base, 2, f"PESSOA {k} TESTE")
+    assert rodar(base, "G12") == {1}
+
+
+def emenda(con, dep, uf, empenhado, pix=False, codigo=None):
+    codigo = codigo or f"{dep}-{uf}-{empenhado}-{pix}"
+    con.execute("INSERT INTO emendas (codigo, ano, tipo, deputado_id, uf, empenhado, pago, pix) VALUES (?, 2025, 'Individual', ?, ?, ?, 0, ?)",
+                [codigo, dep, uf, empenhado, pix])
+    return codigo
+
+
+# E01 — emendas fora do estado (pelo destino de quem recebeu)
+def recebido(con, dep, uf, valor, natureza="Município"):
+    con.execute("INSERT INTO emendas_favorecidos (codigo, deputado_id, favorecido, natureza, uf, valor) VALUES ('c', ?, 'X', ?, ?, ?)",
+                [dep, natureza, uf, valor])
+
+
+def test_E01(base):
+    deputado(base, 1, uf="SP")
+    deputado(base, 2, uf="SP")
+    deputado(base, 3, uf="SP")
+    recebido(base, 1, "SP", 2_000_000)
+    recebido(base, 1, "BA", 1_500_000)
+    recebido(base, 2, "SP", 9_000_000)
+    recebido(base, 2, "RJ", 1_000_000)  # 10%: abaixo do limiar
+    recebido(base, 3, "SP", 2_000_000)
+    recebido(base, 3, "DF", 5_000_000, natureza="Sociedade de Economia Mista")  # banco intermediário: não é destino
+    assert rodar(base, "E01") == {1}
+
+
+# E02 — entidade privada concentrada
+def favorecido(con, codigo, dep, nome, natureza, valor):
+    con.execute("INSERT INTO emendas_favorecidos (codigo, deputado_id, favorecido, natureza, valor) VALUES (?, ?, ?, ?, ?)",
+                [codigo, dep, nome, natureza, valor])
+
+
+def test_E02(base):
+    for d in (1, 2):
+        deputado(base, d)
+        c = emenda(base, d, "SP", 2_000_000)
+        favorecido(base, c, d, "MUNICIPIO DE X", "Município", 1_000_000)
+    favorecido(base, "x", 1, "ASSOCIACAO AMIGOS", "Associação Privada", 600_000)
+    favorecido(base, "y", 2, "PREFEITURA Y", "Município", 5_000_000)
+    deputado(base, 3)
+    favorecido(base, "z", 3, "BANCO DO BRASIL SA", "Sociedade de Economia Mista", 9_000_000)  # banco público não é entidade privada
+    assert rodar(base, "E02") == {1}
+
+
+# E03 — maioria por transferência especial
+def test_E03(base):
+    deputado(base, 1)
+    deputado(base, 2)
+    emenda(base, 1, "SP", 2_000_000, pix=True)
+    emenda(base, 1, "SP", 500_000)
+    emenda(base, 2, "SP", 2_000_000)
+    emenda(base, 2, "SP", 900_000, pix=True)
+    assert rodar(base, "E03") == {1}
+
+
+def test_P02_ausencia_justificada_nao_conta_como_falta(base):
+    _presencas(base, 3)
+    # as ausências do deputado 1 foram todas justificadas (registro oficial do dia)
+    base.execute("INSERT INTO frequencia_dia VALUES ('2024-03-01', 1, 'Ausência justificada', 'Missão Autorizada')")
+    assert rodar(base, "P02") == set()
+    pct = base.execute("SELECT pct_presenca_sessoes, n_faltas_justificadas, n_faltas_sem_justificativa FROM indicadores "
+                       "WHERE deputado_id = 1").fetchone()
+    assert pct == (1.0, 7, 0)
 
 
 def fornecedor(con, cnpj, abertura="2010-01-01", situacao="ATIVA", socios=None):

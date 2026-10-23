@@ -6,8 +6,9 @@ from typing import Callable
 import duckdb
 from dateutil.easter import easter
 
-from monitora.config import FERIADOS_FIXOS, SOBRENOMES_COMUNS
+from monitora.config import FERIADOS_FIXOS, MAX_SECRETARIOS, SOBRENOMES_COMUNS
 from monitora.metrics.series import series_de
+from monitora.normalize import mesmo_nome
 from monitora.normalize import nome as normalizar
 
 RODAPE = "Ponto de atenção gerado automaticamente a partir de dados públicos. Não constitui acusação."
@@ -91,17 +92,31 @@ def _g03(con):
         yield dep, f"{_pct(share)} do gasto ({_brl(v)}) com {nome}", [_ev("fornecedor", forn, v, _forn_url(forn))], None
 
 
-@regra("G04", "Passagens emitidas para outras pessoas", "atencao",
-       "Passagens pagas pela cota em que o passageiro não é o próprio deputado.")
+def _equipes(con) -> dict[int, list[str]]:
+    eq: dict[int, list[str]] = {}
+    for dep, nome in con.execute("SELECT deputado_id, nome FROM secretarios WHERE nome IS NOT NULL").fetchall():
+        eq.setdefault(dep, []).append(nome)
+    return eq
+
+
+@regra("G04", "Passagens para pessoas fora da equipe", "atencao",
+       "Passagens pagas pela cota para alguém que não é o deputado nem secretário parlamentar da equipe atual. "
+       "A Câmara só admite passagens de terceiros para assessores com vínculo funcional; ex-assessores também aparecem aqui.")
 def _g04(con):
-    rows = con.execute("""
-        SELECT deputado_id, count(*), sum(valor_liquido),
-               list({'p': passageiro, 't': trecho, 'v': valor_liquido, 'u': url_documento} ORDER BY valor_liquido DESC)[1:20]
-        FROM despesas WHERE passageiro_e_deputado = false AND categoria ILIKE '%PASSAGE%' GROUP BY 1""").fetchall()
-    for dep, n, v, notas in rows:
-        yield dep, f"{n} passagens para terceiros, total {_brl(v)}", \
-            [_ev("nota", f"{x['p']} — {x['t'] or 's/ trecho'}", x["v"], x["u"]) for x in notas], \
-            "alta" if n >= 5 else "atencao"
+    equipes = _equipes(con)
+    por_dep: dict[int, list] = {}
+    for dep, pas, trecho, v, url in con.execute("""
+        SELECT deputado_id, passageiro, trecho, valor_liquido, url_documento FROM despesas
+        WHERE passageiro_e_deputado = false AND categoria ILIKE '%PASSAGE%'""").fetchall():
+        if any(mesmo_nome(pas, s) for s in equipes.get(dep, [])):
+            continue
+        por_dep.setdefault(dep, []).append((pas, trecho, v or 0.0, url))
+    for dep, notas in por_dep.items():
+        notas.sort(key=lambda x: -x[2])
+        total = sum(x[2] for x in notas)
+        pessoas = len({normalizar(x[0]) for x in notas})
+        yield dep, f"{len(notas)} passagens para {pessoas} pessoa(s) fora da equipe atual, total {_brl(total)}", \
+            [_ev("nota", f"{p} — {t or 's/ trecho'}", v, u) for p, t, v, u in notas[:20]], None
 
 
 @regra("G05", "Fornecedor aberto pouco antes do primeiro pagamento", "alta",
@@ -213,6 +228,80 @@ def _g10(con):
             _ev("fornecedor", f"{nome}: mediana {_brl(med)} vs {_brl(cmed)} na categoria; {n} deputados", med, _forn_url(cnpj)))
     for dep, ev in por_dep.items():
         yield dep, f"Usa {len(ev)} fornecedor(es) compartilhado(s) com valores acima do padrão", ev, None
+
+
+@regra("G11", "Fornecedor com o nome de um secretário do gabinete", "alta",
+       "Pagamento da cota a pessoa física (CPF) cujo nome coincide com o de um secretário parlamentar da equipe atual.")
+def _g11(con):
+    equipes = _equipes(con)
+    por_dep: dict = {}
+    for dep, forn, doc, v in con.execute("""
+        SELECT deputado_id, any_value(fornecedor), cnpj_cpf, sum(valor_liquido) FROM despesas
+        WHERE length(cnpj_cpf) = 11 GROUP BY deputado_id, cnpj_cpf""").fetchall():
+        sec = next((s for s in equipes.get(dep, []) if mesmo_nome(forn, s)), None)
+        if sec:
+            por_dep.setdefault(dep, []).append(_ev("fornecedor", f"{forn} (secretário: {sec})", v))
+    for dep, ev in por_dep.items():
+        yield dep, f"{len(ev)} fornecedor(es) pessoa física com nome de secretário do gabinete", ev, None
+
+
+@regra("G12", "Equipe acima do limite de secretários", "atencao",
+       f"Mais de {MAX_SECRETARIOS} secretários parlamentares lotados no gabinete (limite por deputado).")
+def _g12(con):
+    for dep, n in con.execute("SELECT deputado_id, count(*) FROM secretarios GROUP BY 1 HAVING count(*) > ?",
+                              [MAX_SECRETARIOS]).fetchall():
+        yield dep, f"{n} secretários parlamentares lotados (limite: {MAX_SECRETARIOS})", [_ev("indicador", "n_secretarios", n)], None
+
+
+# Bancos públicos (Banco do Brasil, Caixa) aparecem como favorecidos por intermediarem o repasse: não são destino.
+DESTINO_REAL = "lower(coalesce(natureza, '')) NOT SIMILAR TO '.*(economia mista|empresa p.blica).*'"
+
+
+@regra("E01", "Emendas concentradas fora do estado", "info",
+       "Pelo menos 30% do valor recebido pelos destinatários das emendas individuais (mínimo de R$ 1 milhão) foi para "
+       "outro estado. Bancos que só intermedeiam o repasse não contam como destino.")
+def _e01(con):
+    rows = con.execute(f"""
+        SELECT f.deputado_id, sum(f.valor) FILTER (f.uf <> d.uf) AS fora, sum(f.valor) AS total,
+               list(DISTINCT f.uf) FILTER (f.uf <> d.uf) AS ufs
+        FROM emendas_favorecidos f JOIN deputados d ON d.id = f.deputado_id
+        WHERE f.uf IS NOT NULL AND {DESTINO_REAL} GROUP BY 1
+        HAVING sum(f.valor) FILTER (f.uf <> d.uf) >= 1000000
+           AND sum(f.valor) FILTER (f.uf <> d.uf) / nullif(sum(f.valor), 0) >= 0.3""").fetchall()
+    for dep, fora, total, ufs in rows:
+        yield dep, f"{_pct(fora / total)} do valor recebido ({_brl(fora)}) foi para fora do estado: {', '.join(sorted(ufs))}", \
+            [_ev("emendas_fora_uf", u) for u in sorted(ufs)], None
+
+
+_PRIVADO = ("(lower(natureza) SIMILAR TO '.*(associa|organiza|socie|cooperativ|privad|empres|entidade|instituto|"
+            "funda..o privada).*' AND lower(natureza) NOT SIMILAR TO "
+            "'.*(munic|estad|federal|autarquia|fundo |p.blic|economia mista).*')")
+
+
+@regra("E02", "Emendas concentradas em uma entidade privada", "atencao",
+       "Uma única entidade privada (associação, ONG, instituto, empresa) recebeu pelo menos 30% do valor pago das "
+       "emendas do deputado (mínimo de R$ 500 mil).")
+def _e02(con):
+    rows = con.execute(f"""
+        WITH t AS (SELECT deputado_id, sum(valor) AS total FROM emendas_favorecidos GROUP BY 1),
+             f AS (SELECT deputado_id, coalesce(codigo_favorecido, favorecido) AS k, any_value(favorecido) AS nome,
+                          any_value(natureza) AS nat, sum(valor) AS v
+                   FROM emendas_favorecidos WHERE {_PRIVADO} GROUP BY 1, 2)
+        SELECT f.deputado_id, f.nome, f.nat, f.v, f.v / t.total FROM f JOIN t USING (deputado_id)
+        WHERE f.v >= 500000 AND t.total > 0 AND f.v / t.total >= 0.3""").fetchall()
+    for dep, nome, nat, v, share in rows:
+        yield dep, f"{_pct(share)} do valor das emendas ({_brl(v)}) para {nome}", [_ev("favorecido", f"{nome} ({nat})", v)], None
+
+
+@regra("E03", "Maioria das emendas por transferência especial (Pix)", "info",
+       "Mais da metade do valor empenhado (mínimo de R$ 1 milhão) em transferências especiais, que caem direto no caixa "
+       "do município ou do estado sem objeto definido, o que dificulta o acompanhamento.")
+def _e03(con):
+    for dep, pix, total in con.execute("""
+        SELECT deputado_id, sum(empenhado) FILTER (pix), sum(empenhado) FROM emendas GROUP BY 1
+        HAVING sum(empenhado) FILTER (pix) >= 1000000 AND sum(empenhado) FILTER (pix) / nullif(sum(empenhado), 0) > 0.5""").fetchall():
+        yield dep, f"{_pct(pix / total)} das emendas ({_brl(pix)}) por transferência especial", \
+            [_ev("indicador", "emendas_pix", pix)], None
 
 
 @regra("P01", "Baixa participação nas votações", "atencao",

@@ -7,6 +7,7 @@ import { SeloAlerta } from "@/components/deputado/SeloAlerta";
 import { BarraFiltros, Selecao, useFiltros } from "@/components/filtros/Filtros";
 import { Foto } from "@/components/ui/Foto";
 import { Carregando, Erro, StatTile } from "@/components/ui/StatTile";
+import { useFavoritos } from "@/lib/favoritos";
 import { num } from "@/lib/format";
 import type { Alerta, Meta } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
@@ -20,11 +21,13 @@ export function Alertas() {
   const { dados, erro } = useJson<Alerta[]>("/data/alertas.json");
   const meta = useJson<Meta>("/data/meta.json").dados;
   const [pagina, setPagina] = useState(0);
+  const fav = useFavoritos();
   const filtrados = useMemo(() => (dados ?? []).filter((a) => {
     const d = deputados.get(a.deputado_id);
-    return (!filtros.regra || a.regra === filtros.regra) && (!filtros.severidade || a.severidade === filtros.severidade)
+    return (!filtros.favoritos || fav.ids.includes(a.deputado_id))
+      && (!filtros.regra || a.regra === filtros.regra) && (!filtros.severidade || a.severidade === filtros.severidade)
       && (!filtros.uf || d?.uf === filtros.uf) && (!filtros.partido || d?.partido_atual === filtros.partido);
-  }).sort((a, b) => ["alta", "atencao", "info"].indexOf(a.severidade) - ["alta", "atencao", "info"].indexOf(b.severidade)), [dados, filtros, deputados]);
+  }).sort((a, b) => ["alta", "atencao", "info"].indexOf(a.severidade) - ["alta", "atencao", "info"].indexOf(b.severidade)), [dados, filtros, deputados, fav.ids]);
   if (erro) return <Erro texto={erro} />;
   if (!dados) return <Carregando />;
   const porRegra = new Map<string, number>();
@@ -36,6 +39,9 @@ export function Alertas() {
   return (
     <>
       <BarraFiltros opcoes={opcoes} periodo={false}>
+        <Selecao rotulo="Meus deputados" valor={filtros.favoritos} todos="Todos"
+          opcoes={[["sim", `Só os marcados com ★ (${fav.ids.length})`]]}
+          onChange={(v) => { setPagina(0); definir({ favoritos: v as "sim" | undefined }); }} />
         <Selecao rotulo="Regra" valor={filtros.regra} todos="Todas" opcoes={(meta?.regras ?? []).map((r) => [r.id, `${r.id} · ${r.titulo}`] as [string, string])}
           onChange={(regra) => { setPagina(0); definir({ regra }); }} />
         <Selecao rotulo="Severidade" valor={filtros.severidade} todos="Todas" opcoes={[["alta", "Alta"], ["atencao", "Atenção"], ["info", "Informativo"]]}

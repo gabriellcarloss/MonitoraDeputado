@@ -3,11 +3,15 @@ import type { Alerta, DeputadoResumo, Indicadores } from "./types";
 export const MESES_MINIMOS = 6;
 
 /** Componentes do índice: quanto maior, melhor (gasto entra invertido). */
-export const COMPONENTES: { rotulo: string; valor: (i: Indicadores) => number | null; menorMelhor?: boolean }[] = [
-  { rotulo: "Presença em sessões", valor: (i) => i.pct_presenca_sessoes },
+export const COMPONENTES: { rotulo: string; valor: (i: Indicadores) => number | null; menorMelhor?: boolean; nota?: string }[] = [
+  { rotulo: "Presença em sessões", valor: (i) => i.pct_presenca_sessoes, nota: "ausências justificadas oficialmente não contam como falta" },
   { rotulo: "Participação em votações", valor: (i) => i.pct_participacao_votacoes },
-  { rotulo: "Projetos por mês", valor: (i) => i.n_proposicoes_relevantes / i.meses_exercicio },
-  { rotulo: "Gasto mensal da cota", valor: (i) => i.gasto_medio_mensal, menorMelhor: true },
+  { rotulo: "Projetos apresentados por mês", valor: (i) => i.n_proposicoes_relevantes / i.meses_exercicio,
+    nota: "PL, PLP, PEC e PDL como autor principal" },
+  { rotulo: "Relatorias por mês", valor: (i) => i.n_relatorias / i.meses_exercicio,
+    nota: "relatar é trabalho legislativo que a contagem de projetos não captura" },
+  { rotulo: "Uso da cota parlamentar", valor: (i) => i.pct_cota_usada, menorMelhor: true,
+    nota: "em % do teto da UF, para não punir quem é de estado distante (a cota de RR é maior que a do DF)" },
 ];
 
 export interface NotaIndice { id: number; nota: number; deputado: DeputadoResumo }
@@ -26,7 +30,7 @@ function percentis(valores: (number | null)[], menorMelhor = false): (number | n
 
 /**
  * Índice de desempenho (0–100): média dos percentis de presença, participação em votações, projetos por mês
- * e economia na cota, entre deputados com pelo menos 6 meses de exercício. Componentes sem dado são ignorados.
+ * relatorias por mês e uso da cota (em % do teto da UF), entre deputados com pelo menos 6 meses de exercício. Componentes sem dado são ignorados.
  */
 export function indiceDesempenho(deps: DeputadoResumo[]): NotaIndice[] {
   const elegiveis = deps.filter((d) => d.indicadores && d.indicadores.meses_exercicio >= MESES_MINIMOS);

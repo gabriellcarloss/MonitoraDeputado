@@ -35,7 +35,11 @@ def detectar_picos(pontos: list[tuple[str, float]]) -> list[dict]:
 _GASTO = "despesas e JOIN deputados d ON d.id = e.deputado_id"
 _PROPS = ("autorias a JOIN proposicoes p ON p.id = a.proposicao_id AND p.relevante AND a.proponente_principal "
           "JOIN deputados d ON d.id = a.deputado_id")
-_PRES = "presencas pr JOIN sessoes s ON s.id = pr.sessao_id JOIN deputados d ON d.id = pr.deputado_id"
+# Ausências justificadas (registro oficial de frequência) saem da conta, como no indicador de presença.
+_PRES = ("(SELECT p0.* FROM presencas p0 JOIN sessoes s0 ON s0.id = p0.sessao_id "
+         "WHERE p0.presente OR NOT EXISTS (SELECT 1 FROM frequencia_dia f WHERE f.data = s0.data "
+         "AND f.deputado_id = p0.deputado_id AND lower(f.frequencia) LIKE 'aus%ncia justificada')) pr "
+         "JOIN sessoes s ON s.id = pr.sessao_id JOIN deputados d ON d.id = pr.deputado_id")
 _DEF = []
 for escopo, chave in (("brasil", "'BR'"), ("uf", "d.uf"), ("partido", "d.partido_atual"), ("deputado", "d.id::VARCHAR")):
     _DEF += [

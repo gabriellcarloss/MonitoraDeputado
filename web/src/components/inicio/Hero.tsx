@@ -141,7 +141,7 @@ export function Hero({ geradoEm, kpis, podio, maior, menor, alertas, contagem }:
                   <span className="text-white/60">({brl(maior.gastoMensal - menor.gastoMensal)} de diferença por mês)</span>
                 </div>
               ) : null}
-              <p className="mt-1.5 text-[10px] text-white/60">Índice: média dos percentis de presença, participação em votações, projetos por mês e economia na cota (6+ meses de exercício). <Link href="/sobre/#indice" className="underline">Metodologia</Link></p>
+              <p className="mt-1.5 text-[10px] text-white/60">Índice: média dos percentis de presença, participação em votações, projetos e relatorias por mês e uso da cota da UF (6+ meses de exercício). <Link href="/sobre/#indice" className="underline">Metodologia</Link></p>
             </div>
           </div>
 

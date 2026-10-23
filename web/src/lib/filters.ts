@@ -23,6 +23,10 @@ export interface Filtros {
   fornecedor?: string;
   regra?: string;
   severidade?: "info" | "atencao" | "alta";
+  /** "sim": só os deputados marcados com estrela neste navegador. */
+  favoritos?: "sim";
+  /** Lista compartilhada por link (?lista=1,2,3), só leitura. */
+  lista?: number[];
   /** Uso interno (não vem da URL): só categorias de passagem. */
   so_passagens?: boolean;
 }
@@ -86,6 +90,9 @@ export function parseFiltros(sp: URLSearchParams, opcoes: Opcoes): Filtros {
   if (regra && /^[A-Z]\d{2}$/.test(regra)) f.regra = regra;
   const sev = g("severidade");
   if (sev === "info" || sev === "atencao" || sev === "alta") f.severidade = sev;
+  if (g("favoritos") === "sim") f.favoritos = "sim";
+  const lista = (g("lista") ?? "").split(",").map(Number).filter((n) => Number.isInteger(n) && n > 0);
+  if (lista.length) f.lista = Array.from(new Set(lista)).slice(0, 60);
   return Object.fromEntries(Object.entries(f).filter(([, v]) => v !== undefined)) as Filtros;
 }
 

@@ -81,6 +81,10 @@ class Client:
             arq.write_text(json.dumps(dados, ensure_ascii=False))
         return dados
 
+    def get_bytes(self, url: str, params=None) -> bytes:
+        """GET bruto (ex.: XML do serviço legado), sem cache — quem chama decide o que guardar."""
+        return self._get(url, params).content
+
     def get_all_pages(self, url: str, params=None) -> list[dict]:
         dados: list[dict] = []
         pagina = self.get_json(url, params)
