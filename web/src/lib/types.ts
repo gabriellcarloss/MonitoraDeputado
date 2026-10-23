@@ -169,6 +169,8 @@ export interface Emendas {
   pago: number;
   restos_pagos: number;
   pix: number;
+  /** Valor recebido pelos destinatários (sem bancos intermediários) e quanto disso foi para fora da UF do deputado. */
+  recebido?: number;
   fora_uf: number;
   por_ano: { ano: number; empenhado: number; pago: number; pix: number | null }[];
   por_funcao: { rotulo: string; valor: number }[];

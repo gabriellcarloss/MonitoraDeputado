@@ -21,8 +21,8 @@ const LIMITACOES = [
   "O salário (subsídio) é igual para todos os deputados e não diferencia desempenho; por isso ele não entra nos indicadores.",
   "A situação cadastral do fornecedor é a atual, não a da data do pagamento.",
   "Passagens para secretários da equipe atual não geram alerta. Como o arquivo de funcionários só traz a lotação de hoje, ex-assessores aparecem como pessoas fora da equipe.",
-  "O custo da equipe é uma estimativa pelo salário-base de cada nível; não inclui gratificações, auxílios nem encargos.",
   "Emendas são atribuídas pelo nome do autor no Portal da Transparência. Emendas de bancada, de comissão e de relator não entram no perfil individual.",
+  "O destino das emendas é o município e a UF de quem recebeu. Bancos públicos que só intermedeiam o repasse (Banco do Brasil, Caixa) não contam como destino.",
   "Regras relativas (presença abaixo do percentil 10, \"gasta muito e entrega pouco\") sempre apontam alguém, mesmo que todos estejam bem: indicam quem está no extremo, não que exista irregularidade.",
   "Se o serviço de frequência da Câmara estiver fora do ar, ausências ainda não consultadas contam como falta comum; a fonte aparece como desatualizada acima.",
   "Presença e participação consideram apenas o período em exercício — suplentes não são penalizados.",
@@ -94,9 +94,9 @@ export default function Page() {
           <div className="cartao space-y-2 p-4 text-sm">
             <p><strong>Emendas:</strong> consideramos as emendas individuais a partir do orçamento de 2024, o primeiro elaborado por esta legislatura.
               Empenhado é o valor reservado no orçamento; pago é o que efetivamente saiu. &ldquo;Pix&rdquo; é a transferência especial, que vai direto ao
-              caixa do município ou estado sem convênio nem objeto definido.</p>
-            <p><strong>Equipe:</strong> secretários parlamentares lotados hoje em cada gabinete. O limite é de 25 secretários e a verba de gabinete é
-              definida pela Mesa da Câmara; o custo exibido é estimado pelo salário-base de cada nível.</p>
+              caixa do município ou estado sem convênio nem objeto definido. O destino é medido pelo município e UF de quem recebeu o pagamento.</p>
+            <p><strong>Equipe:</strong> secretários parlamentares lotados hoje em cada gabinete, com o nível de cada um (SP01 a SP25).
+              O limite é de 25 secretários por gabinete.</p>
           </div>
         </Secao>
       </section>

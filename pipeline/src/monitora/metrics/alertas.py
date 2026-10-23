@@ -253,22 +253,29 @@ def _g12(con):
         yield dep, f"{n} secretários parlamentares lotados (limite: {MAX_SECRETARIOS})", [_ev("indicador", "n_secretarios", n)], None
 
 
+# Bancos públicos (Banco do Brasil, Caixa) aparecem como favorecidos por intermediarem o repasse: não são destino.
+DESTINO_REAL = "lower(coalesce(natureza, '')) NOT SIMILAR TO '.*(economia mista|empresa p.blica).*'"
+
+
 @regra("E01", "Emendas concentradas fora do estado", "info",
-       "Pelo menos 30% do valor empenhado em emendas individuais (mínimo de R$ 1 milhão) destinado a outro estado.")
+       "Pelo menos 30% do valor recebido pelos destinatários das emendas individuais (mínimo de R$ 1 milhão) foi para "
+       "outro estado. Bancos que só intermedeiam o repasse não contam como destino.")
 def _e01(con):
-    rows = con.execute("""
-        SELECT e.deputado_id, sum(e.empenhado) FILTER (e.uf <> d.uf) AS fora, sum(e.empenhado) AS total,
-               list(DISTINCT e.uf) FILTER (e.uf <> d.uf) AS ufs
-        FROM emendas e JOIN deputados d ON d.id = e.deputado_id WHERE e.uf IS NOT NULL GROUP BY 1
-        HAVING sum(e.empenhado) FILTER (e.uf <> d.uf) >= 1000000
-           AND sum(e.empenhado) FILTER (e.uf <> d.uf) / nullif(sum(e.empenhado), 0) >= 0.3""").fetchall()
+    rows = con.execute(f"""
+        SELECT f.deputado_id, sum(f.valor) FILTER (f.uf <> d.uf) AS fora, sum(f.valor) AS total,
+               list(DISTINCT f.uf) FILTER (f.uf <> d.uf) AS ufs
+        FROM emendas_favorecidos f JOIN deputados d ON d.id = f.deputado_id
+        WHERE f.uf IS NOT NULL AND {DESTINO_REAL} GROUP BY 1
+        HAVING sum(f.valor) FILTER (f.uf <> d.uf) >= 1000000
+           AND sum(f.valor) FILTER (f.uf <> d.uf) / nullif(sum(f.valor), 0) >= 0.3""").fetchall()
     for dep, fora, total, ufs in rows:
-        yield dep, f"{_pct(fora / total)} das emendas ({_brl(fora)}) para fora do estado: {', '.join(sorted(ufs))}", \
+        yield dep, f"{_pct(fora / total)} do valor recebido ({_brl(fora)}) foi para fora do estado: {', '.join(sorted(ufs))}", \
             [_ev("emendas_fora_uf", u) for u in sorted(ufs)], None
 
 
 _PRIVADO = ("(lower(natureza) SIMILAR TO '.*(associa|organiza|socie|cooperativ|privad|empres|entidade|instituto|"
-            "funda..o privada).*' AND lower(natureza) NOT SIMILAR TO '.*(munic|estad|federal|autarquia|fundo |p.blic).*')")
+            "funda..o privada).*' AND lower(natureza) NOT SIMILAR TO "
+            "'.*(munic|estad|federal|autarquia|fundo |p.blic|economia mista).*')")
 
 
 @regra("E02", "Emendas concentradas em uma entidade privada", "atencao",

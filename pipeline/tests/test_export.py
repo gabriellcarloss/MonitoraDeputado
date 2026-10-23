@@ -95,6 +95,9 @@ def test_export_gabinete_emendas_e_justificativa(base, tmp_path):
     base.execute("INSERT INTO secretarios VALUES (1, 'MARIA SOUZA', 'SP10', 10, 5699.90, '2026-01-10', '2023-02-01')")
     base.execute("INSERT INTO emendas (codigo, ano, tipo, deputado_id, uf, funcao, empenhado, pago, pix) VALUES "
                  "('a', 2025, 'Individual', 1, 'BA', 'Saúde', 1000, 500, true), ('b', 2024, 'Individual', 1, 'SP', 'Saúde', 3000, 3000, false)")
+    base.execute("INSERT INTO emendas_favorecidos (codigo, deputado_id, favorecido, natureza, uf, municipio, valor) VALUES "
+                 "('a', 1, 'MUNICIPIO DE X', 'Município', 'BA', 'X', 400), ('b', 1, 'MUNICIPIO DE Y', 'Município', 'SP', 'Y', 3000), "
+                 "('a', 1, 'BANCO DO BRASIL SA', 'Sociedade de Economia Mista', 'DF', 'BRASILIA', 100)")
     base.execute("INSERT INTO sessoes VALUES (10, '2024-05-02', 'S')")
     base.execute("INSERT INTO presencas VALUES (10, 1, false)")
     base.execute("INSERT INTO frequencia_dia VALUES ('2024-05-02', 1, 'Ausência justificada', 'Missão Autorizada')")
@@ -105,7 +108,9 @@ def test_export_gabinete_emendas_e_justificativa(base, tmp_path):
     d = json.loads((tmp_path / "deputado" / "1.json").read_text())
     assert d["gabinete"]["n"] == 1 and d["gabinete"]["custo_estimado"] == 5699.90
     e = d["emendas"]
-    assert (e["empenhado"], e["pago"], e["pix"], e["fora_uf"]) == (4000, 3500, 1000, 1000)
+    assert (e["empenhado"], e["pago"], e["pix"]) == (4000, 3500, 1000)
+    assert (e["recebido"], e["fora_uf"]) == (3400, 400)  # banco intermediário fica fora
+    assert [x["rotulo"] for x in e["por_local"]] == ["Y/SP", "X/BA"]
     assert [x["ano"] for x in e["por_ano"]] == [2024, 2025]
     resumo = json.loads((tmp_path / "deputados.json").read_text())[0]
     assert (resumo["n_secretarios"], resumo["emendas_empenhado"]) == (1, 4000)

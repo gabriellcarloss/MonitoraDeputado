@@ -8,7 +8,7 @@ from pathlib import Path
 import duckdb
 
 from monitora.config import ANOS, MAX_SECRETARIOS, VERBA_GABINETE
-from monitora.metrics.alertas import REGRAS, RODAPE
+from monitora.metrics.alertas import DESTINO_REAL, REGRAS, RODAPE
 from monitora.metrics.indicadores import INDICADORES, agregados
 from monitora.metrics.rede import ego_rede
 from monitora.metrics.series import series_de
@@ -49,18 +49,22 @@ def _gabinete(con, id_: int) -> dict:
 def _emendas(con, id_: int) -> dict:
     tot = _linhas(con, """SELECT count(*) AS n, coalesce(sum(empenhado), 0) AS empenhado, coalesce(sum(pago), 0) AS pago,
                                  coalesce(sum(restos_pagos), 0) AS restos_pagos,
-                                 coalesce(sum(empenhado) FILTER (pix), 0) AS pix,
-                                 coalesce(sum(e.empenhado) FILTER (e.uf IS NOT NULL AND e.uf <> d.uf), 0) AS fora_uf
-                          FROM emendas e JOIN deputados d ON d.id = e.deputado_id WHERE e.deputado_id = ?""", [id_])[0]
+                                 coalesce(sum(empenhado) FILTER (pix), 0) AS pix
+                          FROM emendas e WHERE e.deputado_id = ?""", [id_])[0]
+    destino = _linhas(con, f"""SELECT coalesce(sum(f.valor), 0) AS recebido,
+                                     coalesce(sum(f.valor) FILTER (f.uf <> d.uf), 0) AS fora_uf
+                              FROM emendas_favorecidos f JOIN deputados d ON d.id = f.deputado_id
+                              WHERE f.deputado_id = ? AND f.uf IS NOT NULL AND {DESTINO_REAL}""", [id_])[0]
     return {
-        **tot,
+        **tot, **destino,
         "por_ano": _linhas(con, """SELECT ano, sum(empenhado) AS empenhado, sum(pago) AS pago, sum(empenhado) FILTER (pix) AS pix
                                    FROM emendas WHERE deputado_id = ? GROUP BY 1 ORDER BY 1""", [id_]),
         "por_funcao": _linhas(con, """SELECT coalesce(funcao, 'Não informada') AS rotulo, sum(empenhado) AS valor FROM emendas
                                       WHERE deputado_id = ? GROUP BY 1 ORDER BY 2 DESC LIMIT 10""", [id_]),
-        "por_local": _linhas(con, """SELECT coalesce(localidade, municipio, uf, 'Não informada') AS rotulo, any_value(uf) AS uf,
-                                            sum(empenhado) AS valor FROM emendas WHERE deputado_id = ?
-                                     GROUP BY 1 ORDER BY 3 DESC LIMIT 15""", [id_]),
+        # destino real: município/UF de quem recebeu (a "localidade" da emenda costuma ser "Múltiplo")
+        "por_local": _linhas(con, f"""SELECT coalesce(municipio || '/' || uf, uf, 'Não informado') AS rotulo, uf, sum(valor) AS valor
+                                      FROM emendas_favorecidos WHERE deputado_id = ? AND {DESTINO_REAL}
+                                      GROUP BY municipio, uf ORDER BY 3 DESC LIMIT 15""", [id_]),
         "favorecidos": _linhas(con, """SELECT any_value(favorecido) AS nome, any_value(natureza) AS natureza,
                                               any_value(uf) AS uf, any_value(municipio) AS municipio, sum(valor) AS valor
                                        FROM emendas_favorecidos WHERE deputado_id = ?

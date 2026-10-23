@@ -27,8 +27,9 @@ export function EmendasDeputado({ d }: { d: DeputadoDetalhe }) {
           cor="verde" barra={execucao} />
         <StatTile rotulo="Transferência especial (Pix)" valor={brlCurto(e.pix)} detalhe={`${pct(e.empenhado ? e.pix / e.empenhado : 0, 0)} do empenhado`}
           cor="laranja" barra={e.empenhado ? e.pix / e.empenhado : 0} />
-        <StatTile rotulo={`Fora de ${d.deputado.uf}`} valor={brlCurto(e.fora_uf)} detalhe={`${pct(e.empenhado ? e.fora_uf / e.empenhado : 0, 0)} do empenhado`}
-          cor="amarelo" barra={e.empenhado ? e.fora_uf / e.empenhado : 0} />
+        <StatTile rotulo={`Recebido fora de ${d.deputado.uf}`} valor={brlCurto(e.fora_uf)}
+          detalhe={`${pct(e.recebido ? e.fora_uf / e.recebido : 0, 0)} do que já chegou aos destinatários`}
+          cor="amarelo" barra={e.recebido ? e.fora_uf / e.recebido : 0} />
       </div>
       <SerieTemporal titulo="Emendas por ano do orçamento" formato="brl" barras altura={240}
         subtitulo="Empenhado (reservado no orçamento) e pago até agora."
@@ -38,7 +39,7 @@ export function EmendasDeputado({ d }: { d: DeputadoDetalhe }) {
         ]} />
       <div className="grid gap-6 lg:grid-cols-2">
         <Barras titulo="Por área (função de governo)" itens={e.por_funcao.map((x) => ({ rotulo: x.rotulo, valor: x.valor }))} />
-        <Barras titulo="Para onde foi o dinheiro" cor={1}
+        <Barras titulo="Para onde foi o dinheiro" subtitulo="Município e UF de quem recebeu (bancos que só intermedeiam o repasse ficam fora)." cor={1}
           itens={e.por_local.map((x) => ({ rotulo: x.rotulo, valor: x.valor, detalhe: x.uf && x.uf !== d.deputado.uf ? `fora de ${d.deputado.uf}` : undefined }))} />
       </div>
       {e.favorecidos.length ? (
@@ -55,7 +56,7 @@ export function EmendasDeputado({ d }: { d: DeputadoDetalhe }) {
                 <tr key={`${f.nome}-${i}`} className="border-t border-border">
                   <td className="py-1 pr-3">{f.nome}</td><td className="py-1 pr-3 text-muted">{f.natureza ?? "—"}</td>
                   <td className="py-1 pr-3 text-muted">{[f.municipio, f.uf].filter(Boolean).join("/") || "—"}</td>
-                  <td className="py-1 text-right">{brl(f.valor)}</td>
+                  <td className="py-1 text-right whitespace-nowrap">{brl(f.valor)}</td>
                 </tr>
               ))}</tbody>
             </table>
@@ -81,8 +82,8 @@ export function EmendasDeputado({ d }: { d: DeputadoDetalhe }) {
                 <td className="py-1 pr-3">{x.ano ?? "—"}</td>
                 <td className="py-1 pr-3">{x.localidade ?? x.uf ?? "—"}</td>
                 <td className="py-1 pr-3 text-muted">{x.funcao ?? "—"}</td>
-                <td className="py-1 pr-3 text-right">{brl(x.empenhado)}</td>
-                <td className="py-1 text-right">{brl(x.pago)}</td>
+                <td className="py-1 pr-3 text-right whitespace-nowrap">{brl(x.empenhado)}</td>
+                <td className="py-1 text-right whitespace-nowrap">{brl(x.pago)}</td>
               </tr>
             ))}</tbody>
           </table>

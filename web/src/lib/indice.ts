@@ -30,7 +30,7 @@ function percentis(valores: (number | null)[], menorMelhor = false): (number | n
 
 /**
  * Índice de desempenho (0–100): média dos percentis de presença, participação em votações, projetos por mês
- * e economia na cota, entre deputados com pelo menos 6 meses de exercício. Componentes sem dado são ignorados.
+ * relatorias por mês e uso da cota (em % do teto da UF), entre deputados com pelo menos 6 meses de exercício. Componentes sem dado são ignorados.
  */
 export function indiceDesempenho(deps: DeputadoResumo[]): NotaIndice[] {
   const elegiveis = deps.filter((d) => d.indicadores && d.indicadores.meses_exercicio >= MESES_MINIMOS);

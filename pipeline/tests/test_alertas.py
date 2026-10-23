@@ -155,14 +155,22 @@ def emenda(con, dep, uf, empenhado, pix=False, codigo=None):
     return codigo
 
 
-# E01 — emendas fora do estado
+# E01 — emendas fora do estado (pelo destino de quem recebeu)
+def recebido(con, dep, uf, valor, natureza="Município"):
+    con.execute("INSERT INTO emendas_favorecidos (codigo, deputado_id, favorecido, natureza, uf, valor) VALUES ('c', ?, 'X', ?, ?, ?)",
+                [dep, natureza, uf, valor])
+
+
 def test_E01(base):
     deputado(base, 1, uf="SP")
     deputado(base, 2, uf="SP")
-    emenda(base, 1, "SP", 2_000_000)
-    emenda(base, 1, "BA", 1_500_000)
-    emenda(base, 2, "SP", 9_000_000)
-    emenda(base, 2, "RJ", 1_000_000)  # 10%: abaixo do limiar
+    deputado(base, 3, uf="SP")
+    recebido(base, 1, "SP", 2_000_000)
+    recebido(base, 1, "BA", 1_500_000)
+    recebido(base, 2, "SP", 9_000_000)
+    recebido(base, 2, "RJ", 1_000_000)  # 10%: abaixo do limiar
+    recebido(base, 3, "SP", 2_000_000)
+    recebido(base, 3, "DF", 5_000_000, natureza="Sociedade de Economia Mista")  # banco intermediário: não é destino
     assert rodar(base, "E01") == {1}
 
 
@@ -179,6 +187,8 @@ def test_E02(base):
         favorecido(base, c, d, "MUNICIPIO DE X", "Município", 1_000_000)
     favorecido(base, "x", 1, "ASSOCIACAO AMIGOS", "Associação Privada", 600_000)
     favorecido(base, "y", 2, "PREFEITURA Y", "Município", 5_000_000)
+    deputado(base, 3)
+    favorecido(base, "z", 3, "BANCO DO BRASIL SA", "Sociedade de Economia Mista", 9_000_000)  # banco público não é entidade privada
     assert rodar(base, "E02") == {1}
 
 
