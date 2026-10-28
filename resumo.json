@@ -1,0 +1,328 @@
+{
+  "gerado_em": "2026-10-28T15:39:36+00:00",
+  "ficticio": false,
+  "fontes": {
+    "Câmara — Dados Abertos": {
+      "desatualizada": false,
+      "atualizado_em": "2026-10-28T15:39:36+00:00"
+    },
+    "Câmara — Cota parlamentar (CEAP)": {
+      "desatualizada": false,
+      "atualizado_em": "2026-10-28T15:39:36+00:00"
+    },
+    "Receita Federal (CNPJ)": {
+      "desatualizada": false,
+      "atualizado_em": "2026-10-28T15:39:36+00:00"
+    },
+    "Câmara — Frequência com justificativas": {
+      "desatualizada": false,
+      "atualizado_em": "2026-10-28T15:39:36+00:00"
+    },
+    "Câmara — Equipe de gabinete": {
+      "desatualizada": false,
+      "atualizado_em": "2026-10-28T15:39:36+00:00"
+    },
+    "CGU — Emendas parlamentares": {
+      "desatualizada": false,
+      "atualizado_em": "2026-10-28T15:39:36+00:00"
+    }
+  },
+  "contagens": {
+    "despesas": 624953,
+    "fornecedores": 39000,
+    "votacoes": 1600,
+    "votos": 473272,
+    "orientacoes": 15571,
+    "orientacao_partido": 15399,
+    "sessoes": 393,
+    "presencas": 201063,
+    "proposicoes": 278649,
+    "autorias": 430958,
+    "relatorias": 32881,
+    "rede_arestas": 196765,
+    "deputados": 648,
+    "series": 734648,
+    "frequencia_dia": 198724,
+    "secretarios": 10342,
+    "emendas": 15281,
+    "emendas_favorecidos": 113521
+  },
+  "deputados": 648,
+  "em_exercicio": 513,
+  "totais": {
+    "gasto_total": 754244937.0900573,
+    "n_votacoes": 1600,
+    "n_proposicoes_relevantes": 25932,
+    "n_sessoes": 393,
+    "emendas_empenhado": 54908684450.81026,
+    "emendas_pago": 42329760309.74012,
+    "n_secretarios": 10342,
+    "n_alertas": 3267
+  },
+  "alertas_por_regra": {
+    "G01": 2,
+    "G02": 414,
+    "G03": 58,
+    "G04": 90,
+    "G05": 504,
+    "G06": 536,
+    "G07": 78,
+    "G08": 268,
+    "G09": 317,
+    "G10": 502,
+    "G11": 1,
+    "E01": 12,
+    "E02": 4,
+    "E03": 6,
+    "P01": 126,
+    "P02": 65,
+    "L01": 12,
+    "L02": 40,
+    "V01": 46,
+    "V02": 186
+  },
+  "uf": {
+    "BA": {
+      "n": 45,
+      "gasto_mensal_mediana": 35435.759079429,
+      "projetos_mediana": 9,
+      "projetos_media": 19.555555555555557,
+      "presenca_mediana": 0.9844155844155844
+    },
+    "RS": {
+      "n": 35,
+      "gasto_mensal_mediana": 36260.48965775993,
+      "projetos_mediana": 24,
+      "projetos_media": 31.257142857142856,
+      "presenca_mediana": 0.9918478260869565
+    },
+    "CE": {
+      "n": 33,
+      "gasto_mensal_mediana": 34239.931544117695,
+      "projetos_mediana": 14,
+      "projetos_media": 29.78787878787879,
+      "presenca_mediana": 0.978978978978979
+    },
+    "RR": {
+      "n": 9,
+      "gasto_mensal_mediana": 41420.997546669125,
+      "projetos_mediana": 23,
+      "projetos_media": 150.66666666666666,
+      "presenca_mediana": 0.9761904761904762
+    },
+    "RJ": {
+      "n": 57,
+      "gasto_mensal_mediana": 28168.983385000014,
+      "projetos_mediana": 31,
+      "projetos_media": 49.771929824561404,
+      "presenca_mediana": 0.9868852459016394
+    },
+    "PI": {
+      "n": 11,
+      "gasto_mensal_mediana": 36077.26126913266,
+      "projetos_mediana": 16,
+      "projetos_media": 14.545454545454545,
+      "presenca_mediana": 0.9888888888888889
+    },
+    "MT": {
+      "n": 13,
+      "gasto_mensal_mediana": 33257.8238209187,
+      "projetos_mediana": 18,
+      "projetos_media": 42.53846153846154,
+      "presenca_mediana": 0.9827586206896551
+    },
+    "PA": {
+      "n": 19,
+      "gasto_mensal_mediana": 30955.20145497989,
+      "projetos_mediana": 17,
+      "projetos_media": 24.68421052631579,
+      "presenca_mediana": 0.9689922480620154
+    },
+    "AL": {
+      "n": 10,
+      "gasto_mensal_mediana": 31992.860255900785,
+      "projetos_mediana": 17.5,
+      "projetos_media": 30.3,
+      "presenca_mediana": 0.9844000903997812
+    },
+    "SC": {
+      "n": 21,
+      "gasto_mensal_mediana": 31202.541046108767,
+      "projetos_mediana": 23,
+      "projetos_media": 38.95238095238095,
+      "presenca_mediana": 0.9883720930232558
+    },
+    "MS": {
+      "n": 8,
+      "gasto_mensal_mediana": 39462.510981195126,
+      "projetos_mediana": 28.5,
+      "projetos_media": 54.125,
+      "presenca_mediana": 0.9866304440831694
+    },
+    "SP": {
+      "n": 88,
+      "gasto_mensal_mediana": 30617.410710198204,
+      "projetos_mediana": 21.5,
+      "projetos_media": 39.35227272727273,
+      "presenca_mediana": 0.986941965046743
+    },
+    "MG": {
+      "n": 65,
+      "gasto_mensal_mediana": 32498.331990757935,
+      "projetos_mediana": 16,
+      "projetos_media": 22.50769230769231,
+      "presenca_mediana": 0.989501312335958
+    },
+    "DF": {
+      "n": 10,
+      "gasto_mensal_mediana": 31136.288068951326,
+      "projetos_mediana": 55.5,
+      "projetos_media": 69.1,
+      "presenca_mediana": 0.9922475961538462
+    },
+    "PR": {
+      "n": 40,
+      "gasto_mensal_mediana": 34447.24188027804,
+      "projetos_mediana": 17,
+      "projetos_media": 19.1,
+      "presenca_mediana": 0.9797765135828302
+    },
+    "MA": {
+      "n": 32,
+      "gasto_mensal_mediana": 36835.819923291085,
+      "projetos_mediana": 11,
+      "projetos_media": 29.5,
+      "presenca_mediana": 0.9611827956989247
+    },
+    "AC": {
+      "n": 10,
+      "gasto_mensal_mediana": 43069.43421398886,
+      "projetos_mediana": 20.5,
+      "projetos_media": 25.1,
+      "presenca_mediana": 0.993252881433299
+    },
+    "RN": {
+      "n": 9,
+      "gasto_mensal_mediana": 37684.82919910719,
+      "projetos_mediana": 19,
+      "projetos_media": 25.77777777777778,
+      "presenca_mediana": 0.9946091644204852
+    },
+    "AP": {
+      "n": 15,
+      "gasto_mensal_mediana": 37398.642545329654,
+      "projetos_mediana": 10,
+      "projetos_media": 17,
+      "presenca_mediana": 0.9846153846153847
+    },
+    "AM": {
+      "n": 10,
+      "gasto_mensal_mediana": 34891.79591326785,
+      "projetos_mediana": 40.5,
+      "projetos_media": 159.8,
+      "presenca_mediana": 0.9705118411000764
+    },
+    "GO": {
+      "n": 20,
+      "gasto_mensal_mediana": 36158.48559594622,
+      "projetos_mediana": 28.5,
+      "projetos_media": 36.4,
+      "presenca_mediana": 0.9789178378978945
+    },
+    "PB": {
+      "n": 16,
+      "gasto_mensal_mediana": 34966.60090282903,
+      "projetos_mediana": 14,
+      "projetos_media": 32.6875,
+      "presenca_mediana": 0.990972850678733
+    },
+    "TO": {
+      "n": 11,
+      "gasto_mensal_mediana": 39387.74469390566,
+      "projetos_mediana": 12,
+      "projetos_media": 25.181818181818183,
+      "presenca_mediana": 0.9921568627450981
+    },
+    "ES": {
+      "n": 10,
+      "gasto_mensal_mediana": 35729.691409910345,
+      "projetos_mediana": 33.5,
+      "projetos_media": 50.9,
+      "presenca_mediana": 0.9931952662721893
+    },
+    "PE": {
+      "n": 27,
+      "gasto_mensal_mediana": 35205.75831121889,
+      "projetos_mediana": 28,
+      "projetos_media": 29,
+      "presenca_mediana": 0.9842105263157894
+    },
+    "SE": {
+      "n": 12,
+      "gasto_mensal_mediana": 33073.16477597148,
+      "projetos_mediana": 16,
+      "projetos_media": 28.5,
+      "presenca_mediana": 0.9865970943319009
+    },
+    "RO": {
+      "n": 9,
+      "gasto_mensal_mediana": 39243.67972822112,
+      "projetos_mediana": 34,
+      "projetos_media": 46,
+      "presenca_mediana": 0.9893899204244032
+    }
+  },
+  "maiores_gastos": [
+    "Gabriel Mota (UNIÃO-RR): 2171011.8099999996",
+    "Albuquerque (REPUBLICANOS-RR): 2165756.4600000023",
+    "Eunício Oliveira (MDB-CE): 2076607.3400000008",
+    "Pompeo de Mattos (PDT-RS): 2057245.3500000003",
+    "Flávio Nogueira (PT-PI): 2055970.5200000019"
+  ],
+  "mais_projetos": [
+    "Amom Mandel (REPUBLICANOS-AM): 1222",
+    "Duda Ramos (PODE-RR): 1128",
+    "Marcos Tavares (PDT-RJ): 542",
+    "Jonas Donizette (PSB-SP): 499",
+    "José Medeiros (PL-MT): 310"
+  ],
+  "menor_presenca": [
+    "Chiquinho Brazão (S.PART.-RJ): 0.4387755102040816",
+    "Nivaldo Albuquerque (UNIÃO-AL): 0.6",
+    "Eduardo Bolsonaro (PL-SP): 0.7394957983193278",
+    "Jhonatan de Jesus (REPUBLICANOS-RR): 0.8181818181818182",
+    "Washington Quaquá (PT-RJ): 0.8314606741573034"
+  ],
+  "sem_alinhamento": 51,
+  "exemplo_deputado": 204549,
+  "emendas": {
+    "deputados_com": 543,
+    "maiores": [
+      "Capitão Augusto (PL-SP): 115399577",
+      "Alex Manente (CIDADANIA-SP): 115399576.15",
+      "Juarez Costa (REPUBLICANOS-MT): 115399569.09",
+      "Eduardo da Fonte (PP-PE): 115398565.41",
+      "Domingos Neto (PSD-CE): 115397413.13"
+    ]
+  },
+  "gabinete": {
+    "deputados_com": 513,
+    "maiores": [
+      "Afonso Hamm (PP-RS): 25",
+      "Afonso Motta (PDT-RS): 25",
+      "Airton Faleiro (PT-PA): 25",
+      "Alencar Santana (PT-SP): 25",
+      "Alfredinho (PT-SP): 25"
+    ]
+  },
+  "faltas": {
+    "justificadas_total": 11619,
+    "sem_justificativa_top": [
+      "Chiquinho Brazão (S.PART.-RJ): 110",
+      "Eduardo Bolsonaro (PL-SP): 62",
+      "Pedro Lupion (REPUBLICANOS-PR): 52",
+      "José Priante (MDB-PA): 45",
+      "Antônia Lúcia (MDB-AC): 42"
+    ]
+  }
+}
