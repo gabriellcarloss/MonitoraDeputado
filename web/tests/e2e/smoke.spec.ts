@@ -106,10 +106,11 @@ test("meus deputados: marcar com estrela, filtrar e ver na página inicial", asy
   await expect(page.locator("section[aria-labelledby=meus-deputados]").getByText(nome).first()).toBeVisible();
 });
 
-test("botões de contato do autor", async ({ page }) => {
+test("links do autor: só contato e Apuração (sem WhatsApp nem LinkedIn no menu e no rodapé)", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/sobre/");
-  await expect(page.locator('a[href^="https://wa.me/5511918737727"]').first()).toBeVisible();
-  await expect(page.locator('a[href="https://www.linkedin.com/in/gabriel-carlos-moreira/"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/contato/"]').first()).toBeVisible();
   await expect(page.locator('a[href^="https://apuracao-2026-five.vercel.app/"]').first()).toBeVisible();
+  await expect(page.locator('a[href^="https://wa.me/"]')).toHaveCount(0);
+  await expect(page.locator('a[href*="linkedin.com"]')).toHaveCount(0);
 });

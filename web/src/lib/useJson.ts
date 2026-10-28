@@ -1,17 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { buscarJson } from "./resiliencia";
 
 const cache = new Map<string, Promise<unknown>>();
 
+/**
+ * Carrega um JSON publicado em /data, com novas tentativas e, se a rede falhar, a cópia guardada da última visita.
+ * Fica em memória enquanto a página estiver aberta; uma falha não fica guardada (a próxima chamada tenta de novo).
+ */
 export function carregarJson<T>(url: string): Promise<T> {
-  if (!cache.has(url)) {
-    cache.set(url, fetch(url).then((r) => {
-      if (!r.ok) throw new Error(`${r.status} ao carregar ${url}`);
-      return r.json();
-    }));
+  let p = cache.get(url) as Promise<T> | undefined;
+  if (!p) {
+    p = buscarJson<T>(url);
+    cache.set(url, p);
+    const q = p;
+    q.catch(() => {
+      if (cache.get(url) === q) cache.delete(url);
+    });
   }
-  return cache.get(url) as Promise<T>;
+  return p;
 }
 
 /** Carrega um JSON publicado em /data (com cache em memória). */

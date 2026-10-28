@@ -5,6 +5,5 @@ export const SITE_URL = (process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_UR
 export const AUTOR = {
   nome: "Gabriel Carlos",
   whatsapp: `https://wa.me/5511918737727?text=${encodeURIComponent("Olá, Gabriel! Vi o MonitoraDeputado e queria conversar.")}`,
-  linkedin: "https://www.linkedin.com/in/gabriel-carlos-moreira/",
   apuracao: "https://apuracao-2026-five.vercel.app/#v=geral&cargo=pres&uf=BR",
 };

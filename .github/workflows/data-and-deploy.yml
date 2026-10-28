@@ -90,6 +90,13 @@ jobs:
           git commit -m "inspeção $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -f origin inspecao
 
+      - name: Verificar que os dados carregam no navegador (trava antes de publicar)
+        if: ${{ !inputs.so_previa }}
+        working-directory: web
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          node scripts/verificar-dados.mjs
+
       - name: Publicar na Vercel
         if: ${{ !inputs.so_previa }}
         working-directory: web
