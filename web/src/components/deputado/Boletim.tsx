@@ -23,7 +23,7 @@ export function Boletim({ indicadores, posicoes, total }: { indicadores: Indicad
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {GRUPOS.map((g) => (
           <section key={g.titulo} className="cartao p-4">
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">{g.titulo}</h3>
+            <h3 className="mb-2 text-sm font-semibold text-muted">{g.titulo}</h3>
             <dl className="space-y-2">
               {g.itens.map((k) => {
                 const info = INDICADORES[k];

@@ -55,7 +55,8 @@ export function SerieTemporal({ titulo, subtitulo, linhas, formato = "num", altu
         showSymbol: false, symbolSize: 8, connectNulls: false,
         barMaxWidth: 18,
         itemStyle: { color: c.series[i % c.series.length], borderRadius: barras && i === 0 ? [4, 4, 0, 0] : 0 },
-        lineStyle: { width: 2, type: i === 0 ? "solid" : "solid", opacity: i === 0 ? 1 : 0.85 },
+        lineStyle: { width: i === 0 ? 2.5 : 1.75, opacity: i === 0 ? 1 : 0.85 },
+        ...(i === 0 && !barras ? { areaStyle: { opacity: 0.1 } } : {}),
         emphasis: { focus: "series" },
         markPoint: i === 0 && l.picos?.length ? {
           symbol: "pin", symbolSize: 34,
