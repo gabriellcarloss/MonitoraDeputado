@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "@fontsource-variable/inter";
+import { Acessos } from "@/components/coleta/Acessos";
 import { Footer } from "@/components/layout/Footer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { scriptTema } from "@/components/layout/ThemeToggle";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: scriptTema }} />
       </head>
       <body className="min-h-screen font-sans antialiased">
+        <Acessos />
         <Sidebar />
         <div className="lg:pl-60">
           {meta?.ficticio ? (

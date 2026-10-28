@@ -4,7 +4,7 @@ import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-static";
 
-const PAGINAS = ["/", "/deputados/", "/gastos/", "/gastos/passagens/", "/votacoes/", "/presenca/", "/proposicoes/", "/alertas/", "/rede/", "/sobre/"];
+const PAGINAS = ["/", "/deputados/", "/gastos/", "/gastos/passagens/", "/votacoes/", "/presenca/", "/proposicoes/", "/alertas/", "/rede/", "/sobre/", "/contato/", "/privacidade/"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const quando = getMeta()?.gerado_em ? new Date(getMeta()!.gerado_em) : new Date();
