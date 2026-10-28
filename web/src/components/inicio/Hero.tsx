@@ -78,7 +78,7 @@ export function Hero({ geradoEm, kpis, podio, maior, menor, alertas, contagem }:
     <div className="relative">
       <section className="hero-brasil relative overflow-hidden rounded-2xl p-5 text-white sm:p-8">
         <div className="hero-brilho pointer-events-none absolute inset-0" aria-hidden />
-        <Hemiciclo className="hemiciclo pointer-events-none absolute -right-6 -top-4 hidden w-[34rem] max-w-[60%] sm:block" />
+        <Hemiciclo className="hemiciclo pointer-events-none absolute -right-4 top-0 hidden aspect-[200/108] h-auto w-[30rem] max-w-[55%] sm:block" />
         <div className="relative space-y-6">
           <div>
             <p className="text-sm text-white/80">Legislatura 2023–2027 · dados até {data(geradoEm)}, atualizados todo dia</p>
