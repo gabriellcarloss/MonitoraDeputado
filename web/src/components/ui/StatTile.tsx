@@ -8,7 +8,7 @@ export function StatTile({ rotulo, valor, detalhe, cor = "verde", barra }: {
 }) {
   return (
     <div className="cartao brilho-hover h-full p-4">
-      <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted">
+      <p className="flex items-center gap-2 text-xs font-semibold text-muted">
         <span aria-hidden className={clsx("h-1.5 w-1.5 rounded-full", PONTOS[cor])} /> {rotulo}
       </p>
       <p className="num-display mt-1 text-3xl leading-tight sm:text-[2rem]">{valor}</p>
@@ -46,7 +46,7 @@ export function Erro({ texto: _texto }: { texto?: string }) {
 export function Titulo({ children, sub, sobretitulo }: { children: React.ReactNode; sub?: React.ReactNode; sobretitulo?: string }) {
   return (
     <div className="mb-6">
-      {sobretitulo ? <p className="mb-1 text-xs font-bold uppercase tracking-widest text-destaque">{sobretitulo}</p> : null}
+      {sobretitulo ? <p className="mb-1 text-xs font-semibold text-destaque">{sobretitulo}</p> : null}
       <h1 className="font-display text-3xl leading-none sm:text-4xl">{children}</h1>
       {sub ? <p className="mt-2 max-w-3xl text-muted">{sub}</p> : null}
     </div>

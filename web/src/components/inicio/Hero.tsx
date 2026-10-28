@@ -4,7 +4,8 @@ import { AlertOctagon, Trophy } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { Foto } from "@/components/ui/Foto";
-import { Contador, Inclinavel } from "@/components/ui/Movimento";
+import { Contador } from "@/components/ui/Movimento";
+import { Hemiciclo } from "./Hemiciclo";
 import { brl, brlCurto, data, num, pct } from "@/lib/format";
 
 export interface Pessoa {
@@ -48,7 +49,7 @@ function FaixaAlertas({ itens }: { itens: AlertaVitrine[] }) {
     <Link key={k} href={`/deputado/${a.id}/`} className="flex w-[320px] shrink-0 items-center gap-3 rounded-xl border border-white/15 bg-black/25 p-2.5 transition hover:bg-black/40">
       <Pessoa p={a} tamanho={38} anel="ring-[#d03b3b]" />
       <span className="min-w-0">
-        <span className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-[#ffb4b4]"><AlertOctagon size={12} aria-hidden /> {a.titulo}</span>
+        <span className="flex items-center gap-1 text-xs font-bold text-[#ffb4b4]"><AlertOctagon size={12} aria-hidden /> {a.titulo}</span>
         <span className="block truncate text-sm font-semibold">{a.nome} <span className="font-normal text-white/70">{a.partido}-{a.uf}</span></span>
         <span className="block truncate text-xs text-white/75">{a.descricao}</span>
       </span>
@@ -74,23 +75,14 @@ export function Hero({ geradoEm, kpis, podio, maior, menor, alertas, contagem }:
   const reduzir = useReducedMotion();
   const total = contagem.alta + contagem.atencao + contagem.info || 1;
   return (
-    <Inclinavel max={1.5} className="relative">
-      <section className="hero-brasil relative overflow-hidden rounded-2xl p-5 text-white shadow-2xl sm:p-7">
+    <div className="relative">
+      <section className="hero-brasil relative overflow-hidden rounded-2xl p-5 text-white sm:p-8">
         <div className="hero-brilho pointer-events-none absolute inset-0" aria-hidden />
-        <div aria-hidden className="pointer-events-none absolute -right-20 -top-28 hidden h-[26rem] w-[26rem] sm:block">
-          <div className="flutuar absolute inset-0">
-            <div className="absolute inset-[12%] rotate-45 rounded-[2.5rem] bg-[#ffdf00]/[0.12]" />
-            <div className="absolute inset-[30%] rounded-full bg-[#002776]/40 ring-1 ring-white/10" />
-          </div>
-        </div>
+        <Hemiciclo className="hemiciclo pointer-events-none absolute -right-4 top-0 hidden aspect-[200/108] h-auto w-[30rem] max-w-[55%] sm:block" />
         <div className="relative space-y-6">
           <div>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
-              <span className="rounded-full bg-[#ffdf00] px-2.5 py-1 text-[#0b1220]">Atualização diária</span>
-              <span className="rounded-full bg-[#002776] px-2.5 py-1">Legislatura 2023–2027</span>
-              <span className="font-medium normal-case tracking-normal text-white/80">dados até {data(geradoEm)}</span>
-            </div>
-            <h1 className="font-display mt-3 text-4xl uppercase leading-none tracking-wide sm:text-5xl">Câmara dos Deputados · <span className="text-[#ffdf00]">desempenho</span></h1>
+            <p className="text-sm text-white/80">Legislatura 2023–2027 · dados até {data(geradoEm)}, atualizados todo dia</p>
+            <h1 className="font-display mt-2 max-w-xl text-4xl leading-[1.02] sm:text-6xl">513 deputados, cada voto e cada real à vista</h1>
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[1.05fr_1fr]">
@@ -100,13 +92,13 @@ export function Hero({ geradoEm, kpis, podio, maior, menor, alertas, contagem }:
                   <p className="num-display whitespace-nowrap text-[1.6rem] leading-none sm:text-4xl">
                     {k.valor === null ? "—" : <Contador valor={k.valor} formato={FMT[k.formato]} />}
                   </p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-white/75 sm:text-xs">{k.rotulo}</p>
+                  <p className="mt-1 text-xs font-medium text-white/80 sm:text-sm">{k.rotulo}</p>
                 </div>
               ))}
             </div>
 
             <div className="min-w-0 rounded-xl bg-black/20 p-3 backdrop-blur-sm">
-              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/80">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-white/85">
                 <Trophy size={13} className="text-[#ffdf00]" aria-hidden /> Destaques do mandato · índice de desempenho
               </p>
               <ol className="grid gap-2 sm:grid-cols-3">
@@ -118,7 +110,7 @@ export function Hero({ geradoEm, kpis, podio, maior, menor, alertas, contagem }:
                         <span className="num-display absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-[#ffdf00] text-xs text-[#0b1220]">{i + 1}</span>
                       </span>
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-bold uppercase">{p.nome}</span>
+                        <span className="block truncate text-sm font-bold">{p.nome}</span>
                         <span className="block text-xs text-white/70">{p.partido}-{p.uf}</span>
                         <span className="num-display block text-xl leading-tight text-[#ffdf00]">{p.nota}<span className="text-xs text-white/70">/100</span></span>
                         <span className="block text-[10px] leading-tight text-white/75">
@@ -164,6 +156,6 @@ export function Hero({ geradoEm, kpis, podio, maior, menor, alertas, contagem }:
           </div>
         </div>
       </section>
-    </Inclinavel>
+    </div>
   );
 }

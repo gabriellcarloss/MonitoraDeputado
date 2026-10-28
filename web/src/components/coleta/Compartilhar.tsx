@@ -37,7 +37,7 @@ export function Compartilhar({ texto, caminho }: { texto: string; caminho: strin
   const links = linksCompartilhar(texto, url());
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Compartilhar esta página">
-      <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted"><Share2 size={14} aria-hidden /> Compartilhar</span>
+      <span className="flex items-center gap-1 text-xs font-semibold text-muted"><Share2 size={14} aria-hidden /> Compartilhar</span>
       <a href={links.whatsapp} target="_blank" rel="noopener noreferrer" className="pilula h-8 px-3 text-xs"><MessageCircle size={14} aria-hidden /> WhatsApp</a>
       <a href={links.x} target="_blank" rel="noopener noreferrer" className="pilula h-8 px-3 text-xs">X</a>
       <a href={links.linkedin} target="_blank" rel="noopener noreferrer" className="pilula h-8 px-3 text-xs">LinkedIn</a>

@@ -26,7 +26,7 @@ const cls = "h-9 rounded-full border border-border bg-subtle/60 px-3 text-sm fon
 
 export function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-[11px] font-bold uppercase tracking-wider text-muted">
+    <label className="flex flex-col gap-1 text-xs font-semibold text-muted">
       {rotulo}
       {children}
     </label>
