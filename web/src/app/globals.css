@@ -62,7 +62,7 @@ html { background: rgb(var(--bg)); scroll-behavior: smooth; }
 .flutuar { animation: none; }
 
 /* Plenário em pontos: acende da esquerda para a direita uma única vez */
-.hemi-ponto { fill: rgb(255 255 255 / 0.28); opacity: 0; animation: hemi-entrar 700ms ease-out forwards; animation-delay: var(--d, 0ms); }
+.hemi-ponto { fill: rgb(255 255 255 / 0.34); animation: hemi-entrar 700ms ease-out backwards; animation-delay: var(--d, 0ms); }
 .hemi-destaque { fill: #ffdf00; }
 @keyframes hemi-entrar { from { opacity: 0; } to { opacity: 1; } }
 
@@ -87,7 +87,7 @@ tbody tr:hover { background: rgb(var(--subtle) / 0.7); }
 input, select, textarea { border-radius: .5rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hemi-ponto { animation: none; opacity: 1; }
+  .hemi-ponto { animation: none; }
   .brilho-hover, tbody tr, .pilula { transition: none; }
   html { scroll-behavior: auto; }
 }

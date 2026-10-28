@@ -14,7 +14,7 @@ export function Destaques({ itens }: { itens: Destaque[] }) {
           <div className="cartao brilho-hover flex h-full items-start gap-3 p-3.5">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-subtle text-destaque"><Icone size={18} aria-hidden /></span>
             <span>
-              <span className="block text-[11px] font-bold uppercase tracking-wider text-muted">{d.titulo}</span>
+              <span className="block text-xs font-semibold text-muted">{d.titulo}</span>
               <span className="block text-sm font-medium">{d.texto}</span>
             </span>
           </div>
