@@ -16,6 +16,8 @@ const meta = ler("meta.json");
 const deps = ler("deputados.json");
 const brasil = ler("brasil.json");
 const alertas = ler("alertas.json");
+// índice público de deputados (id, nome, partido, UF): serve para montar links diretos para cada página
+writeFileSync(path.join(destino, "deputados-ids.json"), JSON.stringify(deps.map((d) => ({ id: d.id, nome: d.nome, partido: d.partido_atual, uf: d.uf }))));
 const ativos = deps.filter((d) => d.indicadores && d.indicadores.meses_exercicio >= 1);
 const top = (k, asc = false) => [...ativos].filter((d) => d.indicadores[k] !== null)
   .sort((a, b) => (a.indicadores[k] - b.indicadores[k]) * (asc ? 1 : -1)).slice(0, 5)
