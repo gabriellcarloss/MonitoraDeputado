@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import {
   AlertTriangle, BarChart3, BookOpen, ExternalLink, FileText, Landmark, LayoutDashboard, Menu, MessageCircle, Network, Plane, Share2,
-  UserCheck, UserRound, Users, Vote, X,
+  Mail, UserCheck, UserRound, Users, Vote, X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -81,6 +81,9 @@ function Itens({ onNavegar }: { onNavegar?: () => void }) {
       <div className="mt-2 space-y-1 px-3">
         <Link href="/sobre/" onClick={onNavegar} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
           <BookOpen size={18} aria-hidden /> Metodologia
+        </Link>
+        <Link href="/contato/" onClick={onNavegar} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+          <Mail size={18} aria-hidden /> Contato
         </Link>
         <button type="button" onClick={compartilhar} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
           <Share2 size={18} aria-hidden /> {copiado ? "Link copiado!" : "Compartilhar"}

@@ -14,6 +14,8 @@ export function Footer({ geradoEm }: { geradoEm?: string | null }) {
           </p>
           <p>
             <Link href="/sobre/" className="text-destaque underline">Metodologia e fontes</Link> ·{" "}
+            <Link href="/contato/" className="text-destaque underline">Contato</Link> ·{" "}
+            <Link href="/privacidade/" className="text-destaque underline">Privacidade</Link> ·{" "}
             <a href="https://github.com/gabriellcarloss/MonitoraDeputado" target="_blank" rel="noopener noreferrer" className="text-destaque underline">Código aberto</a>
           </p>
         </div>

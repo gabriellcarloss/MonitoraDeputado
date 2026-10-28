@@ -31,6 +31,8 @@ jobs:
     env:
       # endereço público: usado para comparar com a versão no ar (trava de queda de registros), no sitemap e nas prévias de link
       SITE_URL: ${{ vars.SITE_URL || 'https://monitoradeputado.vercel.app' }}
+      # endereço do Apps Script que grava cadastros, contatos e acessos na planilha (vazio = coleta desligada)
+      NEXT_PUBLIC_COLETA_URL: ${{ vars.COLETA_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

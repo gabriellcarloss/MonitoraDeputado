@@ -6,6 +6,8 @@ import { Suspense } from "react";
 import { Barras } from "@/components/charts/Barras";
 import { Rede } from "@/components/charts/Rede";
 import { SerieTemporal } from "@/components/charts/SerieTemporal";
+import { Cadastro } from "@/components/coleta/Cadastro";
+import { Compartilhar } from "@/components/coleta/Compartilhar";
 import { BotaoFavorito } from "@/components/favoritos/BotaoFavorito";
 import { TabelaNotas } from "@/components/gastos/TabelaNotas";
 import { Foto } from "@/components/ui/Foto";
@@ -13,6 +15,7 @@ import { Carregando, Erro } from "@/components/ui/StatTile";
 import { useConsulta } from "@/lib/duck";
 import { brl, data, iso, num, pct } from "@/lib/format";
 import { sqlPorCategoria, sqlPassagens } from "@/lib/queries/gastos";
+import { resumoDeputado } from "@/lib/resumo";
 import { sqlPresencaDeputado, sqlVotosDeputado } from "@/lib/queries/deputado";
 import type { Brasil, DeputadoDetalhe, Serie } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
@@ -64,6 +67,7 @@ function Cabecalho({ d }: { d: DeputadoDetalhe }) {
               {r.replace(/^https?:\/\/(www\.)?/, "").slice(0, 40)}</a></li>
           ))}
         </ul>
+        <div className="mt-3"><Compartilhar texto={resumoDeputado(d)} caminho={`/deputado/${p.id}/`} /></div>
       </div>
     </header>
   );
@@ -299,6 +303,10 @@ export function Perfil({ d, total }: { d: DeputadoDetalhe; total: number }) {
       <Suspense fallback={<Conteudo d={d} total={total} aba="resumo" onChange={() => {}} />}>
         <ComAbas d={d} total={total} />
       </Suspense>
+      <div className="mt-8">
+        <Cadastro origem={`deputado-${d.deputado.id}`} interesse={`${d.deputado.nome} (${d.deputado.partido_atual}-${d.deputado.uf})`} compacto
+          titulo="Acompanhe este deputado" texto="Receba um aviso por e-mail quando houver novos pontos de atenção ou mudanças importantes nos números deste mandato." />
+      </div>
     </>
   );
 }

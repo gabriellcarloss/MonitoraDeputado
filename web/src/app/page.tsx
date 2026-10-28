@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SerieTemporal } from "@/components/charts/SerieTemporal";
+import { Cadastro } from "@/components/coleta/Cadastro";
 import { MeusDeputados } from "@/components/favoritos/MeusDeputados";
 import { Destaques } from "@/components/inicio/Destaques";
 import { Hero } from "@/components/inicio/Hero";
@@ -84,6 +85,8 @@ export default function Inicio() {
       <Secao titulo="Destaques" sub="gerados a cada atualização dos dados">
         <Destaques itens={gerarDestaques(deps, brasil.series)} />
       </Secao>
+
+      <Cadastro origem="home" />
 
       <Aparecer>
         {gasto ? <SerieTemporal titulo="Gasto mensal da cota parlamentar" formato="brl"
