@@ -30,8 +30,17 @@ export function Carregando({ texto = "Carregando dados…" }: { texto?: string }
   );
 }
 
-export function Erro({ texto }: { texto: string }) {
-  return <p className="rounded-lg border border-alta/40 bg-alta/10 p-3 text-sm" role="alert">Não foi possível carregar os dados: {texto}</p>;
+/**
+ * Último recurso, só aparece depois de várias tentativas automáticas e sem nenhuma cópia guardada.
+ * Sem texto técnico para quem visita (o detalhe vai para o console). `texto` é mantido por compatibilidade.
+ */
+export function Erro({ texto: _texto }: { texto?: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted" role="status">
+      Estes dados não carregaram agora. O site já tentou de novo sozinho.{" "}
+      <a href="" className="font-semibold text-destaque underline">Recarregar a página</a>
+    </div>
+  );
 }
 
 export function Titulo({ children, sub, sobretitulo }: { children: React.ReactNode; sub?: React.ReactNode; sobretitulo?: string }) {

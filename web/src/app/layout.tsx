@@ -3,6 +3,7 @@ import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "@fontsource-variable/inter";
 import { Acessos } from "@/components/coleta/Acessos";
+import { AvisoDados } from "@/components/ui/AvisoDados";
 import { Footer } from "@/components/layout/Footer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { scriptTema } from "@/components/layout/ThemeToggle";
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   title: { default: "MonitoraDeputado", template: "%s · MonitoraDeputado" },
   description: DESCRICAO,
   applicationName: "MonitoraDeputado",
-  authors: [{ name: AUTOR.nome, url: AUTOR.linkedin }],
+  authors: [{ name: AUTOR.nome }],
   openGraph: {
     type: "website", locale: "pt_BR", siteName: "MonitoraDeputado", title: "MonitoraDeputado", description: DESCRICAO,
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "MonitoraDeputado — fiscalização cidadã dos deputados federais" }],
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Acessos />
         <Sidebar />
         <div className="lg:pl-60">
+          <AvisoDados />
           {meta?.ficticio ? (
             <div role="note" className="border-b border-atencao/40 bg-atencao/15 px-4 py-2 text-center text-sm">
               <strong>Dados fictícios de demonstração.</strong> Nomes, partidos e empresas são inventados; nenhum valor
