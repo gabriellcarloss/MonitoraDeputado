@@ -6,6 +6,7 @@ import { SerieTemporal } from "@/components/charts/SerieTemporal";
 import { StatTile } from "@/components/ui/StatTile";
 import { brl, brlCurto, num, pct } from "@/lib/format";
 import type { DeputadoDetalhe } from "@/lib/types";
+import { Exportar } from "@/components/ui/Exportar";
 
 /** Aba "Emendas": emendas individuais do deputado a partir do orçamento de 2024 (Portal da Transparência / CGU). */
 export function EmendasDeputado({ d }: { d: DeputadoDetalhe }) {
@@ -64,7 +65,13 @@ export function EmendasDeputado({ d }: { d: DeputadoDetalhe }) {
         </section>
       ) : null}
       <section className="cartao p-4">
-        <h2 className="font-display text-xl leading-none">Emendas ({num(e.n)})</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="font-display flex-1 text-xl leading-none">Emendas ({num(e.n)})</h2>
+          <Exportar nome={`Emendas de ${d.deputado.nome}`} compacto obter={() => ({
+            colunas: ["Código", "Ano", "Tipo", "Destino", "UF", "Área", "Empenhado (R$)", "Pago (R$)", "Transferência especial (Pix)"],
+            linhas: e.lista.map((x) => [x.codigo, x.ano, x.tipo, x.localidade, x.uf, x.funcao, x.empenhado, x.pago, x.pix]),
+          })} />
+        </div>
         <p className="mb-2 text-sm text-muted">As maiores por valor empenhado. Use o código para conferir no{" "}
           <a href="https://portaldatransparencia.gov.br/emendas" target="_blank" rel="noopener noreferrer" className="text-destaque underline">Portal da Transparência</a>.</p>
         <div className="overflow-x-auto">

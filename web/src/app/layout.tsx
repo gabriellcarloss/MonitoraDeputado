@@ -4,6 +4,7 @@ import "@fontsource/barlow-condensed/700.css";
 import "@fontsource-variable/inter";
 import { Acessos } from "@/components/coleta/Acessos";
 import { AvisoDados } from "@/components/ui/AvisoDados";
+import { MovimentoGlobal, scriptMovimento } from "@/components/ui/MovimentoGlobal";
 import { Footer } from "@/components/layout/Footer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { scriptTema } from "@/components/layout/ThemeToggle";
@@ -32,9 +33,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: scriptTema }} />
+        <script dangerouslySetInnerHTML={{ __html: scriptMovimento }} />
       </head>
       <body className="min-h-screen font-sans antialiased">
         <Acessos />
+        <MovimentoGlobal />
         <Sidebar />
         <div className="lg:pl-60">
           <AvisoDados />
@@ -45,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           ) : null}
           <main className="mx-auto max-w-[1400px] px-4 py-6 lg:px-8">{children}</main>
-          <Footer geradoEm={meta?.gerado_em} />
+          <Footer geradoEm={meta?.gerado_em} contagens={meta?.contagens} />
         </div>
       </body>
     </html>

@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import {
-  AlertTriangle, BarChart3, BookOpen, ExternalLink, FileText, Landmark, LayoutDashboard, Menu, Network, Plane, Share2,
+  AlertTriangle, BarChart3, BookOpen, Database, ExternalLink, FileText, Landmark, LayoutDashboard, Menu, Network, Plane, Share2,
   Mail, UserCheck, UserRound, Users, Vote, X,
 } from "lucide-react";
 import Link from "next/link";
@@ -34,8 +34,8 @@ function ativo(atual: string, href: string) {
 function Marca() {
   return (
     <Link href="/" className="flex items-center gap-3 px-4 py-5">
-      <span aria-hidden className="relative grid h-10 w-10 shrink-0 place-items-center">
-        <span className="absolute inset-0 rotate-45 rounded-md bg-[#ffdf00]" />
+      <span aria-hidden className="orbita-3d relative grid h-10 w-10 shrink-0 place-items-center">
+        <span className="absolute inset-0 rotate-45 rounded-md bg-[#ffdf00] shadow-[0_0_18px_rgb(255_223_0/0.45)]" />
         <span className="relative h-5 w-5 rounded-full border-2 border-white bg-[#002776]" />
       </span>
       <span className="border-l border-white/40 pl-3 leading-none">
@@ -67,10 +67,10 @@ function Itens({ onNavegar }: { onNavegar?: () => void }) {
             return (
               <li key={href}>
                 <Link href={href} onClick={onNavegar} aria-current={a ? "page" : undefined}
-                  className={clsx("group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition",
-                    a ? "bg-white/15 text-white" : "text-white/85 hover:bg-white/10 hover:text-white")}>
-                  {a ? <span aria-hidden className="absolute -left-3 top-1 bottom-1 w-1 rounded-r bg-[#ffdf00]" /> : null}
-                  <Icone size={18} aria-hidden /> {rotulo}
+                  className={clsx("navlink group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold",
+                    a ? "bg-gradient-to-r from-white/20 to-white/5 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.12)]" : "text-white/85 hover:bg-white/10 hover:text-white")}>
+                  {a ? <span aria-hidden className="absolute -left-3 top-1 bottom-1 w-1 rounded-r bg-[#ffdf00] shadow-[0_0_12px_rgb(255_223_0/0.8)]" /> : null}
+                  <Icone size={18} aria-hidden className={clsx("transition-transform group-hover:scale-110", a && "text-[#ffdf00]")} /> {rotulo}
                 </Link>
               </li>
             );
@@ -79,13 +79,16 @@ function Itens({ onNavegar }: { onNavegar?: () => void }) {
       </nav>
       <p className="mt-6 px-6 text-xs font-semibold text-white/50">Atalhos</p>
       <div className="mt-2 space-y-1 px-3">
-        <Link href="/sobre/" onClick={onNavegar} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+        <Link href="/dados/" onClick={onNavegar} className="navlink flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+          <Database size={18} aria-hidden /> Baixar dados
+        </Link>
+        <Link href="/sobre/" onClick={onNavegar} className="navlink flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
           <BookOpen size={18} aria-hidden /> Metodologia
         </Link>
-        <Link href="/contato/" onClick={onNavegar} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+        <Link href="/contato/" onClick={onNavegar} className="navlink flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
           <Mail size={18} aria-hidden /> Contato
         </Link>
-        <button type="button" onClick={compartilhar} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+        <button type="button" onClick={compartilhar} className="navlink flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
           <Share2 size={18} aria-hidden /> {copiado ? "Link copiado!" : "Compartilhar"}
         </button>
         <ThemeToggle />
@@ -111,7 +114,7 @@ export function Sidebar() {
         <span aria-hidden className="faixa-bandeira absolute inset-y-0 right-0 w-1" />
         <Marca />
         <div className="flex-1 overflow-y-auto pb-6"><Itens /></div>
-        <p className="flex items-center gap-2 px-5 pb-4 text-[11px] text-white/50"><Landmark size={12} aria-hidden /> Fonte: Câmara, Receita Federal</p>
+        <p className="flex items-center gap-2 px-5 pb-4 text-[11px] text-white/50"><Landmark size={12} aria-hidden /> Dados públicos: Câmara, CGU, Receita</p>
       </aside>
       <header className="sidebar-brasil sticky top-0 z-40 flex items-center justify-between pr-2 lg:hidden">
         <span aria-hidden className="faixa-bandeira-h absolute inset-x-0 bottom-0 h-1" />

@@ -15,7 +15,7 @@ const ROTAS = [
   `/deputado/${dep}/?aba=proposicoes`, `/deputado/${dep}/?aba=rede`, `/deputado/${dep}/?aba=emendas`, `/deputado/${dep}/?aba=equipe`,
   "/deputados/?favoritos=sim", `/deputados/?lista=${deputados[0].id},${deputados[1].id}`,
   "/gastos/", "/gastos/passagens/", `/fornecedor/?cnpj=${cnpj}`, "/votacoes/", "/presenca/", "/proposicoes/",
-  "/alertas/", "/rede/", "/sobre/",
+  "/alertas/", "/rede/", "/sobre/", "/dados/",
 ];
 
 for (const tema of ["claro", "escuro"] as const) {
@@ -72,7 +72,8 @@ test("busca global leva ao deputado", async ({ page }) => {
 test("CSV exportado traz datas legíveis", async ({ page }) => {
   await page.goto(`/deputado/${dep}/?aba=gastos`);
   await expect(page.getByText(/notas · R\$/)).toBeVisible({ timeout: 30_000 });
-  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Exportar CSV/ }).click()]);
+  await page.getByRole("button", { name: /Exportar notas/ }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: /Excel/ }).click()]);
   const conteudo = fs.readFileSync((await download.path())!, "utf8");
   expect(conteudo.split("\n")[1]).toMatch(/^"\d{4}-\d{2}-\d{2}"/);
 });
@@ -113,4 +114,33 @@ test("links do autor: só contato e Apuração (sem WhatsApp nem LinkedIn no men
   await expect(page.locator('a[href^="https://apuracao-2026-five.vercel.app/"]').first()).toBeVisible();
   await expect(page.locator('a[href^="https://wa.me/"]')).toHaveCount(0);
   await expect(page.locator('a[href*="linkedin.com"]')).toHaveCount(0);
+});
+
+test("baixar dados: base de deputados em Excel e link do Parquet", async ({ page }) => {
+  await page.goto("/dados/");
+  const cartao = page.locator("section", { has: page.getByRole("heading", { name: "Deputados", exact: true }) });
+  await expect(cartao.getByRole("link", { name: /Parquet completo/ })).toHaveAttribute("href", "/data/parquet/deputados.parquet");
+  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 30_000 }), cartao.getByRole("button", { name: "Excel" }).click()]);
+  const texto = fs.readFileSync((await download.path())!, "utf8");
+  expect(texto.split("\r\n")[0]).toContain('"nome"');
+  expect(texto.split("\r\n").length).toBeGreaterThan(100);
+});
+
+test("lista de deputados exporta com os filtros aplicados", async ({ page }) => {
+  await page.goto("/deputados/?uf=SP");
+  await expect(page.getByText(/deputado\(s\)/)).toBeVisible();
+  await page.getByRole("button", { name: /Baixar: Deputados/ }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: /CSV \(padrão/ }).click()]);
+  const linhas = fs.readFileSync((await download.path())!, "utf8").trim().split("\r\n");
+  expect(linhas[0]).toContain('"Nome"');
+  expect(linhas.slice(1).every((l) => l.includes('"SP"'))).toBe(true);
+});
+
+test("gráfico baixa como imagem PNG", async ({ page }) => {
+  await page.goto("/");
+  const cartao = page.locator("section", { has: page.getByRole("heading", { name: "Gasto mensal da cota parlamentar" }) });
+  await cartao.scrollIntoViewIfNeeded();
+  await cartao.getByRole("button", { name: /Baixar:/ }).click();
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("menuitem", { name: /PNG/ }).click()]);
+  expect(download.suggestedFilename()).toMatch(/\.png$/);
 });

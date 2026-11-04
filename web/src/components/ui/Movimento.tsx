@@ -3,15 +3,9 @@
 import { animate, motion, useInView, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
-/** Entrada suave ao rolar até o elemento (respeita prefers-reduced-motion). */
+/** Entrada ao rolar: agora feita por MovimentoGlobal ([data-revelar]); mantido para não mexer em quem já usa. */
 export function Aparecer({ children, atraso = 0, className }: { children: React.ReactNode; atraso?: number; className?: string }) {
-  const reduzir = useReducedMotion();
-  return (
-    <motion.div className={className} initial={reduzir ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.5, delay: atraso, ease: [0.22, 1, 0.36, 1] }}>
-      {children}
-    </motion.div>
-  );
+  return <div className={className} data-revelar style={atraso ? { ["--atraso" as string]: `${Math.round(atraso * 1000)}ms` } : undefined}>{children}</div>;
 }
 
 /** Número que conta até o valor final quando aparece na tela. */

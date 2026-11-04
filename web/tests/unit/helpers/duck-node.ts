@@ -4,7 +4,7 @@ import path from "node:path";
 export const DATA_DIR = path.resolve(__dirname, "../../../public/data");
 
 const TABELAS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "sessoes", "presencas", "proposicoes",
-  "autorias", "relatorias", "rede_arestas", "deputados", "series", "orientacao_partido"];
+  "autorias", "relatorias", "rede_arestas", "deputados", "series", "orientacao_partido", "emendas", "emendas_favorecidos", "secretarios"];
 
 /** Conexão DuckDB nativa com as mesmas views que o navegador cria — para testar o SQL do site. */
 export async function conectar() {

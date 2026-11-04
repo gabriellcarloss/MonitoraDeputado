@@ -12,6 +12,7 @@ import { linkLista, useFavoritos } from "@/lib/favoritos";
 import { INDICADORES, UFS } from "@/lib/indicadores";
 import type { DeputadoResumo, NomeIndicador } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
+import { Exportar } from "@/components/ui/Exportar";
 
 const COLUNAS: NomeIndicador[] = ["gasto_total", "n_proposicoes_relevantes", "pct_presenca_sessoes", "pct_participacao_votacoes",
   "pct_alinhamento_partido", "custo_por_proposicao"];
@@ -84,7 +85,7 @@ export function ListaDeputados() {
           opcoes={[["sim", `Só os marcados com ★ (${fav.ids.length})`]]}
           onChange={(v) => definir({ favoritos: v as "sim" | undefined })} />
         <Campo rotulo="Buscar nome">
-          <input type="search" className="h-9 rounded-md border border-border bg-card px-2 text-sm" defaultValue={filtros.busca ?? ""}
+          <input type="search" className="campo-filtro" defaultValue={filtros.busca ?? ""}
             placeholder="ex.: Silva" onChange={(e) => definir({ busca: e.target.value || undefined })} />
         </Campo>
         <Selecao rotulo="Situação" valor={filtros.situacao} opcoes={[["exercicio", "Em exercício"], ["fora", "Fora do exercício"]]}
@@ -96,11 +97,11 @@ export function ListaDeputados() {
         <Selecao rotulo="Troca de partido" valor={filtros.trocou} opcoes={[["sim", "Trocou no mandato"]]}
           onChange={(v) => definir({ trocou: v as "sim" | undefined })} />
         <Campo rotulo="Gasto mínimo (R$)">
-          <input type="number" min={0} step={10000} className="h-9 w-32 rounded-md border border-border bg-card px-2 text-sm"
+          <input type="number" min={0} step={10000} className="campo-filtro"
             defaultValue={filtros.gasto_min ?? ""} onChange={(e) => definir({ gasto_min: e.target.value ? Number(e.target.value) : undefined })} />
         </Campo>
         <Campo rotulo="Gasto máximo (R$)">
-          <input type="number" min={0} step={10000} className="h-9 w-32 rounded-md border border-border bg-card px-2 text-sm"
+          <input type="number" min={0} step={10000} className="campo-filtro"
             defaultValue={filtros.gasto_max ?? ""} onChange={(e) => definir({ gasto_max: e.target.value ? Number(e.target.value) : undefined })} />
         </Campo>
         <Selecao rotulo="Ordenar por" valor={ordem} todos="Padrão (maior gasto)"
@@ -110,6 +111,13 @@ export function ListaDeputados() {
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
         <p className="flex-1 text-muted">{lista.length} deputado(s)</p>
+        <Exportar nome="Deputados" compacto obter={() => ({
+          colunas: ["ID", "Nome", "Partido", "UF", "Em exercício", ...(Object.keys(INDICADORES) as NomeIndicador[]).map((k) => INDICADORES[k].rotulo),
+            "Pontos de atenção", "Secretários", "Emendas empenhadas (R$)", "Perfil"],
+          linhas: lista.map((d) => [d.id, d.nome, d.partido_atual, d.uf, d.em_exercicio,
+            ...(Object.keys(INDICADORES) as NomeIndicador[]).map((k) => d.indicadores?.[k] ?? null),
+            d.n_alertas, d.n_secretarios ?? null, d.emendas_empenhado ?? null, `https://monitoradeputado.vercel.app/deputado/${d.id}/`]),
+        })} />
         {filtros.favoritos && fav.ids.length ? (
           <button type="button" onClick={copiarLista} className="pilula">
             <Link2 size={14} aria-hidden /> {copiado ? "Link copiado!" : "Compartilhar minha lista"}

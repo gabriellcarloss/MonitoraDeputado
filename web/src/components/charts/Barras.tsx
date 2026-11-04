@@ -4,7 +4,7 @@ import type { EChartsOption } from "echarts";
 import { useRouter } from "next/navigation";
 import { brl, brlCurto, num, pct } from "@/lib/format";
 import { Cartao, TabelaSimples } from "./Cartao";
-import { eixoBase, tooltipBase, useCores } from "./cores";
+import { ANIMACAO, comAlfa, eixoBase, gradBarra, tooltipBase, useCores } from "./cores";
 import { EChart } from "./EChart";
 import type { Formato } from "./SerieTemporal";
 
@@ -36,13 +36,18 @@ export function Barras({ titulo, subtitulo, itens, formato = "brl", cor = 0 }: {
       axisLabel: { color: c.texto, fontSize: 12, width: 180, overflow: "truncate" } },
     series: [{
       type: "bar", data: dados.map((i) => i.valor), barMaxWidth: 16, barCategoryGap: "30%",
-      itemStyle: { color: c.series[cor], borderRadius: [0, 4, 4, 0] },
-      label: { show: true, position: "right", color: c.muted, fontSize: 11, formatter: (p) => CURTO[formato](p.value as number) },
+      itemStyle: { color: gradBarra(c.series[cor]), borderRadius: [0, 8, 8, 0] },
+      showBackground: true, backgroundStyle: { color: comAlfa(c.series[cor], 0.07), borderRadius: [0, 8, 8, 0] },
+      emphasis: { itemStyle: { color: c.series[cor], shadowBlur: 12, shadowColor: comAlfa(c.series[cor], 0.45) } },
+      label: { show: true, position: "right", color: c.texto, fontSize: 11, fontWeight: "bold", formatter: (p) => CURTO[formato](p.value as number) },
+      ...ANIMACAO,
+      animationDelay: (i: number) => (dados.length - 1 - i) * 60,
       cursor: dados.some((d) => d.href) ? "pointer" : "default",
     }],
   };
   return (
     <Cartao titulo={titulo} subtitulo={subtitulo}
+      dados={{ colunas: ["Item", "Valor", "Detalhe"], linhas: itens.map((i) => [i.rotulo, i.valor, i.detalhe ?? ""]) }}
       tabela={<TabelaSimples colunas={["Item", "Valor"]} linhas={itens.map((i) => [i.rotulo, FMT[formato](i.valor)])} />}>
       {itens.length === 0 ? <p className="py-10 text-center text-sm text-muted">Sem registros no período.</p> : (
         <EChart option={option} altura={Math.max(160, itens.length * 28 + 24)}

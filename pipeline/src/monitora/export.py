@@ -14,7 +14,7 @@ from monitora.metrics.rede import ego_rede
 from monitora.metrics.series import series_de
 
 PARQUETS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "orientacao_partido", "sessoes", "presencas", "proposicoes",
-            "autorias", "relatorias", "rede_arestas", "deputados", "series"]
+            "autorias", "relatorias", "rede_arestas", "deputados", "series", "emendas", "emendas_favorecidos", "secretarios"]
 
 FONTES = {
     "Câmara — Dados Abertos": {"dadosabertos.camara.leg.br"},
@@ -186,7 +186,7 @@ def exportar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict],
     _grava(out_dir / "meta.json", {
         "gerado_em": agora, "anos": ANOS, "fontes": fontes, "indicadores": INDICADORES,
         "contagens": {t: con.execute(f"SELECT count(*) FROM {t}").fetchone()[0]
-                      for t in [*PARQUETS, "frequencia_dia", "secretarios", "emendas", "emendas_favorecidos"]},
+                      for t in [*PARQUETS, "frequencia_dia"]},
         "regras": [{"id": r.id, "titulo": r.titulo, "severidade": r.severidade, "descricao": r.descricao}
                    for r in REGRAS.values()],
         "rodape_alerta": RODAPE,

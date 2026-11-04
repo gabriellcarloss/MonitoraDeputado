@@ -3,6 +3,7 @@
 import { Link2, MessageCircle, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SITE_URL } from "@/lib/site";
+import { registrarEvento } from "./Acessos";
 
 /** Endereços de compartilhamento com o texto já pronto. */
 export function linksCompartilhar(texto: string, url: string) {
@@ -28,9 +29,11 @@ export function Compartilhar({ texto, caminho }: { texto: string; caminho: strin
       await navigator.clipboard.writeText(url());
       setCopiado(true);
       setTimeout(() => setCopiado(false), 1800);
+      registrarEvento("compartilhar", `copiar link · ${caminho}`);
     } catch {}
   }
   async function nativo() {
+    registrarEvento("compartilhar", `celular · ${caminho}`);
     try { await navigator.share({ title: document.title, text: texto, url: url() }); } catch {}
   }
 
@@ -38,9 +41,9 @@ export function Compartilhar({ texto, caminho }: { texto: string; caminho: strin
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Compartilhar esta página">
       <span className="flex items-center gap-1 text-xs font-semibold text-muted"><Share2 size={14} aria-hidden /> Compartilhar</span>
-      <a href={links.whatsapp} target="_blank" rel="noopener noreferrer" className="pilula h-8 px-3 text-xs"><MessageCircle size={14} aria-hidden /> WhatsApp</a>
-      <a href={links.x} target="_blank" rel="noopener noreferrer" className="pilula h-8 px-3 text-xs">X</a>
-      <a href={links.linkedin} target="_blank" rel="noopener noreferrer" className="pilula h-8 px-3 text-xs">LinkedIn</a>
+      <a href={links.whatsapp} target="_blank" rel="noopener noreferrer" onClick={() => registrarEvento("compartilhar", `whatsapp · ${caminho}`)} className="pilula h-8 px-3 text-xs"><MessageCircle size={14} aria-hidden /> WhatsApp</a>
+      <a href={links.x} target="_blank" rel="noopener noreferrer" onClick={() => registrarEvento("compartilhar", `x · ${caminho}`)} className="pilula h-8 px-3 text-xs">X</a>
+      <a href={links.linkedin} target="_blank" rel="noopener noreferrer" onClick={() => registrarEvento("compartilhar", `linkedin · ${caminho}`)} className="pilula h-8 px-3 text-xs">LinkedIn</a>
       <button type="button" onClick={copiar} className="pilula h-8 px-3 text-xs"><Link2 size={14} aria-hidden /> {copiado ? "Link copiado!" : "Copiar link"}</button>
       {temNativo ? (
         <button type="button" onClick={nativo} className="pilula h-8 px-3 text-xs sm:hidden">Mais…</button>

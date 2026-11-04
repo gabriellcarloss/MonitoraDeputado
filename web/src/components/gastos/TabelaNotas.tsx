@@ -1,14 +1,14 @@
 "use client";
 
-import { Download, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { consultar, useConsulta } from "@/lib/duck";
 import type { Filtros } from "@/lib/filters";
-import { paraCsv } from "@/lib/csv";
-import { brl, data, num } from "@/lib/format";
+import { brl, data, iso, num } from "@/lib/format";
 import { sqlContarNotas, sqlNotas } from "@/lib/queries/gastos";
 import { Carregando, Erro } from "../ui/StatTile";
+import { Exportar } from "@/components/ui/Exportar";
 
 interface Nota {
   ide_documento: number; deputado_id: number; deputado: string; partido: string; uf: string; data: string | null;
@@ -19,11 +19,6 @@ interface Nota {
 
 const POR_PAGINA = 50;
 
-function csv(linhas: Nota[]): string {
-  return paraCsv(linhas as unknown as Record<string, unknown>[], ["data", "ano_mes", "deputado", "partido", "uf", "categoria", "fornecedor",
-    "cnpj_cpf", "passageiro", "trecho", "valor_documento", "valor_glosa", "valor_liquido", "url_documento"]);
-}
-
 /** Tabela de notas fiscais da cota com paginação, link para o documento original e exportação CSV. */
 export function TabelaNotas({ filtros, mostrarDeputado = true }: { filtros: Filtros; mostrarDeputado?: boolean }) {
   const [pagina, setPagina] = useState(0);
@@ -32,28 +27,11 @@ export function TabelaNotas({ filtros, mostrarDeputado = true }: { filtros: Filt
   if (chave !== chaveAnterior) { setChaveAnterior(chave); setPagina(0); }
   const total = useConsulta<{ n: number; total: number }>(sqlContarNotas(filtros));
   const notas = useConsulta<Nota>(sqlNotas(filtros, POR_PAGINA, pagina * POR_PAGINA));
-  const [baixando, setBaixando] = useState(false);
   const n = total.dados?.[0]?.n ?? 0;
   const paginas = Math.max(1, Math.ceil(n / POR_PAGINA));
 
-  async function exportar() {
-    setBaixando(true);
-    try {
-      const c = sqlNotas(filtros, 200000, 0);
-      const linhas = await consultar<Nota>(c.sql, c.params);
-      const url = URL.createObjectURL(new Blob(["﻿" + csv(linhas)], { type: "text/csv;charset=utf-8" }));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "notas-cota-parlamentar.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setBaixando(false);
-    }
-  }
-
   return (
-    <section className="cartao p-4">
+    <section className="cartao p-4" data-revelar>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex-1">
           <h2 className="font-display text-xl leading-none">Notas fiscais</h2>
@@ -61,10 +39,15 @@ export function TabelaNotas({ filtros, mostrarDeputado = true }: { filtros: Filt
             {total.dados ? `${num(n)} notas · ${brl(total.dados[0].total ?? 0)}` : "…"} — cada linha é um documento reembolsado pela cota.
           </p>
         </div>
-        <button type="button" onClick={exportar} disabled={baixando || !n}
-          className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-subtle disabled:opacity-50">
-          <Download size={14} aria-hidden /> {baixando ? "Gerando…" : "Exportar CSV"}
-        </button>
+        {n ? (
+          <Exportar nome="Notas fiscais" rotulo="Exportar notas" obter={async () => {
+            const c = sqlNotas(filtros, 200000, 0);
+            const r = await consultar<Nota>(c.sql, c.params);
+            const col = ["data", "ano_mes", "deputado", "partido", "uf", "categoria", "fornecedor", "cnpj_cpf", "passageiro", "trecho",
+              "valor_documento", "valor_glosa", "valor_liquido", "url_documento"] as const;
+            return { colunas: [...col], linhas: r.map((x) => col.map((k) => (k === "data" ? iso(x[k]) : (x as unknown as Record<string, string | number | null>)[k]))) };
+          }} />
+        ) : null}
       </div>
       {notas.erro ? <Erro texto={notas.erro} /> : !notas.dados ? <Carregando /> : notas.dados.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted">Nenhuma nota encontrada com esses filtros.</p>

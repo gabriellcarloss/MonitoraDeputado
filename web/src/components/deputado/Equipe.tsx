@@ -3,6 +3,7 @@
 import { StatTile } from "@/components/ui/StatTile";
 import { data, num } from "@/lib/format";
 import type { DeputadoDetalhe } from "@/lib/types";
+import { Exportar } from "@/components/ui/Exportar";
 
 /** Aba "Equipe": secretários parlamentares lotados hoje no gabinete (arquivo de funcionários da Câmara). */
 export function EquipeDeputado({ d }: { d: DeputadoDetalhe }) {
@@ -25,7 +26,13 @@ export function EquipeDeputado({ d }: { d: DeputadoDetalhe }) {
           barra={g.n ? topo / g.n : 0} />
       </div>
       <section className="cartao p-4">
-        <h2 className="font-display text-xl leading-none">Quem trabalha no gabinete</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="font-display flex-1 text-xl leading-none">Quem trabalha no gabinete</h2>
+          <Exportar nome={`Equipe de ${d.deputado.nome}`} compacto obter={() => ({
+            colunas: ["Nome", "Nível", "Nomeação mais recente"],
+            linhas: g.secretarios.map((x) => [x.nome, x.cargo, x.nomeacao]),
+          })} />
+        </div>
         <p className="mb-2 text-sm text-muted">Lotação atual, do nível mais alto (SP25) ao mais baixo (SP01). Quem já saiu da equipe não aparece.</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[480px] text-sm">

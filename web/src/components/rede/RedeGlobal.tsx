@@ -50,7 +50,7 @@ export function RedeGlobal() {
         <button type="button" className="pilula" aria-pressed={modo === "passageiros"} onClick={() => setModo("passageiros")}>Passageiros em vários gabinetes</button>
         {modo === "fornecedores" ? (
           <label className="ml-auto flex items-center gap-2 text-sm text-muted">Mínimo de deputados por fornecedor
-            <select className="h-9 rounded-full border border-border bg-subtle/60 px-3 text-sm" value={minimo} onChange={(e) => setMinimo(Number(e.target.value))}>
+            <select className="campo-filtro" value={minimo} onChange={(e) => setMinimo(Number(e.target.value))}>
               {[3, 5, 10, 20, 50].map((v) => <option key={v} value={v}>{v}</option>)}
             </select>
           </label>

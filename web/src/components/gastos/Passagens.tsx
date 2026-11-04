@@ -9,6 +9,7 @@ import { brl, brlCurto, num } from "@/lib/format";
 import { sqlPassageirosTerceiros, sqlPassagens, sqlRankingTerceiros } from "@/lib/queries/gastos";
 import { useOpcoes } from "@/lib/useOpcoes";
 import { TabelaNotas } from "./TabelaNotas";
+import { Exportar } from "@/components/ui/Exportar";
 
 export function Passagens() {
   const { opcoes, deputados } = useOpcoes();
@@ -23,7 +24,7 @@ export function Passagens() {
     <>
       <BarraFiltros opcoes={opcoes}>
         <Campo rotulo="Passageiro">
-          <input type="search" className="h-9 rounded-md border border-border bg-card px-2 text-sm" defaultValue={filtros.passageiro ?? ""}
+          <input type="search" className="campo-filtro" defaultValue={filtros.passageiro ?? ""}
             placeholder="nome do passageiro" onChange={(e) => definir({ passageiro: e.target.value || undefined })} />
         </Campo>
       </BarraFiltros>
@@ -43,7 +44,13 @@ export function Passagens() {
             itens={trechos.dados.slice(0, 15).map((t) => ({ rotulo: t.trecho ?? "sem trecho", valor: t.valor, detalhe: `${num(t.n)} passagens · ${num(t.terceiros)} para terceiros` }))} /> : <Carregando />}
         </div>
         <section className="cartao p-4">
-          <h2 className="font-display text-xl leading-none">Quem voou com dinheiro da cota sem ser deputado</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display flex-1 text-xl leading-none">Quem voou com dinheiro da cota sem ser deputado</h2>
+            {terceiros.dados?.length ? <Exportar nome="Passageiros que não são deputados" compacto obter={() => ({
+              colunas: ["Passageiro", "Passagens", "Valor (R$)", "Gabinetes", "Deputados"],
+              linhas: terceiros.dados!.map((t) => [t.passageiro, t.n, t.valor, t.deputados, t.nomes_deputados]),
+            })} /> : null}
+          </div>
           <p className="mb-2 text-sm text-muted">Passageiros diferentes do deputado titular da nota. Assessores podem viajar a serviço — o dado mostra quem e quanto, a interpretação é sua.
             Destaque: pessoas que voaram pela cota de <strong>mais de um</strong> gabinete.</p>
           {!terceiros.dados ? <Carregando /> : terceiros.dados.length === 0 ? <p className="py-4 text-sm text-muted">Nenhuma passagem para terceiros com esses filtros.</p> : (
