@@ -34,17 +34,17 @@ REGRAS: list[tuple[str, tuple[str, ...], tuple[str, ...]]] = [
      ("MEIO AMBIENTE", "AMBIENTAL", "CLIMA", "DESMATAMENTO", "FLORESTA", "POLUICAO", "RESIDUOS", "SANEAMENTO", "AGUA", "ENERGIA", "ELETRIC", "PETROLEO", "GAS NATURAL", "MINERACAO", "BIODIVERS", "FAUNA", "FLORA", "RECURSOS HIDRICOS", "RENOVAVEL")),
     ("Agropecuária e terra", ("AGRICULTURA", "ESTRUTURA FUNDIARIA"),
      ("AGRICOLA", "AGRICULTUR", "AGROPECUAR", "RURAL", "PRODUTOR RURAL", "PECUARIA", "AGRONEGOCIO", "AGROTOXICO", "REFORMA AGRARIA", "TERRA", "FUNDIARI", "PESCA", "SAFRA", "INDIGENA", "QUILOMBOLA", "DEMARCACAO")),
-    ("Infraestrutura, transporte e cidades", ("VIACAO", "CIDADES", "TRANSPORTE"),
+    ("Infraestrutura e transporte", ("VIACAO", "CIDADES", "TRANSPORTE"),
      ("TRANSPORTE", "RODOVIA", "FERROVIA", "AEROPORTO", "PORTO", "TRANSITO", "VEICULO", "MOTORISTA", "HABITACAO", "MORADIA", "URBAN", "MOBILIDADE", "OBRAS", "INFRAESTRUTURA", "CODIGO DE TRANSITO", "AVIACAO")),
-    ("Direitos humanos, família e minorias", ("DIREITOS HUMANOS", "FAMILIA"),
+    ("Direitos humanos e minorias", ("DIREITOS HUMANOS", "FAMILIA"),
      ("DIREITOS HUMANOS", "MULHER", "MULHERES", "CRIANCA", "ADOLESCENTE", "IDOSO", "PESSOA COM DEFICIENCIA", "DEFICIENCIA", "RACIAL", "RACISMO", "DISCRIMINACAO", "LGBT", "IGUALDADE", "FAMILIA", "MATERN", "GESTANTE", "VITIMA", "REFUGIAD", "MIGRANTE")),
     ("Política, eleições e partidos", ("POLITICA, PARTIDOS",),
      ("ELEITORAL", "ELEICAO", "ELEICOES", "PARTIDO", "CAMPANHA ELEITORAL", "VOTO ", "MANDATO", "REFORMA POLITICA", "COLIGACAO", "FUNDO PARTIDARIO", "SUFRAGIO", "DOMICILIO ELEITORAL")),
-    ("Administração pública e servidores", ("ADMINISTRACAO PUBLICA",),
-     ("ADMINISTRACAO PUBLICA", "SERVIDOR", "SERVIDORES", "CONCURSO", "LICITACAO", "CONTRATOS ADMINISTRATIVOS", "MUNICIP", "ESTADOS E MUNICIPIOS", "FEDERACAO", "PACTO FEDERATIVO", "AUTARQUIA", "FUNDACAO", "IMPROBIDADE", "CARGOS", "REMUNERACAO")),
+    ("Administração pública", ("ADMINISTRACAO PUBLICA",),
+     ("ADMINISTRACAO PUBLICA", "SERVIDOR PUBLICO", "SERVIDORES PUBLICOS", "CONCURSO PUBLICO", "LICITACAO", "CONTRATOS ADMINISTRATIVOS", "PACTO FEDERATIVO", "AUTARQUIA", "IMPROBIDADE", "CARGO PUBLICO", "CARGOS PUBLICOS")),
     ("Justiça e direito", ("DIREITO CIVIL", "DIREITO E JUSTICA", "DIREITO CONSTITUCIONAL", "DIREITO E DEFESA DO CONSUMIDOR", "DIREITO"),
      ("CODIGO CIVIL", "PROCESSO CIVIL", "JUDICIARIO", "TRIBUNAL", "JUIZ", "JUSTICA", "STF", "CONSTITUCION", "CARTORIO", "ADVOCACIA", "ADVOGADO", "DEFENSORIA", "MINISTERIO PUBLICO", "HERANCA", "CONTRATO")),
-    ("Ciência, tecnologia e comunicações", ("CIENCIA", "COMUNICACOES"),
+    ("Ciência e comunicações", ("CIENCIA", "COMUNICACOES"),
      ("TECNOLOGIA", "INTERNET", "DIGITAL", "INTELIGENCIA ARTIFICIAL", "DADOS PESSOAIS", "LGPD", "TELECOM", "TELEFONIA", "RADIODIFUSAO", "TELEVISAO", "IMPRENSA", "COMUNICACAO", "INOVACAO", "PESQUISA", "CIBERNET", "REDES SOCIAIS")),
     ("Cultura, esporte e turismo", ("ARTE, CULTURA", "ESPORTE", "TURISMO"),
      ("CULTURA", "CULTURAL", "ESPORTE", "ESPORTIV", "FUTEBOL", "TURISMO", "TURISTIC", "ARTISTA", "PATRIMONIO HISTORICO", "RELIGIAO", "RELIGIOS", "IGREJA", "MUSEU", "CINEMA", "MUSICA", "AUDIOVISUAL", "LAZER")),
@@ -68,8 +68,11 @@ def _alvo(texto: str | None) -> str:
     return f" {nome(texto)} " if texto else ""
 
 
+GENERICOS = {"Administração pública", "Justiça e direito", PROCESSO}
+
+
 def tema_oficial(oficial: str | None) -> str | None:
-    """Tema amplo correspondente ao tema oficial da Câmara; None se não reconhecido."""
+    """Tema amplo correspondente a UM tema oficial da Câmara; None se não reconhecido."""
     n = nome(oficial)
     if not n:
         return None
@@ -79,6 +82,28 @@ def tema_oficial(oficial: str | None) -> str | None:
         if any(t in n for t in trechos):
             return tema
     return None
+
+
+def _pontos(tema: str, texto: str) -> int:
+    alvo = _alvo(texto)
+    for t, _, palavras in REGRAS:
+        if t == tema:
+            return sum(1 for w in palavras if re.search(rf"(?<![A-Z]){re.escape(w)}", alvo))
+    return 0
+
+
+def tema_dos_oficiais(oficiais: str | None, texto: str | None = None) -> str | None:
+    """Uma proposição pode ter vários temas oficiais ("A; B"). Temas específicos vencem os genéricos (Administração
+    pública, Justiça, Processo legislativo); entre vários específicos, vence o que mais aparece na ementa."""
+    cands: list[str] = []
+    for parte in (oficiais or "").split(";"):
+        t = tema_oficial(parte)
+        if t and t not in cands:
+            cands.append(t)
+    pool = [c for c in cands if c not in GENERICOS] or cands
+    if len(pool) <= 1:
+        return pool[0] if pool else None
+    return max(pool, key=lambda c: (_pontos(c, texto or ""), -pool.index(c)))
 
 
 def tema_por_texto(texto: str | None) -> str | None:
@@ -95,7 +120,7 @@ def tema_por_texto(texto: str | None) -> str | None:
 
 
 def classificar(texto: str | None, oficial: str | None = None) -> str:
-    return tema_oficial(oficial) or tema_por_texto(texto) or OUTROS
+    return tema_dos_oficiais(oficial, texto) or tema_por_texto(texto) or OUTROS
 
 
 def classificar_votacao(descricao: str | None, tema_proposicao: str | None, ementa: str | None) -> str:

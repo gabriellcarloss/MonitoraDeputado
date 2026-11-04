@@ -1,5 +1,5 @@
 from monitora import temas
-from monitora.temas import OUTROS, PROCESSO, classificar, classificar_votacao, tema_oficial
+from monitora.temas import OUTROS, PROCESSO, classificar, classificar_votacao, tema_dos_oficiais, tema_oficial
 
 
 def test_tema_oficial_agrupa_rotulos_da_camara():
@@ -18,6 +18,17 @@ def test_palavras_chave_quando_nao_ha_tema_oficial():
     assert classificar("Institui o Dia Nacional do Forró") == "Homenagens e datas"
     assert classificar("Texto sem pista nenhuma") == OUTROS
     assert classificar(None) == OUTROS
+
+
+def test_varios_temas_oficiais_especifico_vence_generico():
+    assert tema_dos_oficiais("Administração Pública; Saúde") == "Saúde"
+    assert tema_dos_oficiais("Direito e Justiça; Processo Legislativo e Atuação Parlamentar") == "Justiça e direito"
+    assert tema_dos_oficiais("Educação; Saúde", "Dispõe sobre vacina e hospital nas escolas") == "Saúde"
+    assert tema_dos_oficiais("Rótulo desconhecido") is None
+
+
+def test_municipios_sozinho_nao_vira_administracao_publica():
+    assert classificar("Altera a lei para os Estados, o Distrito Federal e os Municípios") == OUTROS
 
 
 def test_tema_oficial_tem_prioridade():

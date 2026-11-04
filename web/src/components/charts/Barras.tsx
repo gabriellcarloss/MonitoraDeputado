@@ -35,7 +35,7 @@ export function Barras({ titulo, subtitulo, itens, formato = "brl", cor = 0 }: {
     } },
     xAxis: { type: "value", ...eixoBase(c), axisLabel: { show: false }, splitLine: { show: false } },
     yAxis: { type: "category", data: dados.map((i) => i.rotulo), ...eixoBase(c), axisLine: { show: false },
-      axisLabel: { color: c.texto, fontSize: 12, width: 180, overflow: "truncate" } },
+      axisLabel: { color: c.texto, fontSize: 12, width: 210, overflow: "truncate" } },
     series: [{
       type: "bar", data: dados.map((i) => i.valor), barMaxWidth: 16, barCategoryGap: "30%",
       itemStyle: { color: gradBarra(c.series[cor]), borderRadius: [0, 8, 8, 0] },
