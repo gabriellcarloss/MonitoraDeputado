@@ -12,6 +12,8 @@ export interface ItemBarra {
   rotulo: string;
   valor: number;
   href?: string;
+  /** Alternativa ao link: ação ao clicar (por exemplo, filtrar a página pelo item). */
+  acao?: () => void;
   detalhe?: string;
 }
 
@@ -42,7 +44,7 @@ export function Barras({ titulo, subtitulo, itens, formato = "brl", cor = 0 }: {
       label: { show: true, position: "right", color: c.texto, fontSize: 11, fontWeight: "bold", formatter: (p) => CURTO[formato](p.value as number) },
       ...ANIMACAO,
       animationDelay: (i: number) => (dados.length - 1 - i) * 60,
-      cursor: dados.some((d) => d.href) ? "pointer" : "default",
+      cursor: dados.some((d) => d.href || d.acao) ? "pointer" : "default",
     }],
   };
   return (
@@ -51,7 +53,7 @@ export function Barras({ titulo, subtitulo, itens, formato = "brl", cor = 0 }: {
       tabela={<TabelaSimples colunas={["Item", "Valor"]} linhas={itens.map((i) => [i.rotulo, FMT[formato](i.valor)])} />}>
       {itens.length === 0 ? <p className="py-10 text-center text-sm text-muted">Sem registros no período.</p> : (
         <EChart option={option} altura={Math.max(160, itens.length * 28 + 24)}
-          onEvents={{ click: (p: { dataIndex: number }) => { const h = dados[p.dataIndex]?.href; if (h) router.push(h); } }} />
+          onEvents={{ click: (p: { dataIndex: number }) => { const i = dados[p.dataIndex]; if (i?.acao) i.acao(); else if (i?.href) router.push(i.href); } }} />
       )}
     </Cartao>
   );

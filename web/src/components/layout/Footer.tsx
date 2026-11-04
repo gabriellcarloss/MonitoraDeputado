@@ -1,4 +1,4 @@
-import { CalendarClock, Code, Database, Download, ExternalLink, Landmark, Scale, ShieldCheck } from "lucide-react";
+import { CalendarClock, Database, Download, ExternalLink, Landmark, Scale, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { data, num } from "@/lib/format";
 import { AUTOR } from "@/lib/site";
@@ -71,13 +71,11 @@ export function Footer({ geradoEm, contagens }: { geradoEm?: string | null; cont
             </ul>
           </section>
 
-          <section aria-labelledby="rodape-uso">
-            <h2 id="rodape-uso" className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted"><Scale size={14} aria-hidden /> Use e confira</h2>
+          <section aria-labelledby="rodape-mais">
+            <h2 id="rodape-mais" className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted"><Scale size={14} aria-hidden /> Transparência</h2>
             <ul className="space-y-2">
               <li><Link href="/dados/" className="font-semibold text-destaque hover:underline">Baixar dados (Excel, CSV, JSON, Parquet)</Link></li>
               <li><Link href="/sobre/" className="font-semibold text-destaque hover:underline">Metodologia e fontes</Link></li>
-              <li><a href="https://github.com/gabriellcarloss/MonitoraDeputado" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-semibold text-destaque hover:underline"><Code size={14} aria-hidden /> Código aberto</a></li>
               <li><Link href="/privacidade/" className="font-semibold text-destaque hover:underline">Privacidade</Link></li>
               <li><Link href="/contato/" className="font-semibold text-destaque hover:underline">Contato</Link></li>
             </ul>

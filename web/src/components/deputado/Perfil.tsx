@@ -1,21 +1,16 @@
 "use client";
 
-import { AtSign, Building2, Globe, Mail } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Barras } from "@/components/charts/Barras";
 import { Rede } from "@/components/charts/Rede";
 import { SerieTemporal } from "@/components/charts/SerieTemporal";
 import { Cadastro } from "@/components/coleta/Cadastro";
-import { Compartilhar } from "@/components/coleta/Compartilhar";
-import { BotaoFavorito } from "@/components/favoritos/BotaoFavorito";
 import { TabelaNotas } from "@/components/gastos/TabelaNotas";
-import { Foto } from "@/components/ui/Foto";
 import { Carregando, Erro } from "@/components/ui/StatTile";
 import { useConsulta } from "@/lib/duck";
 import { brl, data, iso, num, pct } from "@/lib/format";
 import { sqlPorCategoria, sqlPassagens } from "@/lib/queries/gastos";
-import { resumoDeputado } from "@/lib/resumo";
 import { sqlPresencaDeputado, sqlVotosDeputado } from "@/lib/queries/deputado";
 import type { Brasil, DeputadoDetalhe, Serie } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
@@ -24,6 +19,7 @@ import { Boletim } from "./Boletim";
 import { EmendasDeputado } from "./Emendas";
 import { EquipeDeputado } from "./Equipe";
 import { SeloAlerta } from "./SeloAlerta";
+import { Analise, SuperCard } from "./SuperCard";
 
 const ABAS = ["resumo", "gastos", "emendas", "equipe", "votacoes", "presenca", "proposicoes", "rede"] as const;
 type Aba = (typeof ABAS)[number];
@@ -39,43 +35,10 @@ function mediaPorDeputado(s: Serie | undefined, n: number) {
   return s && n ? s.pontos.map((p) => ({ periodo: p.periodo, valor: p.valor / n })) : [];
 }
 
-function Cabecalho({ d }: { d: DeputadoDetalhe }) {
-  const p = d.deputado;
-  return (
-    <header className="mb-4 flex flex-wrap items-start gap-4">
-      <Foto src={p.foto} nome={p.nome} tamanho={88} />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{p.nome}</h1>
-          <BotaoFavorito id={p.id} nome={p.nome} rotulo />
-        </div>
-        <p className="text-muted">
-          {p.partido_atual}-{p.uf} · {p.condicao_eleitoral ?? "—"} · {p.em_exercicio ? "em exercício" : "fora do exercício"}
-          {p.trocou_partido ? " · trocou de partido no mandato" : ""}
-        </p>
-        <p className="mt-1 text-sm text-muted">
-          {p.nome_civil ? <>Nome civil: {p.nome_civil} · </> : null}
-          Em exercício desde {data(p.inicio_exercicio)}{p.fim_exercicio ? ` até ${data(p.fim_exercicio)}` : ""}
-          {p.escolaridade ? ` · ${p.escolaridade}` : ""}
-        </p>
-        <ul className="mt-2 flex flex-wrap gap-3 text-sm">
-          {p.email ? <li><a href={`mailto:${p.email}`} className="inline-flex items-center gap-1 text-destaque"><Mail size={14} aria-hidden />{p.email}</a></li> : null}
-          {p.gabinete?.sala ? <li className="inline-flex items-center gap-1 text-muted"><Building2 size={14} aria-hidden />Gabinete {p.gabinete.sala}, anexo {p.gabinete.predio}{p.gabinete.telefone ? ` · (61) ${p.gabinete.telefone}` : ""}</li> : null}
-          {(p.redes ?? []).map((r) => (
-            <li key={r}><a href={r} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-destaque">
-              {r.includes("instagram") || r.includes("twitter") || r.includes("x.com") ? <AtSign size={14} aria-hidden /> : <Globe size={14} aria-hidden />}
-              {r.replace(/^https?:\/\/(www\.)?/, "").slice(0, 40)}</a></li>
-          ))}
-        </ul>
-        <div className="mt-3"><Compartilhar texto={resumoDeputado(d)} caminho={`/deputado/${p.id}/`} /></div>
-      </div>
-    </header>
-  );
-}
-
 function Resumo({ d, total }: { d: DeputadoDetalhe; total: number }) {
   return (
     <div className="space-y-6">
+      <Analise d={d} total={total} />
       {d.alertas.length ? (
         <section>
           <h2 className="mb-2 text-lg font-semibold">Pontos de atenção ({d.alertas.length})</h2>
@@ -298,8 +261,9 @@ function ComAbas({ d, total }: { d: DeputadoDetalhe; total: number }) {
  */
 export function Perfil({ d, total }: { d: DeputadoDetalhe; total: number }) {
   return (
-    <>
-      <Cabecalho d={d} />
+    <div className="relative">
+      <span aria-hidden className="pointer-events-none absolute inset-x-[-2rem] top-0 -z-10 h-[640px] bg-[radial-gradient(60%_50%_at_15%_0%,rgb(var(--verde)/0.16),transparent),radial-gradient(50%_45%_at_90%_8%,rgb(var(--azul)/0.14),transparent),radial-gradient(40%_30%_at_60%_40%,rgb(var(--amarelo)/0.10),transparent)]" />
+      <SuperCard d={d} total={total} />
       <Suspense fallback={<Conteudo d={d} total={total} aba="resumo" onChange={() => {}} />}>
         <ComAbas d={d} total={total} />
       </Suspense>
@@ -307,6 +271,6 @@ export function Perfil({ d, total }: { d: DeputadoDetalhe; total: number }) {
         <Cadastro origem={`deputado-${d.deputado.id}`} interesse={`${d.deputado.nome} (${d.deputado.partido_atual}-${d.deputado.uf})`} compacto
           titulo="Acompanhe este deputado" texto="Receba um aviso por e-mail quando houver novos pontos de atenção ou mudanças importantes nos números deste mandato." />
       </div>
-    </>
+    </div>
   );
 }

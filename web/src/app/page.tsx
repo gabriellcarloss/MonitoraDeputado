@@ -11,7 +11,7 @@ import { Secao, StatTile, Titulo } from "@/components/ui/StatTile";
 import { getAlertas, getBrasil, getDeputados, getMeta } from "@/lib/data";
 import { gerarDestaques } from "@/lib/destaques";
 import { alertasEmDestaque, contrasteGasto, indiceDesempenho } from "@/lib/indice";
-import { brl, brlCurto, num, pct } from "@/lib/format";
+import { brl, brlCurto, num, pct, humanizar } from "@/lib/format";
 import type { DeputadoResumo, Indicadores } from "@/lib/types";
 
 function top(deps: DeputadoResumo[], campo: keyof Indicadores, fmt: (v: number) => string, asc: boolean, n = 8): ItemRanking[] {
@@ -46,7 +46,7 @@ export default function Inicio() {
   const porId = new Map(deps.map((d) => [d.id, d]));
   const vitrine = alertasEmDestaque(alertas, 12).flatMap((a) => {
     const d = porId.get(a.deputado_id);
-    return d ? [{ ...pessoa(d), titulo: a.titulo, descricao: a.descricao }] : [];
+    return d ? [{ ...pessoa(d), titulo: a.titulo, descricao: humanizar(a.descricao) }] : [];
   });
   const pontos = ativos.map((d) => ({ id: d.id, nome: d.nome, partido: d.partido_atual, uf: d.uf,
     x: d.indicadores!.gasto_total, y: d.indicadores!.n_proposicoes_relevantes }));

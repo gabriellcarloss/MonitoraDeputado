@@ -9,7 +9,7 @@ import { Carregando, Erro, StatTile } from "@/components/ui/StatTile";
 import { consultar, useConsulta } from "@/lib/duck";
 import { data, num, iso } from "@/lib/format";
 import { detectarPicos } from "@/lib/picos";
-import { sqlContarProposicoes, sqlProposicoes, sqlProposicoesMensal, sqlRankingAutores, sqlTiposETemas } from "@/lib/queries/proposicoes";
+import { sqlContarProposicoes, sqlProposicoes, sqlProposicoesMensal, sqlProposicoesPorTema, sqlRankingAutores, sqlTemasPorAno, sqlTiposETemas } from "@/lib/queries/proposicoes";
 import { useOpcoes } from "@/lib/useOpcoes";
 import { Exportar } from "@/components/ui/Exportar";
 
@@ -27,7 +27,11 @@ export function Proposicoes() {
   const lista = useConsulta<Linha>(sqlProposicoes(filtros, POR_PAGINA, pagina * POR_PAGINA));
   const rank = useConsulta<{ deputado_id: number; nome: string; partido: string; uf: string; n: number }>(sqlRankingAutores(filtros, 15));
   const mensal = useConsulta<{ periodo: string; valor: number }>(sqlProposicoesMensal(filtros));
+  const porTema = useConsulta<{ tema: string; n: number; projetos: number; viraram_lei: number }>(sqlProposicoesPorTema(filtros));
+  const porAno = useConsulta<{ periodo: string; tema: string; valor: number }>(sqlTemasPorAno(filtros));
   const t = tot.dados?.[0];
+  const linhasTema = Array.from(new Set((porAno.dados ?? []).map((x) => x.tema))).map((tema) => ({
+    nome: tema, pontos: (porAno.dados ?? []).filter((x) => x.tema === tema).map((x) => ({ periodo: x.periodo, valor: x.valor })) }));
   const pontos = mensal.dados ?? [];
   const paginas = t ? Math.max(1, Math.ceil(t.n / POR_PAGINA)) : 1;
   return (
@@ -50,6 +54,15 @@ export function Proposicoes() {
         <StatTile rotulo="Viraram lei" valor={t ? num(t.viraram_lei) : "…"} cor="amarelo" />
       </div>
       <div className="space-y-6">
+        <div className="grid gap-6 xl:grid-cols-2">
+          {porTema.dados ? (
+            <Barras titulo="Proposições por tema" formato="num" subtitulo="Clique em um tema para filtrar a lista."
+              itens={porTema.dados.map((x) => ({ rotulo: x.tema, valor: x.n, detalhe: `${num(x.projetos)} projetos · ${num(x.viraram_lei)} viraram lei`,
+                acao: () => { setPagina(0); definir({ tema: filtros.tema === x.tema ? undefined : x.tema }); } }))} />
+          ) : <Carregando />}
+          {porAno.dados ? <SerieTemporal titulo="Temas mais frequentes ao longo dos anos" formato="num" linhas={linhasTema}
+            subtitulo="Os seis temas com mais proposições, por ano de apresentação (sem “Outros”)." /> : <Carregando />}
+        </div>
         <div className="grid gap-6 xl:grid-cols-[3fr_2fr]">
           {mensal.dados ? <SerieTemporal titulo="Projetos apresentados por mês" barras formato="num" linhas={[{ nome: "Projetos", pontos, picos: detectarPicos(pontos) }]} /> : <Carregando />}
           {rank.dados ? <Barras titulo="Quem mais apresenta projetos" formato="num" cor={2}

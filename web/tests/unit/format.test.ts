@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brl, data, iso, mes, num, ouTraco, pct } from "@/lib/format";
+import { brl, data, humanizar, iso, mes, num, ouTraco, pct } from "@/lib/format";
 
 describe("format", () => {
   it("brl", () => {
@@ -17,6 +17,12 @@ describe("format", () => {
   it("data", () => {
     expect(data("2024-03-05")).toBe("05/03/2024");
     expect(data(null)).toBe("—");
+  });
+  it("humanizar troca datas ISO soltas por formato brasileiro", () => {
+    expect(humanizar("Picos de gasto em: 2023-04, 2023-05")).toBe("Picos de gasto em: abr/2023, mai/2023");
+    expect(humanizar("aberta em 2024-03-05")).toBe("aberta em 05/03/2024");
+    expect(humanizar("Lei 2023-99 e R$ 1.234")).toBe("Lei 2023-99 e R$ 1.234");
+    expect(humanizar(null)).toBe("");
   });
   it("num", () => expect(num(1234)).toBe("1.234"));
   it("ouTraco", () => {

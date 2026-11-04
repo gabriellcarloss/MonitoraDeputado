@@ -14,7 +14,7 @@ CREATE TABLE fornecedores (cnpj VARCHAR, razao_social VARCHAR, nome_fantasia VAR
   cnae VARCHAR, municipio VARCHAR, uf VARCHAR, socios STRUCT(nome VARCHAR, qualificacao VARCHAR, entrada DATE)[],
   capital_social DOUBLE, sem_dados BOOLEAN);
 CREATE TABLE votacoes (id VARCHAR, data DATE, sigla_orgao VARCHAR, descricao VARCHAR, aprovacao INTEGER,
-  proposicao_id BIGINT, votos_sim INTEGER, votos_nao INTEGER, votos_outros INTEGER);
+  proposicao_id BIGINT, votos_sim INTEGER, votos_nao INTEGER, votos_outros INTEGER, tema VARCHAR);
 CREATE TABLE votos (votacao_id VARCHAR, deputado_id BIGINT, voto VARCHAR, partido_na_data VARCHAR, data DATE);
 CREATE TABLE orientacoes (votacao_id VARCHAR, bancada VARCHAR, orientacao VARCHAR);
 CREATE TABLE orientacao_partido (votacao_id VARCHAR, partido VARCHAR, orientacao VARCHAR, bancada VARCHAR);
@@ -29,7 +29,7 @@ CREATE TABLE emendas (codigo VARCHAR, ano INTEGER, tipo VARCHAR, deputado_id BIG
 CREATE TABLE emendas_favorecidos (codigo VARCHAR, deputado_id BIGINT, ano_mes VARCHAR, favorecido VARCHAR,
   codigo_favorecido VARCHAR, natureza VARCHAR, tipo_favorecido VARCHAR, uf VARCHAR, municipio VARCHAR, valor DOUBLE);
 CREATE TABLE proposicoes (id BIGINT, sigla_tipo VARCHAR, numero INTEGER, ano INTEGER, ementa VARCHAR, tema VARCHAR,
-  data_apresentacao DATE, situacao VARCHAR, relevante BOOLEAN, url_inteiro_teor VARCHAR);
+  data_apresentacao DATE, situacao VARCHAR, relevante BOOLEAN, url_inteiro_teor VARCHAR, tema_oficial VARCHAR);
 CREATE TABLE autorias (proposicao_id BIGINT, deputado_id BIGINT, proponente_principal BOOLEAN, ordem INTEGER);
 CREATE TABLE relatorias (proposicao_id BIGINT, deputado_id BIGINT, orgao VARCHAR);
 """

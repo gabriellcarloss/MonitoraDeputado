@@ -50,3 +50,11 @@ export function data(v: string | number | Date | null | undefined): string {
 export function ouTraco(v: number | null | undefined, f: (n: number) => string): string {
   return v === null || v === undefined || !Number.isFinite(v) ? TRACO : f(v);
 }
+
+/** Troca datas ISO soltas num texto por formato brasileiro: 2023-04-15 vira 15/04/2023 e 2023-04 vira abr/2023. */
+export function humanizar(texto: string | null | undefined): string {
+  if (!texto) return "";
+  return texto
+    .replace(/\b(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b/g, "$3/$2/$1")
+    .replace(/\b(\d{4})-(0[1-9]|1[0-2])\b(?!-)/g, (_, a: string, m: string) => `${MESES[Number(m) - 1]}/${a}`);
+}

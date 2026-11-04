@@ -11,8 +11,9 @@ export function sqlVotacoes(f: Filtros, limite = 300): Consulta {
   const p: unknown[] = [];
   periodo(f, "v.data", c, p);
   if (f.orgao) { c.push("v.sigla_orgao = ?"); p.push(f.orgao); }
+  if (f.tema) { c.push("v.tema = ?"); p.push(f.tema); }
   if (f.busca) { c.push("upper(v.descricao) LIKE '%' || upper(?) || '%'"); p.push(f.busca); }
-  return { sql: `SELECT v.id, v.data, v.sigla_orgao, v.descricao, v.aprovacao, v.proposicao_id,
+  return { sql: `SELECT v.id, v.data, v.sigla_orgao, v.descricao, v.aprovacao, v.proposicao_id, v.tema,
       count(vt.deputado_id) AS n_votos,
       count(*) FILTER (vt.voto = 'Sim') AS sim, count(*) FILTER (vt.voto = 'Não') AS nao,
       count(*) FILTER (vt.voto NOT IN ('Sim', 'Não')) AS outros
@@ -49,6 +50,23 @@ export function sqlVotacoesMensal(f: Filtros): Consulta {
   const p: unknown[] = [];
   periodo(f, "data", c, p);
   if (f.orgao) { c.push("sigla_orgao = ?"); p.push(f.orgao); }
+  if (f.tema) { c.push("tema = ?"); p.push(f.tema); }
   return { sql: `SELECT strftime(data, '%Y-%m') AS periodo, count(*) AS valor FROM votacoes
     ${c.length ? `WHERE ${c.join(" AND ")}` : ""} GROUP BY 1 ORDER BY 1`, params: p };
+}
+
+/** Votações por tema (com os filtros de período e órgão, mas sem o filtro de tema, para o gráfico mostrar todos). */
+export function sqlVotacoesPorTema(f: Filtros): Consulta {
+  const c: string[] = [];
+  const p: unknown[] = [];
+  periodo(f, "data", c, p);
+  if (f.orgao) { c.push("sigla_orgao = ?"); p.push(f.orgao); }
+  c.push("tema IS NOT NULL");
+  return { sql: `SELECT tema, count(*) AS n, count(*) FILTER (aprovacao = 1) AS aprovadas,
+      count(*) FILTER (aprovacao IS NOT NULL) AS decididas FROM votacoes WHERE ${c.join(" AND ")}
+    GROUP BY 1 ORDER BY n DESC`, params: p };
+}
+
+export function sqlTemasDasVotacoes(): Consulta {
+  return { sql: "SELECT tema, count(*) AS n FROM votacoes WHERE tema IS NOT NULL GROUP BY 1 ORDER BY n DESC", params: [] };
 }

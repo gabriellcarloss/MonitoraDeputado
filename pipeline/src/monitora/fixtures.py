@@ -10,6 +10,7 @@ from pathlib import Path
 from monitora import db
 from monitora.export import exportar
 from monitora.extract.votacoes import resolver_orientacoes
+from monitora.temas import aplicar_temas
 from monitora.metrics.alertas import gerar_alertas
 from monitora.metrics.indicadores import calcular_indicadores
 from monitora.metrics.rede import gerar_rede
@@ -32,6 +33,9 @@ CATEGORIAS = [  # (categoria, valor médio, notas por mês)
     ("LOCAÇÃO OU FRETAMENTO DE VEÍCULOS AUTOMOTORES", 7000, 1), ("CONSULTORIAS, PESQUISAS E TRABALHOS TÉCNICOS.", 9000, 0.3),
     ("HOSPEDAGEM ,EXCETO DO PARLAMENTAR NO DISTRITO FEDERAL.", 600, 0.5),
 ]
+
+
+_ASSUNTOS = ["saúde", "educação", "tributos e imposto", "meio ambiente", "segurança pública e crime", "trabalho e previdência", "requerimento de urgência"]
 
 
 def _meses(ini: date, fim: date):
@@ -106,8 +110,8 @@ def _popular(con, n_deputados: int, rnd: random.Random) -> None:
     for v in range(420):
         dia = INICIO + timedelta(days=rnd.randrange(30, (FIM - INICIO).days))
         vid = f"{9000 + v}-{v % 90}"
-        votacoes.append((vid, dia, "PLEN" if v % 7 else "CCJC", f"Votação de exemplo nº {v + 1}", rnd.choice([0, 1]),
-                         None, 0, 0, 0))
+        votacoes.append((vid, dia, "PLEN" if v % 7 else "CCJC", f"Votação de exemplo nº {v + 1} sobre {_ASSUNTOS[v % len(_ASSUNTOS)]}", rnd.choice([0, 1]),
+                         None, 0, 0, 0, None))
         oriente = {pa: rnd.choice(["Sim", "Não", "Sim", "Liberado"]) for pa in PARTIDOS + ["Governo"]}
         orient += [(vid, b, o) for b, o in oriente.items()]
         for dep, p in perfil.items():
@@ -173,7 +177,7 @@ def _popular(con, n_deputados: int, rnd: random.Random) -> None:
                 situacao = "Transformado em Norma Jurídica" if tipo == "PL" and rnd.random() < 0.05 else "Aguardando Parecer"
                 props.append((pid, tipo, pid, dia.year, f"Proposição fictícia {pid} sobre {rnd.choice(['saúde', 'educação', 'segurança', 'economia', 'meio ambiente'])}",
                               rnd.choice(["Saúde", "Educação", "Segurança", "Economia", "Meio Ambiente"]), dia, situacao,
-                              tipo in ("PL", "PEC"), None))
+                              tipo in ("PL", "PEC"), None, None))
                 aut.append((pid, dep, True, 1))
                 if rnd.random() < 0.3:
                     aut.append((pid, rnd.choice(list(perfil)), False, 2))
@@ -183,6 +187,8 @@ def _popular(con, n_deputados: int, rnd: random.Random) -> None:
     db.inserir(con, "proposicoes", props)
     db.inserir(con, "autorias", aut)
     db.inserir(con, "relatorias", rel)
+    con.execute("UPDATE proposicoes SET tema_oficial = tema")
+    aplicar_temas(con)
 
 
 def gerar_ficticios(out_dir: Path, n_deputados: int = 513, seed: int = 42) -> None:
