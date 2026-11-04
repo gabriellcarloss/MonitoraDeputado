@@ -1,0 +1,327 @@
+{
+  "gerado_em": "2026-11-04T22:57:54+00:00",
+  "ficticio": true,
+  "fontes": {
+    "Câmara — Dados Abertos": {
+      "desatualizada": false,
+      "atualizado_em": "2026-11-04T22:57:54+00:00"
+    },
+    "Câmara — Cota parlamentar (CEAP)": {
+      "desatualizada": false,
+      "atualizado_em": "2026-11-04T22:57:54+00:00"
+    },
+    "Receita Federal (CNPJ)": {
+      "desatualizada": false,
+      "atualizado_em": "2026-11-04T22:57:54+00:00"
+    },
+    "Câmara — Frequência com justificativas": {
+      "desatualizada": false,
+      "atualizado_em": "2026-11-04T22:57:54+00:00"
+    },
+    "Câmara — Equipe de gabinete": {
+      "desatualizada": false,
+      "atualizado_em": "2026-11-04T22:57:54+00:00"
+    },
+    "CGU — Emendas parlamentares": {
+      "desatualizada": false,
+      "atualizado_em": "2026-11-04T22:57:54+00:00"
+    }
+  },
+  "contagens": {
+    "despesas": 182041,
+    "fornecedores": 220,
+    "votacoes": 420,
+    "votos": 159931,
+    "orientacoes": 3780,
+    "orientacao_partido": 3360,
+    "sessoes": 240,
+    "presencas": 117240,
+    "proposicoes": 13164,
+    "autorias": 17241,
+    "relatorias": 584,
+    "rede_arestas": 7099,
+    "deputados": 513,
+    "series": 58847,
+    "emendas": 5150,
+    "emendas_favorecidos": 5150,
+    "secretarios": 7656,
+    "frequencia_dia": 25180
+  },
+  "deputados": 513,
+  "em_exercicio": 492,
+  "totais": {
+    "gasto_total": 489724210.2200047,
+    "n_votacoes": 420,
+    "n_proposicoes_relevantes": 3307,
+    "n_sessoes": 240,
+    "emendas_empenhado": 7987080011.50001,
+    "emendas_pago": 3990961055.9999976,
+    "n_secretarios": 7656,
+    "n_alertas": 1837
+  },
+  "alertas_por_regra": {
+    "G01": 70,
+    "G02": 291,
+    "G04": 73,
+    "G05": 142,
+    "G06": 100,
+    "G07": 29,
+    "G08": 164,
+    "G09": 194,
+    "G10": 10,
+    "G12": 1,
+    "E01": 76,
+    "E02": 132,
+    "E03": 141,
+    "P01": 163,
+    "P02": 52,
+    "L01": 104,
+    "L02": 42,
+    "V01": 1,
+    "V02": 52
+  },
+  "uf": {
+    "MA": {
+      "n": 22,
+      "gasto_mensal_mediana": 37304.29967331159,
+      "projetos_mediana": 4,
+      "projetos_media": 4.590909090909091,
+      "presenca_mediana": 0.7973872734934682
+    },
+    "SP": {
+      "n": 70,
+      "gasto_mensal_mediana": 29521.149364020603,
+      "projetos_mediana": 4,
+      "projetos_media": 7.3428571428571425,
+      "presenca_mediana": 0.8543039257728744
+    },
+    "MG": {
+      "n": 56,
+      "gasto_mensal_mediana": 27085.08697467365,
+      "projetos_mediana": 4,
+      "projetos_media": 6.357142857142857,
+      "presenca_mediana": 0.8284835252084161
+    },
+    "DF": {
+      "n": 12,
+      "gasto_mensal_mediana": 24990.731140749143,
+      "projetos_mediana": 1.5,
+      "projetos_media": 4.333333333333333,
+      "presenca_mediana": 0.8090728641138036
+    },
+    "PR": {
+      "n": 22,
+      "gasto_mensal_mediana": 28113.813668771298,
+      "projetos_mediana": 2,
+      "projetos_media": 5.2727272727272725,
+      "presenca_mediana": 0.7732893489254109
+    },
+    "AC": {
+      "n": 9,
+      "gasto_mensal_mediana": 28476.869646708266,
+      "projetos_mediana": 2,
+      "projetos_media": 4.666666666666667,
+      "presenca_mediana": 0.8913043478260869
+    },
+    "RN": {
+      "n": 7,
+      "gasto_mensal_mediana": 29903.52536748012,
+      "projetos_mediana": 4,
+      "projetos_media": 6.428571428571429,
+      "presenca_mediana": 0.7962962962962963
+    },
+    "RJ": {
+      "n": 56,
+      "gasto_mensal_mediana": 27633.42907456017,
+      "projetos_mediana": 3,
+      "projetos_media": 5.732142857142857,
+      "presenca_mediana": 0.8441071428571428
+    },
+    "RS": {
+      "n": 35,
+      "gasto_mensal_mediana": 31629.731001702625,
+      "projetos_mediana": 4,
+      "projetos_media": 6.942857142857143,
+      "presenca_mediana": 0.8454545454545455
+    },
+    "CE": {
+      "n": 23,
+      "gasto_mensal_mediana": 26821.08139330306,
+      "projetos_mediana": 11,
+      "projetos_media": 10.608695652173912,
+      "presenca_mediana": 0.902127659574468
+    },
+    "PI": {
+      "n": 12,
+      "gasto_mensal_mediana": 30336.461319523274,
+      "projetos_mediana": 3,
+      "projetos_media": 5.666666666666667,
+      "presenca_mediana": 0.896316201993058
+    },
+    "BA": {
+      "n": 29,
+      "gasto_mensal_mediana": 29281.215305760492,
+      "projetos_mediana": 4,
+      "projetos_media": 7.344827586206897,
+      "presenca_mediana": 0.8214285714285714
+    },
+    "RR": {
+      "n": 11,
+      "gasto_mensal_mediana": 30173.631750141878,
+      "projetos_mediana": 0,
+      "projetos_media": 3.6363636363636362,
+      "presenca_mediana": 0.8318181818181818
+    },
+    "SC": {
+      "n": 18,
+      "gasto_mensal_mediana": 39563.863589316126,
+      "projetos_mediana": 5.5,
+      "projetos_media": 5.5,
+      "presenca_mediana": 0.8671245662804619
+    },
+    "PA": {
+      "n": 17,
+      "gasto_mensal_mediana": 27742.44352014756,
+      "projetos_mediana": 7,
+      "projetos_media": 7.588235294117647,
+      "presenca_mediana": 0.8778280542986425
+    },
+    "MT": {
+      "n": 11,
+      "gasto_mensal_mediana": 25804.080910187266,
+      "projetos_mediana": 1,
+      "projetos_media": 6.909090909090909,
+      "presenca_mediana": 0.8056872037914692
+    },
+    "MS": {
+      "n": 10,
+      "gasto_mensal_mediana": 32127.66207186436,
+      "projetos_mediana": 1,
+      "projetos_media": 3.8,
+      "presenca_mediana": 0.9025713589594617
+    },
+    "AL": {
+      "n": 3,
+      "gasto_mensal_mediana": 27922.74856767876,
+      "projetos_mediana": 21,
+      "projetos_media": 15.333333333333334,
+      "presenca_mediana": 0.8034934497816594
+    },
+    "PE": {
+      "n": 26,
+      "gasto_mensal_mediana": 28297.2994356555,
+      "projetos_mediana": 2,
+      "projetos_media": 5.269230769230769,
+      "presenca_mediana": 0.8485455772054447
+    },
+    "GO": {
+      "n": 10,
+      "gasto_mensal_mediana": 28689.924027738365,
+      "projetos_mediana": 4,
+      "projetos_media": 4.4,
+      "presenca_mediana": 0.8581577266922095
+    },
+    "AM": {
+      "n": 11,
+      "gasto_mensal_mediana": 25923.073224318945,
+      "projetos_mediana": 7,
+      "projetos_media": 8.181818181818182,
+      "presenca_mediana": 0.8771929824561403
+    },
+    "AP": {
+      "n": 7,
+      "gasto_mensal_mediana": 33501.912951191836,
+      "projetos_mediana": 11,
+      "projetos_media": 10.142857142857142,
+      "presenca_mediana": 0.7607655502392344
+    },
+    "RO": {
+      "n": 10,
+      "gasto_mensal_mediana": 21334.06749113223,
+      "projetos_mediana": 3,
+      "projetos_media": 6.2,
+      "presenca_mediana": 0.8873099415204678
+    },
+    "ES": {
+      "n": 6,
+      "gasto_mensal_mediana": 29596.975001773564,
+      "projetos_mediana": 1,
+      "projetos_media": 2.3333333333333335,
+      "presenca_mediana": 0.8080640465793304
+    },
+    "TO": {
+      "n": 6,
+      "gasto_mensal_mediana": 29922.60943813849,
+      "projetos_mediana": 7,
+      "projetos_media": 9.5,
+      "presenca_mediana": 0.8498677248677249
+    },
+    "SE": {
+      "n": 2,
+      "gasto_mensal_mediana": 30224.870742054496,
+      "projetos_mediana": 12.5,
+      "projetos_media": 12.5,
+      "presenca_mediana": 0.7611272595149423
+    },
+    "PB": {
+      "n": 12,
+      "gasto_mensal_mediana": 28886.23622907208,
+      "projetos_mediana": 4,
+      "projetos_media": 5.333333333333333,
+      "presenca_mediana": 0.8060658506578811
+    }
+  },
+  "maiores_gastos": [
+    "Tiago Rezende (PTET-SP): 2219735.3599999994",
+    "Karina Werneck (PEPS-RJ): 2159841.84",
+    "Queila Esteves (PGAM-RN): 2151800.48",
+    "Queila Quintela (PTET-BA): 2142081.1500000004",
+    "João Ipiranga (PALF-PR): 2078735.8499999999"
+  ],
+  "mais_projetos": [
+    "Ana Coutinho (PALF-SP): 21",
+    "Ana Drummond (PDEL-SP): 21",
+    "Ana Falcão (PTET-SC): 21",
+    "Ana Guimarães (PEPS-CE): 21",
+    "Ana Quintela (PGAM-SP): 21"
+  ],
+  "menor_presenca": [
+    "Vítor Xavier (PEPS-SC): 0.5684210526315789",
+    "Lucas Siqueira (PZET-PR): 0.6078431372549019",
+    "Queila Zanetti (PBET-MA): 0.6086956521739131",
+    "Marina Prado (PETA-AC): 0.6097560975609756",
+    "Tiago Ipiranga (PGAM-MA): 0.6116504854368932"
+  ],
+  "sem_alinhamento": 0,
+  "exemplo_deputado": 43,
+  "emendas": {
+    "deputados_com": 513,
+    "maiores": [
+      "Queila Otoni (PETA-MG): 30711275.880000003",
+      "Paulo Leal (PZET-PI): 30420238.990000002",
+      "Elisa Bastos (PALF-RN): 28940001.990000002",
+      "Diego Siqueira (PBET-RJ): 28139631.12",
+      "João Kruger (PDEL-RS): 27720530.980000004"
+    ]
+  },
+  "gabinete": {
+    "deputados_com": 513,
+    "maiores": [
+      "Elisa Valadares (PZET-RS): 27",
+      "Diego Zanetti (PALF-BA): 24",
+      "Diego Kruger (PBET-SP): 23",
+      "Fábio Falcão (PBET-BA): 23",
+      "Gabriela Falcão (PBET-RJ): 23"
+    ]
+  },
+  "faltas": {
+    "justificadas_total": 9094,
+    "sem_justificativa_top": [
+      "Lucas Siqueira (PZET-PR): 80",
+      "Marina Prado (PETA-AC): 80",
+      "Tiago Ipiranga (PGAM-MA): 80",
+      "Carla Falcão (PEPS-SP): 77",
+      "Yuri Rezende (PDEL-SP): 76"
+    ]
+  }
+}
