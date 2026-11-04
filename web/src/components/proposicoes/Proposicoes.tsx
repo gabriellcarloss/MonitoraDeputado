@@ -6,11 +6,12 @@ import { Barras } from "@/components/charts/Barras";
 import { SerieTemporal } from "@/components/charts/SerieTemporal";
 import { BarraFiltros, Campo, Selecao, useFiltros } from "@/components/filtros/Filtros";
 import { Carregando, Erro, StatTile } from "@/components/ui/StatTile";
-import { useConsulta } from "@/lib/duck";
-import { data, num } from "@/lib/format";
+import { consultar, useConsulta } from "@/lib/duck";
+import { data, num, iso } from "@/lib/format";
 import { detectarPicos } from "@/lib/picos";
 import { sqlContarProposicoes, sqlProposicoes, sqlProposicoesMensal, sqlRankingAutores, sqlTiposETemas } from "@/lib/queries/proposicoes";
 import { useOpcoes } from "@/lib/useOpcoes";
+import { Exportar } from "@/components/ui/Exportar";
 
 interface Linha { id: number; sigla_tipo: string; numero: number; ano: number; ementa: string; tema: string | null; data_apresentacao: string;
   situacao: string | null; relevante: boolean; url_inteiro_teor: string | null; deputado_id: number | null; autor: string | null; partido: string | null; uf: string | null }
@@ -37,7 +38,7 @@ export function Proposicoes() {
         <Selecao rotulo="Tema" valor={filtros.tema} opcoes={(tt.dados ?? []).filter((x) => x.k === "tema").map((x) => x.v)}
           onChange={(tema) => { setPagina(0); definir({ tema }); }} />
         <Campo rotulo="Buscar na ementa">
-          <input type="search" className="h-9 rounded-full border border-border bg-subtle/60 px-3 text-sm" defaultValue={filtros.busca ?? ""}
+          <input type="search" className="campo-filtro" defaultValue={filtros.busca ?? ""}
             placeholder="ex.: saúde" onChange={(e) => { setPagina(0); definir({ busca: e.target.value || undefined }); }} />
         </Campo>
       </BarraFiltros>
@@ -54,8 +55,16 @@ export function Proposicoes() {
           {rank.dados ? <Barras titulo="Quem mais apresenta projetos" formato="num" cor={2}
             itens={rank.dados.map((r) => ({ rotulo: `${r.nome} (${r.partido}-${r.uf})`, valor: r.n, href: `/deputado/${r.deputado_id}/?aba=proposicoes` }))} /> : <Carregando />}
         </div>
-        <section className="cartao p-4">
-          <h2 className="font-display mb-3 text-xl leading-none">Proposições</h2>
+        <section className="cartao p-4" data-revelar>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <h2 className="font-display flex-1 text-xl leading-none">Proposições</h2>
+            <Exportar nome="Proposições" compacto obter={async () => {
+              const c = sqlProposicoes(filtros, 50000, 0);
+              const r = await consultar<Linha>(c.sql, c.params);
+              return { colunas: ["ID", "Tipo", "Número", "Ano", "Apresentação", "Ementa", "Tema", "Situação", "Projeto de lei/PEC", "Autor", "Partido", "UF", "Inteiro teor"],
+                linhas: r.map((p) => [p.id, p.sigla_tipo, p.numero, p.ano, iso(p.data_apresentacao), p.ementa, p.tema, p.situacao, p.relevante, p.autor, p.partido, p.uf, p.url_inteiro_teor]) };
+            }} />
+          </div>
           {!lista.dados ? <Carregando /> : lista.dados.length === 0 ? <p className="py-6 text-center text-sm text-muted">Nenhuma proposição com esses filtros.</p> : (
             <ul className="divide-y divide-border">
               {lista.dados.map((p) => (

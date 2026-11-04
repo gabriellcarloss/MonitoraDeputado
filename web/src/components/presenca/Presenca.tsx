@@ -9,6 +9,7 @@ import { num, pct } from "@/lib/format";
 import { sqlPresencaMensal, sqlRankingPresenca } from "@/lib/queries/presenca";
 import { useOpcoes } from "@/lib/useOpcoes";
 import Link from "next/link";
+import { Exportar } from "@/components/ui/Exportar";
 
 interface Linha { deputado_id: number; nome: string; partido: string; uf: string; sessoes: number; presentes: number; justificadas: number; pct: number }
 
@@ -41,7 +42,14 @@ export function Presenca() {
           </div>
         )}
         <section className="cartao p-4">
-          <h2 className="font-display mb-1 text-xl leading-none">Todos os deputados</h2>
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <h2 className="font-display flex-1 text-xl leading-none">Todos os deputados</h2>
+            {r.dados ? <Exportar nome="Presença em sessões" compacto obter={() => ({
+              colunas: ["ID", "Deputado", "Partido", "UF", "Sessões contadas", "Presente", "Ausências justificadas", "Presença (%)", "Participação em votações (%)"],
+              linhas: r.dados!.map((x) => [x.deputado_id, x.nome, x.partido, x.uf, x.sessoes, x.presentes, x.justificadas, x.pct,
+                deputados.get(x.deputado_id)?.indicadores?.pct_participacao_votacoes ?? null]),
+            })} /> : null}
+          </div>
           <p className="mb-3 text-sm text-muted">Presença em sessões deliberativas no período filtrado. Ausências justificadas oficialmente
             (licença médica, missão autorizada) não contam como falta e ficam fora da conta. Participação em votações refere-se à legislatura inteira.</p>
           {!r.dados ? <Carregando /> : (

@@ -4,7 +4,7 @@ import type { EChartsOption } from "echarts";
 import { brl, brlCurto, mes, num, pct } from "@/lib/format";
 import type { Pico } from "@/lib/types";
 import { Cartao, TabelaSimples } from "./Cartao";
-import { eixoBase, tooltipBase, useCores } from "./cores";
+import { ANIMACAO, comAlfa, eixoBase, gradBarra, gradV, tooltipBase, useCores } from "./cores";
 import { EChart } from "./EChart";
 
 export type Formato = "brl" | "num" | "pct";
@@ -33,11 +33,12 @@ export function SerieTemporal({ titulo, subtitulo, linhas, formato = "num", altu
   const vazio = periodos.length === 0;
   const fmt = FMT[formato];
   const option: EChartsOption = {
-    animationDuration: 300,
+    ...ANIMACAO,
     grid: { left: 8, right: 16, top: linhas.length > 1 ? 36 : 16, bottom: periodos.length > 24 ? 56 : 8, containLabel: true },
     legend: linhas.length > 1 ? { top: 0, left: 0, textStyle: { color: c.muted }, itemWidth: 14, itemHeight: 3, icon: "rect" } : undefined,
     tooltip: {
-      trigger: "axis", ...tooltipBase(c), axisPointer: { type: "line", lineStyle: { color: c.eixo } },
+      trigger: "axis", ...tooltipBase(c),
+      axisPointer: barras ? { type: "shadow", shadowStyle: { color: comAlfa(c.series[0], 0.08) } } : { type: "line", lineStyle: { color: comAlfa(c.series[0], 0.6), width: 1.5, type: "dashed" } },
       valueFormatter: (v) => (typeof v === "number" ? fmt(v) : "—"),
     },
     xAxis: { type: "category", data: periodos, boundaryGap: barras, ...eixoBase(c), splitLine: { show: false },
@@ -52,14 +53,18 @@ export function SerieTemporal({ titulo, subtitulo, linhas, formato = "num", altu
         name: l.nome,
         type: barras && i === 0 ? "bar" : "line",
         data: periodos.map((p) => mapa.get(p) ?? null),
-        showSymbol: false, symbolSize: 8, connectNulls: false,
+        showSymbol: false, symbol: "circle", symbolSize: 9, connectNulls: false, smooth: 0.25,
         barMaxWidth: 18,
-        itemStyle: { color: c.series[i % c.series.length], borderRadius: barras && i === 0 ? [4, 4, 0, 0] : 0 },
-        lineStyle: { width: i === 0 ? 2.5 : 1.75, opacity: i === 0 ? 1 : 0.85 },
-        ...(i === 0 && !barras ? { areaStyle: { opacity: 0.1 } } : {}),
-        emphasis: { focus: "series" },
+        itemStyle: barras && i === 0
+          ? { color: gradBarra(c.series[0], false), borderRadius: [6, 6, 0, 0] }
+          : { color: c.series[i % c.series.length], borderColor: c.superficie, borderWidth: 2 },
+        lineStyle: i === 0
+          ? { width: 3, shadowColor: comAlfa(c.series[0], 0.45), shadowBlur: 12, shadowOffsetY: 6 }
+          : { width: 1.75, opacity: 0.85, type: i > 1 ? ("dashed" as const) : ("solid" as const) },
+        ...(i === 0 && !barras ? { areaStyle: { color: gradV(c.series[0], 0.32, 0.01) } } : {}),
+        emphasis: { focus: "series", itemStyle: barras ? { color: c.series[0], shadowBlur: 14, shadowColor: comAlfa(c.series[0], 0.5) } : undefined },
         markPoint: i === 0 && l.picos?.length ? {
-          symbol: "pin", symbolSize: 34,
+          symbol: "pin", symbolSize: 36, animationDelay: 1200,
           itemStyle: { color: c.alta, borderColor: c.superficie, borderWidth: 2 },
           label: { show: true, formatter: "!", color: "#fff", fontWeight: "bold" },
           data: l.picos.map((p) => ({ coord: [p.periodo, p.valor], value: p.rotulo, name: p.rotulo })),
@@ -77,6 +82,8 @@ export function SerieTemporal({ titulo, subtitulo, linhas, formato = "num", altu
     : undefined;
   return (
     <Cartao titulo={titulo} subtitulo={subtitulo ?? picosTexto}
+      dados={vazio ? undefined : { colunas: ["Período", ...linhas.map((l) => l.nome)],
+        linhas: periodos.map((p) => [p, ...linhas.map((l) => l.pontos.find((x) => x.periodo === p)?.valor ?? null)]) }}
       tabela={vazio ? undefined : <TabelaSimples colunas={["Período", ...linhas.map((l) => l.nome)]}
         linhas={periodos.map((p) => [rotuloPeriodo(p), ...linhas.map((l) => {
           const v = l.pontos.find((x) => x.periodo === p)?.valor;

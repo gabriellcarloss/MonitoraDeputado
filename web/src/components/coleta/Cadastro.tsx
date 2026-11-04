@@ -4,6 +4,7 @@ import { BellRing, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { type FormEvent, useId, useState } from "react";
 import { coletaAtiva, emailValido, enviar } from "@/lib/coleta";
+import { contextoColeta } from "./Acessos";
 
 type Estado = "parado" | "enviando" | "ok" | "erro";
 
@@ -29,7 +30,8 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
     if (!emailValido(email)) { setEstado("erro"); setMsg("Confira o e-mail digitado."); return; }
     if (!aceito) { setEstado("erro"); setMsg("Marque a caixinha para autorizar o envio."); return; }
     setEstado("enviando");
-    const ok = await enviar("cadastro", { email: email.trim(), interesse, origem, consentimento: true, site: armadilha });
+    const ctx = await contextoColeta();
+    const ok = await enviar("cadastro", { email: email.trim(), interesse, origem, consentimento: true, site: armadilha, ...ctx });
     if (ok) setEstado("ok");
     else { setEstado("erro"); setMsg("Não foi possível enviar agora. Tente de novo em instantes."); }
   }

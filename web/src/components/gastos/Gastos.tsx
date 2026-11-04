@@ -31,7 +31,7 @@ export function Gastos() {
         <Selecao rotulo="Categoria" valor={filtros.categoria} todos="Todas" opcoes={(cats.dados ?? []).map((c) => c.categoria)}
           onChange={(categoria) => definir({ categoria })} />
         <Campo rotulo="Fornecedor">
-          <input type="search" className="h-9 rounded-full border border-border bg-subtle/60 px-3 text-sm" defaultValue={filtros.fornecedor ?? ""}
+          <input type="search" className="campo-filtro" defaultValue={filtros.fornecedor ?? ""}
             placeholder="nome do fornecedor" onChange={(e) => definir({ fornecedor: e.target.value || undefined })} />
         </Campo>
         {filtros.deputado ? (

@@ -10,7 +10,7 @@ from monitora.metrics.series import gerar_series
 
 ARQUIVOS = {"meta.json", "deputados.json", "brasil.json", "alertas.json"}
 PARQUETS = {"despesas", "fornecedores", "votacoes", "votos", "orientacoes", "orientacao_partido", "sessoes", "presencas", "proposicoes",
-            "autorias", "relatorias", "rede_arestas", "deputados", "series"}
+            "autorias", "relatorias", "rede_arestas", "deputados", "series", "emendas", "emendas_favorecidos", "secretarios"}
 
 
 def preparar(base):

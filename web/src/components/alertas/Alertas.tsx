@@ -12,6 +12,7 @@ import { num } from "@/lib/format";
 import type { Alerta, Meta } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
 import { useOpcoes } from "@/lib/useOpcoes";
+import { Exportar } from "@/components/ui/Exportar";
 
 const POR_PAGINA = 30;
 
@@ -64,6 +65,16 @@ export function Alertas() {
           </section>
         </div>
         <section className="space-y-3">
+          <div className="flex justify-end">
+            <Exportar nome="Pontos de atenção" compacto obter={() => ({
+              colunas: ["Regra", "Severidade", "Título", "Descrição", "Deputado", "Partido", "UF", "Evidências"],
+              linhas: filtrados.map((a) => {
+                const d = deputados.get(a.deputado_id);
+                return [a.regra, a.severidade, a.titulo, a.descricao, d?.nome ?? a.deputado_id, d?.partido_atual ?? "", d?.uf ?? "",
+                  a.evidencias.map((e) => [e.ref, e.url].filter(Boolean).join(" ")).join(" | ")];
+              }),
+            })} />
+          </div>
           {visiveis.length === 0 ? <p className="cartao p-6 text-center text-sm text-muted">Nenhum alerta com esses filtros.</p> : visiveis.map((a) => {
             const d = deputados.get(a.deputado_id);
             return (

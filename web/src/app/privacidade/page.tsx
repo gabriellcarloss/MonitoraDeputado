@@ -22,12 +22,21 @@ export default function Page() {
 
       <Secao titulo="O que é coletado">
         <ul className="list-disc space-y-2 pl-5 text-sm">
-          <li><strong>Cadastro por e-mail</strong> (só se você preencher): seu e-mail, o que você quis acompanhar (por exemplo, um deputado), a página de onde veio e a data.
+          <li><strong>Cadastro por e-mail</strong> (só se você preencher): seu e-mail, o que você quis acompanhar (por exemplo, um deputado), a página de onde veio,
+            o canal de chegada, a cidade e o estado aproximados (para mandar novidades da sua região) e a data.
             Base legal: o seu consentimento, dado ao marcar a caixinha.</li>
           <li><strong>Formulário de contato</strong> (só se você enviar): assunto, nome, e-mail e/ou WhatsApp e a mensagem. Base legal: atender ao seu pedido.</li>
-          <li><strong>Acessos</strong>: uma linha por visita, com a página de entrada, o site de origem, as marcações de campanha do link (utm), o tipo de aparelho
-            (celular, tablet ou computador) e um código aleatório da visita. Não guardamos IP, não usamos cookies de rastreamento e não registramos o que você digita
-            ou pesquisa. Se o seu navegador envia o sinal &ldquo;Não rastrear&rdquo;, nada é registrado.</li>
+          <li><strong>Acessos</strong>: uma linha por página vista, com a página e o conteúdo (por exemplo, qual deputado foi consultado), o site de
+            origem (só o domínio, como &ldquo;google.com&rdquo;) e o canal (WhatsApp, Instagram, busca…), as marcações de campanha do link (utm), o tipo
+            de aparelho (celular, tablet ou computador), a família do sistema e do navegador (como &ldquo;Android&rdquo; e &ldquo;Chrome&rdquo;, sem
+            versão nem modelo), o idioma, o fuso horário, o tema claro/escuro, se é a primeira visita neste navegador e um código aleatório que só
+            agrupa as páginas de uma mesma visita. Também registramos o uso de recursos, como exportar dados ou marcar um deputado com estrela
+            (só o nome do recurso, nunca o que você digitou).</li>
+          <li><strong>Localização aproximada</strong>: cidade, estado e país estimados pela rede, informados pelo próprio servidor que hospeda o site.
+            <strong> O endereço IP não é guardado</strong> nem enviado à planilha. Não usamos GPS nem pedimos sua localização.</li>
+          <li><strong>O que nunca é coletado</strong>: IP, nome, CPF, texto digitado na busca, cookies de rastreamento ou identificadores de publicidade.
+            Se o seu navegador envia o sinal &ldquo;Não rastrear&rdquo;, nada de acesso é registrado. Base legal dos acessos: legítimo interesse em
+            entender, de forma agregada, como o site é usado (art. 7º, IX, da LGPD).</li>
           <li><strong>&ldquo;Meus deputados&rdquo;</strong> continua só no seu navegador e nunca é enviado a lugar nenhum.</li>
         </ul>
       </Secao>
@@ -55,7 +64,7 @@ export default function Page() {
         </p>
       </Secao>
 
-      <p className="text-xs text-muted">Texto informativo escrito para este projeto; não substitui orientação jurídica. Atualizado em 27/10/2026.</p>
+      <p className="text-xs text-muted">Texto informativo escrito para este projeto; não substitui orientação jurídica. Atualizado em 04/11/2026.</p>
     </div>
   );
 }

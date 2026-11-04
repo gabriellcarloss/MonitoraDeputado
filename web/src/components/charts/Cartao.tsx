@@ -1,15 +1,22 @@
 "use client";
 
 import { Table2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Exportar } from "@/components/ui/Exportar";
+import type { Tabela } from "@/lib/exportar";
 
 /** Card de gráfico com título, subtítulo e alternância para a tabela de dados. */
-export function Cartao({ titulo, subtitulo, tabela, children, acoes }: {
+export function Cartao({ titulo, subtitulo, tabela, children, acoes, dados, imagem = true }: {
   titulo: string; subtitulo?: string; tabela?: React.ReactNode; children: React.ReactNode; acoes?: React.ReactNode;
+  /** Dados brutos do gráfico, para baixar em Excel/CSV/JSON. */
+  dados?: Tabela;
+  /** Oferece baixar o gráfico como imagem PNG. */
+  imagem?: boolean;
 }) {
   const [verTabela, setVerTabela] = useState(false);
+  const area = useRef<HTMLDivElement>(null);
   return (
-    <section className="cartao p-4">
+    <section className="cartao p-4" data-revelar>
       <div className="mb-3 flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-xl leading-none">{titulo}</h2>
@@ -22,8 +29,9 @@ export function Cartao({ titulo, subtitulo, tabela, children, acoes }: {
             <Table2 size={14} aria-hidden /> {verTabela ? "Ver gráfico" : "Ver tabela"}
           </button>
         ) : null}
+        <Exportar nome={titulo} compacto obter={dados ? () => dados : undefined} grafico={imagem && !verTabela ? area : undefined} />
       </div>
-      {verTabela ? <div className="max-h-96 overflow-auto">{tabela}</div> : children}
+      <div ref={area}>{verTabela ? <div className="max-h-96 overflow-auto">{tabela}</div> : children}</div>
     </section>
   );
 }

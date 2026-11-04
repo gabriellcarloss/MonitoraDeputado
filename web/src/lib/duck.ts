@@ -12,7 +12,8 @@ import { useEffect, useState } from "react";
 import { avisarDados, buscarBytes, buscarJson, chaveConsulta, esperar, guardarResultado, lerResultado } from "./resiliencia";
 
 export const TABELAS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "sessoes", "presencas",
-  "proposicoes", "autorias", "relatorias", "rede_arestas", "deputados", "series", "orientacao_partido"] as const;
+  "proposicoes", "autorias", "relatorias", "rede_arestas", "deputados", "series", "orientacao_partido", "emendas", "emendas_favorecidos",
+  "secretarios"] as const;
 
 type Leitor = "extensao" | "reserva";
 

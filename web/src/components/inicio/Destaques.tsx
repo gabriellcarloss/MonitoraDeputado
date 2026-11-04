@@ -11,8 +11,9 @@ export function Destaques({ itens }: { itens: Destaque[] }) {
       {itens.map((d, i) => {
         const Icone = ICONES[d.tipo];
         const corpo = (
-          <div className="cartao brilho-hover flex h-full items-start gap-3 p-3.5">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-subtle text-destaque"><Icone size={18} aria-hidden /></span>
+          <div className="cartao brilho-varre flex h-full items-start gap-3 p-3.5" data-tilt="6">
+            <span className="profundo grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#009c3b] to-[#0b5a3d] text-white shadow-[0_8px_18px_-8px_rgb(0_156_59/0.7)]">
+              <Icone size={18} aria-hidden /></span>
             <span>
               <span className="block text-xs font-semibold text-muted">{d.titulo}</span>
               <span className="block text-sm font-medium">{d.texto}</span>

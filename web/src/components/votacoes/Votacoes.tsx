@@ -10,6 +10,7 @@ import { detectarPicos } from "@/lib/picos";
 import { sqlVotacoes, sqlVotacoesMensal } from "@/lib/queries/votacoes";
 import { useOpcoes } from "@/lib/useOpcoes";
 import { Placar } from "./Placar";
+import { Exportar } from "@/components/ui/Exportar";
 
 interface Linha { id: string; data: string; sigla_orgao: string; descricao: string; aprovacao: number | null; n_votos: number; sim: number; nao: number; outros: number }
 
@@ -29,7 +30,7 @@ export function Votacoes() {
         <Selecao rotulo="Órgão" valor={filtros.orgao} opcoes={(orgaos.dados ?? []).map((o) => [o.sigla_orgao, `${o.sigla_orgao} (${o.n})`] as [string, string])}
           onChange={(orgao) => definir({ orgao })} />
         <Campo rotulo="Buscar na descrição">
-          <input type="search" className="h-9 rounded-full border border-border bg-subtle/60 px-3 text-sm" defaultValue={filtros.busca ?? ""}
+          <input type="search" className="campo-filtro" defaultValue={filtros.busca ?? ""}
             placeholder="ex.: PEC, reforma" onChange={(e) => definir({ busca: e.target.value || undefined })} />
         </Campo>
       </BarraFiltros>
@@ -42,8 +43,12 @@ export function Votacoes() {
       </div>
       <div className="space-y-6">
         {mensal.dados ? <SerieTemporal titulo="Votações por mês" barras formato="num" linhas={[{ nome: "Votações", pontos, picos: detectarPicos(pontos) }]} altura={240} /> : <Carregando />}
-        <section className="cartao p-4">
-          <h2 className="font-display mb-3 text-xl leading-none">Votações</h2>
+        <section className="cartao p-4" data-revelar>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <h2 className="font-display flex-1 text-xl leading-none">Votações</h2>
+            <Exportar nome="Votações" compacto obter={() => ({ colunas: ["ID", "Data", "Órgão", "Descrição", "Aprovada", "Votos", "Sim", "Não", "Outros"],
+              linhas: l.map((v) => [v.id, v.data, v.sigla_orgao, v.descricao, v.aprovacao === null ? "" : v.aprovacao ? "sim" : "não", v.n_votos, v.sim, v.nao, v.outros]) })} />
+          </div>
           {!lista.dados ? <Carregando /> : l.length === 0 ? <p className="py-6 text-center text-sm text-muted">Nenhuma votação com esses filtros.</p> : (
             <ul className="divide-y divide-border">
               {l.map((v) => (
