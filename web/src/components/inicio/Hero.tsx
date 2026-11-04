@@ -7,7 +7,7 @@ import { Foto } from "@/components/ui/Foto";
 import { Contador } from "@/components/ui/Movimento";
 import { TituloAnimado } from "@/components/ui/MovimentoGlobal";
 import { Hemiciclo } from "./Hemiciclo";
-import { brl, brlCurto, data, num, pct } from "@/lib/format";
+import { brl, brlCurto, data, num, pct, humanizar } from "@/lib/format";
 
 export interface Pessoa {
   id: number;
@@ -52,7 +52,7 @@ function FaixaAlertas({ itens }: { itens: AlertaVitrine[] }) {
       <span className="min-w-0">
         <span className="flex items-center gap-1 text-xs font-bold text-[#ffb4b4]"><AlertOctagon size={12} aria-hidden /> {a.titulo}</span>
         <span className="block truncate text-sm font-semibold">{a.nome} <span className="font-normal text-white/70">{a.partido}-{a.uf}</span></span>
-        <span className="block truncate text-xs text-white/75">{a.descricao}</span>
+        <span className="block truncate text-xs text-white/75">{humanizar(a.descricao)}</span>
       </span>
     </Link>
   );

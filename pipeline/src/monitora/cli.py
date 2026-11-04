@@ -27,6 +27,7 @@ from monitora.metrics.alertas import gerar_alertas
 from monitora.metrics.indicadores import calcular_indicadores
 from monitora.metrics.rede import gerar_rede
 from monitora.metrics.series import gerar_series
+from monitora.temas import aplicar_temas
 from monitora.validate import validar
 
 log = logging.getLogger("monitora")
@@ -77,6 +78,7 @@ def executar(anos: list[int], sem_cnpj: bool, offline: bool, out_dir: Path = OUT
     extract_votacoes(client, con, anos, cache_dir)
     log.info("extraindo proposições")
     extract_proposicoes(client, con, anos, cache_dir)
+    aplicar_temas(con)
     log.info("extraindo presenças")
     extract_presencas(client, con, INICIO_LEGISLATURA, cache_dir=cache_dir)
     # Fontes complementares: se o formato mudar ou a fonte falhar, o painel sai sem elas em vez de não sair.

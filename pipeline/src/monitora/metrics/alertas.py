@@ -44,6 +44,15 @@ def _pct(v: float) -> str:
     return f"{100 * v:.0f}%"
 
 
+_MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+
+
+def _mes_br(periodo: str) -> str:
+    """'2023-04' -> 'abr/2023' (formato usado nos textos do site)."""
+    a, _, m = periodo.partition("-")
+    return f"{_MESES[int(m) - 1]}/{a}" if m.isdigit() and 1 <= int(m) <= 12 else periodo
+
+
 def _ev(tipo: str, ref: str, valor=None, url=None) -> dict:
     return {"tipo": tipo, "ref": ref, "valor": valor, "url": url}
 
@@ -74,7 +83,7 @@ def _g02(con):
     for dep in deps:
         serie = next(s for s in series_de(con, "deputado", dep) if s["metrica"] == "gasto")
         if serie["picos"]:
-            meses = ", ".join(p["periodo"] for p in serie["picos"])
+            meses = ", ".join(_mes_br(p["periodo"]) for p in serie["picos"])
             yield int(dep), f"Picos de gasto em: {meses}", \
                 [_ev("pico", p["periodo"], p["valor"]) for p in serie["picos"]], None
 

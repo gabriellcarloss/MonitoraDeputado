@@ -49,3 +49,20 @@ export function sqlTiposETemas(): Consulta {
   return { sql: `SELECT 'tipo' AS k, sigla_tipo AS v, count(*) AS n FROM proposicoes GROUP BY ALL
     UNION ALL SELECT 'tema', tema, count(*) FROM proposicoes WHERE tema IS NOT NULL GROUP BY ALL ORDER BY k, n DESC`, params: [] };
 }
+
+/** Proposições por tema respeitando os demais filtros (menos o próprio tema, para o gráfico mostrar todos). */
+export function sqlProposicoesPorTema(f: Filtros): Consulta {
+  const w = where({ ...f, tema: undefined });
+  return { sql: `SELECT p.tema, count(*) AS n, count(*) FILTER (p.relevante) AS projetos,
+      count(*) FILTER (p.situacao ILIKE '%transformad%norma%') AS viraram_lei ${FROM} ${w.sql}${w.sql ? " AND" : " WHERE"} p.tema IS NOT NULL
+    GROUP BY 1 ORDER BY n DESC`, params: w.params };
+}
+
+/** Evolução dos 6 temas mais frequentes por ano de apresentação. */
+export function sqlTemasPorAno(f: Filtros): Consulta {
+  const w = where({ ...f, tema: undefined });
+  return { sql: `WITH base AS (SELECT p.tema, strftime(p.data_apresentacao, '%Y') AS ano ${FROM} ${w.sql}${w.sql ? " AND" : " WHERE"}
+      p.tema IS NOT NULL AND p.tema <> 'Outros' AND p.data_apresentacao IS NOT NULL),
+    top AS (SELECT tema FROM base GROUP BY 1 ORDER BY count(*) DESC LIMIT 6)
+    SELECT ano AS periodo, tema, count(*) AS valor FROM base WHERE tema IN (SELECT tema FROM top) GROUP BY 1, 2 ORDER BY 1`, params: w.params };
+}

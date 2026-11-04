@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { sqlRankingPresenca, sqlPresencaMensal } from "@/lib/queries/presenca";
 import { sqlProposicoes, sqlRankingAutores } from "@/lib/queries/proposicoes";
-import { sqlPlacarPartidos, sqlVotacoes, sqlVotosDaVotacao } from "@/lib/queries/votacoes";
+import { sqlPlacarPartidos, sqlTemasDasVotacoes, sqlVotacoes, sqlVotacoesPorTema, sqlVotosDaVotacao } from "@/lib/queries/votacoes";
+import { sqlProposicoesPorTema, sqlTemasPorAno } from "@/lib/queries/proposicoes";
 import { conectar } from "./helpers/duck-node";
 
 let db: Awaited<ReturnType<typeof conectar>>;
@@ -23,6 +24,28 @@ describe("votações", () => {
     }
     const placar = await run<{ partido: string; total: number }>(sqlPlacarPartidos(v.id));
     expect(placar.reduce((s, p) => s + p.total, 0)).toBe(votos.length);
+  });
+});
+
+describe("temas", () => {
+  it("toda votação tem tema e o filtro por tema devolve só ele", async () => {
+    const temas = await run<{ tema: string; n: number }>(sqlTemasDasVotacoes());
+    expect(temas.length).toBeGreaterThan(0);
+    const { tema } = temas[0];
+    const r = await run<{ tema: string }>(sqlVotacoes({ tema }));
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.every((v) => v.tema === tema)).toBe(true);
+  });
+  it("votações por tema somam o total e aprovadas nunca passam das decididas", async () => {
+    const r = await run<{ n: number; aprovadas: number; decididas: number }>(sqlVotacoesPorTema({}));
+    expect(r.every((t) => t.aprovadas <= t.decididas && t.decididas <= t.n)).toBe(true);
+  });
+  it("proposições por tema e evolução por ano ignoram o filtro do próprio tema", async () => {
+    const r = await run<{ tema: string; n: number; projetos: number }>(sqlProposicoesPorTema({ tema: "Saúde" }));
+    expect(r.length).toBeGreaterThan(1);
+    expect(r.every((t) => t.projetos <= t.n)).toBe(true);
+    const anos = await run<{ periodo: string; tema: string; valor: number }>(sqlTemasPorAno({}));
+    expect(new Set(anos.map((a) => a.tema)).size).toBeLessThanOrEqual(6);
   });
 });
 

@@ -8,7 +8,7 @@ import { BarraFiltros, Selecao, useFiltros } from "@/components/filtros/Filtros"
 import { Foto } from "@/components/ui/Foto";
 import { Carregando, Erro, StatTile } from "@/components/ui/StatTile";
 import { useFavoritos } from "@/lib/favoritos";
-import { num } from "@/lib/format";
+import { humanizar, num } from "@/lib/format";
 import type { Alerta, Meta } from "@/lib/types";
 import { useJson } from "@/lib/useJson";
 import { useOpcoes } from "@/lib/useOpcoes";
@@ -70,7 +70,7 @@ export function Alertas() {
               colunas: ["Regra", "Severidade", "Título", "Descrição", "Deputado", "Partido", "UF", "Evidências"],
               linhas: filtrados.map((a) => {
                 const d = deputados.get(a.deputado_id);
-                return [a.regra, a.severidade, a.titulo, a.descricao, d?.nome ?? a.deputado_id, d?.partido_atual ?? "", d?.uf ?? "",
+                return [a.regra, a.severidade, humanizar(a.titulo), humanizar(a.descricao), d?.nome ?? a.deputado_id, d?.partido_atual ?? "", d?.uf ?? "",
                   a.evidencias.map((e) => [e.ref, e.url].filter(Boolean).join(" ")).join(" | ")];
               }),
             })} />
