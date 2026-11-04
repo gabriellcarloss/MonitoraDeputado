@@ -187,6 +187,23 @@ function letra_(n) {
   return s;
 }
 
+/**
+ * Fórmula no separador do idioma da planilha: em português (e outros idiomas com vírgula decimal) os argumentos
+ * são separados por ";". Vírgulas dentro de textos entre aspas (como o comando do QUERY) ficam como estão.
+ */
+function fx_(formula) {
+  var loc = String(SpreadsheetApp.getActive().getSpreadsheetLocale() || "en_US");
+  var sep = /^(en|zh|ja|ko|th|he|iw|hi|ms|fil|tl)/i.test(loc) ? "," : ";";
+  if (sep === ",") return formula;
+  var out = "", aspas = false;
+  for (var i = 0; i < formula.length; i++) {
+    var ch = formula.charAt(i);
+    if (ch === '"') aspas = !aspas;
+    out += (ch === "," && !aspas) ? sep : ch;
+  }
+  return out;
+}
+
 function montarPainel() {
   var planilha = SpreadsheetApp.getActive();
   var acessos = aba_("acesso");
@@ -226,7 +243,7 @@ function montarPainel() {
   cartoes.forEach(function (c, i) {
     var colI = 1 + i * 2;
     painel.getRange(4, colI, 1, 2).merge().setValue(c[0]).setFontSize(9).setFontColor("#52605b").setFontWeight("bold");
-    painel.getRange(5, colI, 1, 2).merge().setFormula(c[1]).setFontSize(22).setFontWeight("bold").setFontColor(i < 6 ? verde : azul)
+    painel.getRange(5, colI, 1, 2).merge().setFormula(fx_(c[1])).setFontSize(22).setFontWeight("bold").setFontColor(i < 6 ? verde : azul)
       .setHorizontalAlignment("left").setNumberFormat("#,##0.#");
     painel.getRange(4, colI, 2, 2).setBorder(null, true, null, null, null, null, amarelo, SpreadsheetApp.BorderStyle.SOLID_THICK);
   });
@@ -242,16 +259,20 @@ function montarPainel() {
     { t: "Por cidade", f: "=QUERY(" + FAIXA + ",\"select " + L("Cidade (aprox.)") + ", count(" + L("Cidade (aprox.)") + ") where " + L("Cidade (aprox.)") + " <> '' group by " + L("Cidade (aprox.)") + " order by count(" + L("Cidade (aprox.)") + ") desc limit 15 label " + L("Cidade (aprox.)") + " 'Cidade', count(" + L("Cidade (aprox.)") + ") 'Páginas'\",0)", g: "barra" },
     { t: "Por dispositivo", f: "=QUERY(" + FAIXA + ",\"select " + G + ", count(" + G + ") where " + G + " is not null group by " + G + " order by count(" + G + ") desc label " + G + " 'Dispositivo', count(" + G + ") 'Páginas'\",0)", g: "pizza" },
     { t: "Por hora do dia", f: "=QUERY(" + FAIXA + ",\"select hour(" + A + "), count(" + B + ") where " + A + " is not null group by hour(" + A + ") order by hour(" + A + ") label hour(" + A + ") 'Hora', count(" + B + ") 'Páginas'\",0)", g: "coluna" },
-    { t: "Recursos usados (exportar, favoritar…)", f: "=IFERROR(QUERY(" + FAIXA + ",\"select " + L("Evento") + ", count(" + L("Evento") + ") where " + L("Evento") + " <> '' and " + L("Evento") + " <> 'pagina' group by " + L("Evento") + " order by count(" + L("Evento") + ") desc label " + L("Evento") + " 'Recurso', count(" + L("Evento") + ") 'Usos'\",0),\"Ainda sem registros\")", g: "barra" },
+    { t: "Recursos usados (exportar, favoritar…)", f: "=QUERY(" + FAIXA + ",\"select " + L("Evento") + ", count(" + L("Evento") + ") where " + L("Evento") + " <> '' and " + L("Evento") + " <> 'pagina' group by " + L("Evento") + " order by count(" + L("Evento") + ") desc label " + L("Evento") + " 'Recurso', count(" + L("Evento") + ") 'Usos'\",0)", g: "barra" },
     { t: "Partidos dos deputados vistos", f: "=QUERY(" + FAIXA + ",\"select " + L("Partido") + ", count(" + L("Partido") + ") where " + L("Partido") + " <> '' group by " + L("Partido") + " order by count(" + L("Partido") + ") desc label " + L("Partido") + " 'Partido', count(" + L("Partido") + ") 'Visitas'\",0)", g: "pizza" },
   ];
 
   // dados das tabelas ficam a partir da coluna R (escondidas ao lado); os gráficos ficam no painel
   var colDados = 18;
+  var precisa = colDados + tabelas.length * 3;
+  if (painel.getMaxColumns() < precisa) painel.insertColumnsAfter(painel.getMaxColumns(), precisa - painel.getMaxColumns());
   tabelas.forEach(function (tb, i) {
     var c = colDados + i * 3;
     painel.getRange(7, c).setValue(tb.t).setFontWeight("bold");
-    painel.getRange(8, c).setFormula(tb.f);
+    // sem registros ainda (ex.: colunas novas), o QUERY dá erro e o gráfico fica vazio: mostra uma linha de aviso
+    var vazio = "VSTACK(SPLIT(\"Item|Total\",\"|\"),SPLIT(\"Ainda sem registros|0\",\"|\"))";
+    painel.getRange(8, c).setFormula(fx_("=IFERROR(" + tb.f.slice(1) + "," + vazio + ")"));
   });
 
   var cores = [verde, azul, "#eda100", "#6250d6", "#e34948", "#2a78d6", "#009c3b", "#c98500"];
