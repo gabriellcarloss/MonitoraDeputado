@@ -270,9 +270,9 @@ function montarPainel() {
   tabelas.forEach(function (tb, i) {
     var c = colDados + i * 3;
     painel.getRange(7, c).setValue(tb.t).setFontWeight("bold");
-    // sem registros ainda (ex.: colunas novas), o QUERY dá erro e o gráfico fica vazio: mostra uma linha de aviso
-    var vazio = "VSTACK(SPLIT(\"Item|Total\",\"|\"),SPLIT(\"Ainda sem registros|0\",\"|\"))";
-    painel.getRange(8, c).setFormula(fx_("=IFERROR(" + tb.f.slice(1) + "," + vazio + ")"));
+    // sem registros ainda (ex.: colunas novas), o QUERY volta só o cabeçalho e o gráfico fica em branco: mostra um aviso
+    var aviso = "SPLIT(\"Ainda sem registros|0\",\"|\")";
+    painel.getRange(8, c).setFormula(fx_("=IFERROR(LET(q," + tb.f.slice(1) + ",IF(ROWS(q)<2,VSTACK(q," + aviso + "),q)),VSTACK(SPLIT(\"Item|Total\",\"|\")," + aviso + "))"));
   });
 
   painel.getRange(9, colDados, 59, 1).setNumberFormat("dd/mm"); // eixo do gráfico diário em data, não em número
