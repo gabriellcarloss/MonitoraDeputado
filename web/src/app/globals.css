@@ -196,5 +196,3 @@ input.campo-filtro { background-image: none; padding-right: .85rem; }
 @keyframes insight-entra { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .batida { animation: none; } }
 
-/* A barra do topo (desktop) é fixa: reserva espaço para âncoras e rolagem automática não ficarem por baixo dela */
-@media (min-width: 1024px) { html { scroll-padding-top: 8rem; } }

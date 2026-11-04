@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ProgressoRolagem />
         <Sidebar />
         <div className="lg:pl-60">
-          <div className="barra-filtros sticky top-0 z-30 hidden items-center justify-between gap-4 border-b border-[rgb(var(--border))] px-8 py-2 lg:flex">
+          <div className="barra-filtros relative hidden items-center justify-between gap-4 border-b border-[rgb(var(--border))] px-8 py-2 lg:flex">
             <p className="text-xs font-semibold opacity-70">Dados públicos da Câmara, atualizados todo dia. Projeto gratuito e independente.</p>
             <ApoiePix />
           </div>
