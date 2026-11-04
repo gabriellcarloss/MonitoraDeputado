@@ -4,6 +4,7 @@ import { CheckCircle2, MessageCircle, Send } from "lucide-react";
 import Link from "next/link";
 import { type FormEvent, useId, useState } from "react";
 import { coletaAtiva, emailValido, enviar } from "@/lib/coleta";
+import { contextoColeta } from "./Acessos";
 import { AUTOR } from "@/lib/site";
 
 export const ASSUNTOS = [
@@ -38,7 +39,8 @@ export function FormContato() {
     if (!email.trim() && !whatsapp.trim()) { setEstado("erro"); setMsg("Informe um e-mail ou um WhatsApp para a resposta."); return; }
     if (email.trim() && !emailValido(email)) { setEstado("erro"); setMsg("Confira o e-mail digitado."); return; }
     setEstado("enviando");
-    const ok = await enviar("contato", { assunto, nome: nome.trim(), email: email.trim(), whatsapp: whatsapp.trim(), mensagem: mensagem.trim(),
+    const ctx = await contextoColeta();
+    const ok = await enviar("contato", { ...ctx, assunto, nome: nome.trim(), email: email.trim(), whatsapp: whatsapp.trim(), mensagem: mensagem.trim(),
       origem: typeof document !== "undefined" ? document.referrer || "direto" : "", site: armadilha });
     if (ok) setEstado("ok");
     else { setEstado("erro"); setMsg("Não foi possível enviar agora. Tente de novo ou chame no WhatsApp."); }
