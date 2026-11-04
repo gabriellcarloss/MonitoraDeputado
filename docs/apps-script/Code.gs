@@ -275,6 +275,8 @@ function montarPainel() {
     painel.getRange(8, c).setFormula(fx_("=IFERROR(" + tb.f.slice(1) + "," + vazio + ")"));
   });
 
+  painel.getRange(9, colDados, 59, 1).setNumberFormat("dd/mm"); // eixo do gráfico diário em data, não em número
+
   var cores = [verde, azul, "#eda100", "#6250d6", "#e34948", "#2a78d6", "#009c3b", "#c98500"];
   tabelas.forEach(function (tb, i) {
     var c = colDados + i * 3;
@@ -291,7 +293,7 @@ function montarPainel() {
       .setOption("colors", tb.g === "pizza" ? cores : [cores[i % cores.length]])
       .setOption("backgroundColor", "#ffffff");
     if (tb.g === "pizza") g = g.setOption("pieHole", 0.45);
-    if (tb.g === "linha") g = g.setOption("curveType", "function").setOption("lineWidth", 3);
+    if (tb.g === "linha") g = g.setOption("lineWidth", 3).setOption("pointSize", 5);
     painel.insertChart(g.build());
   });
   painel.hideColumns(colDados, tabelas.length * 3);
