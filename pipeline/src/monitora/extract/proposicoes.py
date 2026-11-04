@@ -17,7 +17,7 @@ def extract_proposicoes(client: Client, con: duckdb.DuckDBPyConnection, anos: li
     con.execute(f"""
     CREATE OR REPLACE TABLE proposicoes AS
     WITH temas AS (
-      SELECT TRY_CAST(regexp_extract(uriProposicao, '(\\d+)$', 1) AS BIGINT) AS id, min(tema) AS tema
+      SELECT TRY_CAST(regexp_extract(uriProposicao, '(\\d+)$', 1) AS BIGINT) AS id, string_agg(DISTINCT tema, '; ' ORDER BY tema) AS tema
       FROM {ler_csv(arq['proposicoesTemas'])} GROUP BY 1)
     SELECT TRY_CAST(p.id AS BIGINT) AS id, p.siglaTipo AS sigla_tipo, TRY_CAST(p.numero AS INTEGER) AS numero,
            TRY_CAST(p.ano AS INTEGER) AS ano, p.ementa, t.tema,
