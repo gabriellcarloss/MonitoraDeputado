@@ -31,7 +31,8 @@ export function InsightRotativo({ itens }: { itens: Destaque[] }) {
   const ir = (n: number) => setI((v) => (v + n + itens.length) % itens.length);
   return (
     <section aria-label="Você sabia?" onMouseEnter={() => setSobre(true)} onMouseLeave={() => setSobre(false)}
-      className="cartao relative overflow-hidden bg-gradient-to-br from-[#0b5a3d] via-[#0e6b49] to-[#002776] p-5 text-white" data-revelar>
+      className="cartao relative overflow-hidden border-transparent p-5 text-white" data-revelar
+      style={{ background: "linear-gradient(135deg,#0b5a3d 0%,#0e6b49 55%,#002776 100%)" }}>
       <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-[#ffdf00]/20 blur-2xl" />
       <div className="relative flex items-start gap-4">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#ffdf00] text-[#002776] shadow-[0_0_24px_rgb(255_223_0/0.5)]">
