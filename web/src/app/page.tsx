@@ -3,6 +3,7 @@ import { SerieTemporal } from "@/components/charts/SerieTemporal";
 import { Cadastro } from "@/components/coleta/Cadastro";
 import { MeusDeputados } from "@/components/favoritos/MeusDeputados";
 import { Destaques } from "@/components/inicio/Destaques";
+import { InsightRotativo } from "@/components/inicio/InsightRotativo";
 import { Hero } from "@/components/inicio/Hero";
 import { MapaUfs, QuadranteInicio } from "@/components/inicio/InicioCliente";
 import { Aparecer } from "@/components/ui/Movimento";
@@ -81,6 +82,8 @@ export default function Inicio() {
       </div>
 
       <MeusDeputados />
+
+      <InsightRotativo itens={gerarDestaques(deps, brasil.series)} />
 
       <Secao titulo="Destaques" sub="gerados a cada atualização dos dados">
         <Destaques itens={gerarDestaques(deps, brasil.series)} />

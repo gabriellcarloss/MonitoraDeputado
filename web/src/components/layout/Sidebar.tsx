@@ -9,6 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AUTOR } from "@/lib/site";
+import { ApoiePix } from "./ApoiePix";
 import { BuscaGlobal } from "./BuscaGlobal";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -119,8 +120,11 @@ export function Sidebar() {
       <header className="sidebar-brasil sticky top-0 z-40 flex items-center justify-between pr-2 lg:hidden">
         <span aria-hidden className="faixa-bandeira-h absolute inset-x-0 bottom-0 h-1" />
         <Marca />
-        <button type="button" onClick={() => setAberto((v) => !v)} aria-expanded={aberto} aria-label="Abrir menu"
-          className="rounded-lg p-2 text-white hover:bg-white/10">{aberto ? <X /> : <Menu />}</button>
+        <div className="flex items-center gap-1">
+          <ApoiePix compacto />
+          <button type="button" onClick={() => setAberto((v) => !v)} aria-expanded={aberto} aria-label="Abrir menu"
+            className="rounded-lg p-2 text-white hover:bg-white/10">{aberto ? <X /> : <Menu />}</button>
+        </div>
       </header>
       {aberto ? (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">

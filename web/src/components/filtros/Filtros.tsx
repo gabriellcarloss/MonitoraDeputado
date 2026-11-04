@@ -78,7 +78,7 @@ export function BarraFiltros({ opcoes, periodo = true, semUfPartido = false, chi
   const [aberto, setAberto] = useState(false);
   const chips = (Object.entries(filtros) as [keyof TFiltros, unknown][]).filter(([k, v]) => k !== "so_passagens" && v !== undefined && v !== "");
   return (
-    <div className="barra-filtros cartao sticky top-[5.5rem] z-30 mb-6 p-3 lg:top-3" data-revelar>
+    <div className="barra-filtros cartao sticky top-[5.5rem] z-30 mb-6 p-3 lg:top-16" data-revelar>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => setAberto((v) => !v)} aria-expanded={aberto}
           className="flex items-center gap-2 rounded-lg px-1 py-1 text-sm font-bold sm:pointer-events-none">

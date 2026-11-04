@@ -4,7 +4,9 @@ import "@fontsource/barlow-condensed/700.css";
 import "@fontsource-variable/inter";
 import { Acessos } from "@/components/coleta/Acessos";
 import { AvisoDados } from "@/components/ui/AvisoDados";
+import { ProgressoRolagem } from "@/components/ui/ProgressoRolagem";
 import { MovimentoGlobal, scriptMovimento } from "@/components/ui/MovimentoGlobal";
+import { ApoiePix } from "@/components/layout/ApoiePix";
 import { Footer } from "@/components/layout/Footer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { scriptTema } from "@/components/layout/ThemeToggle";
@@ -38,8 +40,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-sans antialiased">
         <Acessos />
         <MovimentoGlobal />
+        <ProgressoRolagem />
         <Sidebar />
         <div className="lg:pl-60">
+          <div className="barra-filtros sticky top-0 z-30 hidden items-center justify-between gap-4 border-b border-[rgb(var(--border))] px-8 py-2 lg:flex">
+            <p className="text-xs font-semibold opacity-70">Dados públicos da Câmara, atualizados todo dia. Projeto gratuito e independente.</p>
+            <ApoiePix />
+          </div>
           <AvisoDados />
           {meta?.ficticio ? (
             <div role="note" className="border-b border-atencao/40 bg-atencao/15 px-4 py-2 text-center text-sm">
