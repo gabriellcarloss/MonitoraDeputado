@@ -37,7 +37,7 @@ def test_todos_os_temas_listados():
 
 def test_aplicar_temas_preenche_proposicoes_e_votacoes(base):
     con = base
-    con.execute("""INSERT INTO proposicoes (id, sigla_tipo, ementa, tema, relevante) VALUES
+    con.execute("""INSERT INTO proposicoes (id, sigla_tipo, ementa, tema_oficial, relevante) VALUES
         (1, 'PL', 'Dispõe sobre o piso dos professores', NULL, true),
         (2, 'PL', 'Altera o Código Penal', 'Saúde', true),
         (3, 'REQ', 'Texto qualquer', NULL, false)""")
