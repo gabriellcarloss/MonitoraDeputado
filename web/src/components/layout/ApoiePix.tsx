@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import { Check, Copy, Heart, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { registrarEvento } from "@/components/coleta/Acessos";
 
 // Pix estático (sem valor fixo). QR 49×49 módulos gerado a partir do mesmo código.
@@ -44,37 +45,40 @@ export function ApoiePix({ compacto = false }: { compacto?: boolean }) {
         <span>{compacto ? "Apoie" : "Apoie o projeto"}</span>
         <span className="rounded bg-[#002776] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#ffdf00]">Pix</span>
       </button>
-      {aberto ? (
-        <div className="fixed inset-0 z-[60] grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="pix-titulo">
-          <button type="button" aria-label="Fechar" className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={() => setAberto(false)} />
-          <div className="subir cartao relative w-full max-w-sm overflow-hidden rounded-2xl text-center shadow-2xl">
-            <span aria-hidden className="faixa-bandeira-h block h-1.5" />
-            <button ref={fechar} type="button" onClick={() => setAberto(false)} aria-label="Fechar"
-              className="absolute right-3 top-4 rounded-lg p-1.5 opacity-70 hover:bg-black/10 hover:opacity-100"><X size={18} /></button>
-            <div className="p-6">
-              <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#e11d48]/10"><Heart size={24} aria-hidden className="batida fill-[#e11d48] text-[#e11d48]" /></span>
-              <h2 id="pix-titulo" className="font-display mt-3 text-2xl uppercase tracking-wide">Apoie o projeto</h2>
-              <p className="mt-2 text-sm opacity-80">
-                O MonitoraDeputado é <strong>gratuito, independente e sem anúncios</strong>. Sua contribuição em Pix ajuda a manter os dados
-                atualizados todo dia e o site no ar.
+      {aberto && typeof document !== "undefined" ? createPortal(
+        <div className="fixed inset-0 z-[80] grid place-items-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="pix-titulo">
+          <button type="button" aria-label="Fechar" className="fixed inset-0 bg-[#020a1c]/80 backdrop-blur-sm" onClick={() => setAberto(false)} />
+          <div className="subir relative my-auto w-full max-w-sm rounded-3xl p-[2px] shadow-[0_30px_80px_-20px_rgb(0_0_0/0.7)]"
+            style={{ background: "linear-gradient(135deg,#009c3b,#ffdf00 50%,#2f6bff)" }}>
+            <div className="relative rounded-[22px] px-5 pb-5 pt-6 text-white" style={{ background: "radial-gradient(120% 80% at 50% 0%,#0d2350 0%,#06122A 60%)" }}>
+              <button ref={fechar} type="button" onClick={() => setAberto(false)} aria-label="Fechar"
+                className="absolute right-3 top-3 rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white"><X size={18} /></button>
+              <span className="inline-block rounded-md bg-[#ffdf00] px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-[#06122A]">Apoie o projeto</span>
+              <h2 id="pix-titulo" className="font-display mt-3 text-[32px] uppercase leading-[0.95] tracking-wide">
+                Ajude a manter o <span className="text-[#ffdf00]">MonitoraDeputado</span> no ar
+              </h2>
+              <p className="mt-2 text-sm text-white/80">
+                Gratuito, independente e sem anúncios. Você escolhe o valor no app do seu banco.
               </p>
-              <div className="mx-auto mt-4 w-52 rounded-xl border border-black/10 bg-white p-2 shadow-inner">
-                <svg viewBox="-4 -4 57 57" role="img" aria-label="QR Code do Pix" shapeRendering="crispEdges" className="h-auto w-full">
-                  <rect x="-4" y="-4" width="57" height="57" fill="#fff" />
-                  <path d={QR_PATH} fill="#000" />
-                </svg>
+              <div className="mt-4 rounded-2xl bg-white px-5 pb-5 pt-4 text-center text-[#06122A]">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Pix · apoio ao projeto</p>
+                <div className="mx-auto mt-3 w-[220px] rounded-xl border border-slate-200 bg-white p-2.5">
+                  <svg viewBox="-4 -4 57 57" role="img" aria-label="QR Code do Pix" shapeRendering="crispEdges" className="h-auto w-full">
+                    <rect x="-4" y="-4" width="57" height="57" fill="#fff" />
+                    <path d={QR_PATH} fill="#06122A" />
+                  </svg>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Abra o app do banco, escolha Pix e leia o QR Code.</p>
+                <button type="button" onClick={copiar}
+                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#06122A] px-4 text-sm font-bold text-white transition hover:bg-[#0d2350]">
+                  {copiado ? <Check size={17} aria-hidden /> : <Copy size={17} aria-hidden />}
+                  {copiado ? "Código copiado!" : "Copiar Pix Copia e Cola"}
+                </button>
+                <p className="mt-3 text-[11px] text-slate-500">Recebedor: <strong className="text-slate-700">Gabriel Carlos</strong></p>
               </div>
-              <p className="mt-2 text-xs opacity-70">Abra o app do seu banco, escolha Pix e leia o QR Code. Você define o valor.</p>
-              <button type="button" onClick={copiar}
-                className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#009c3b] px-4 text-sm font-bold text-white transition hover:brightness-110">
-                {copiado ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
-                {copiado ? "Código copiado!" : "Copiar Pix Copia e Cola"}
-              </button>
-              <p className="mt-3 text-[11px] opacity-60">Favorecido: Gabriel Carlos. Obrigado por fortalecer a fiscalização cidadã.</p>
             </div>
           </div>
-        </div>
-      ) : null}
+        </div>, document.body) : null}
     </>
   );
 }
