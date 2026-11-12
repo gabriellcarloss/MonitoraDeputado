@@ -19,6 +19,7 @@ var CONFIG = {
   NOME_REMETENTE: "MonitoraDeputado",
   RESPONDER_PARA: "gabriel.carlos@gcarlosdados.com",
   TESTE_PARA: "gabriel.carlos@gcarlosdados.com",
+  PIX: "00020126580014br.gov.bcb.pix013689ef6957-7a16-451f-8f6b-a026331b88545204000053039865802BR5914GABRIEL CARLOS6009SAO PAULO62200516MONITORADEPUTADO630407D9",
   WHATSAPP: "5511918737727", // botão "Falar no WhatsApp" (só dígitos, com 55 + DDD)
   MAX_POR_EXECUCAO: 80, // folga sob a cota diária do Google Workspace (1.500)
 };
@@ -203,8 +204,12 @@ function cortar_(s, n) { s = String(s || "").replace(/\s+/g, " ").trim(); return
 
 function assunto_(c) {
   var per = c.janela ? dataBr_(c.janela.inicio) + " a " + dataBr_(c.janela.fim) : "";
-  if (c.tipo === "boasVindas") return (c.nome ? c.nome + ", obrigado" : "Obrigado") + " por assinar! Seu resumo: " + c.rotulo;
-  return c.rotulo + ": acumulado dos últimos 7 dias (" + per + ")";
+  var n = c.nome ? c.nome + ", " : "";
+  if (c.tipo === "boasVindas") return n + "seu primeiro resumo do MonitoraDeputado chegou (" + c.rotulo + ")";
+  var g = c.geral, d = c.dep, fato = "";
+  if (d) fato = plural_(d.votos.total, "votação", "votações") + " e " + plural_(d.proposicoes.total, "proposição", "proposições");
+  else if (g) fato = plural_(g.sessoes, "sessão", "sessões") + ", " + plural_(g.votacoes, "votação", "votações") + " e " + reais_(g.gasto_cota).replace(/,\d\d$/, "") + " em gastos";
+  return c.rotulo + ": " + (fato ? fato + " na semana" : "seu resumo dos últimos 7 dias") + " (" + per + ")";
 }
 
 /* ---- blocos do resumo: devolvem lista de {titulo, valor, nota} e de destaques ---- */
@@ -253,7 +258,17 @@ function destaques_(c) {
 /** Leituras prontas do resumo geral (só usam números que já vêm do site). */
 function insights_(c) {
   var g = c.geral, out = [];
-  if (c.dep || !g) return out;
+  if (c.dep) {
+    var d = c.dep, pr = d.presenca;
+    if (pr) out.push({ ico: pr.faltas ? "📍" : "✅", t: pr.faltas ? plural_(pr.faltas, "falta", "faltas") + " em " + plural_(pr.sessoes, "sessão", "sessões") : "Presença em todas as sessões",
+      d: "Compareceu a " + pr.presentes + " de " + pr.sessoes + " sessões deliberativas nos últimos 7 dias. Falta justificada aparece como falta no registro da Câmara." });
+    else out.push({ ico: "🏛️", t: "Sem sessão deliberativa na semana", d: "Sem sessão com chamada de presença, não há como medir comparecimento nesse período." });
+    if (d.votos.total) out.push({ ico: "🗳️", t: "Participou de " + plural_(d.votos.total, "votação nominal", "votações nominais"), d: "Os votos de cada deputado em plenário ficam públicos; veja o histórico completo no perfil." });
+    var gs = d.gasto_semana;
+    if (gs) out.push({ ico: "💸", t: reais_(gs.total) + " da cota lançados na semana", d: "São " + plural_(gs.documentos, "nota", "notas") + ". A cota tem atraso de lançamento, então o total pode crescer nas próximas semanas." });
+    return out;
+  }
+  if (!g) return out;
   if (!g.votacoes) {
     out.push({ ico: "🏛️", t: "Semana sem votações nominais",
       d: "O plenário teve " + plural_(g.sessoes, "sessão", "sessões") + ", mas nenhuma votação em que o voto de cada deputado fica registrado. " +
@@ -283,6 +298,17 @@ function zap_(c) {
   return "https://wa.me/?text=" + encodeURIComponent(msg);
 }
 
+function pixBloco_(c, VERDE, AZUL, TINTA, AMARELO) {
+  var qr = c.site + "/email/pix.png";
+  return '<tr><td style="padding:14px 26px 4px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + TINTA + ';border-radius:14px"><tr>' +
+    '<td width="150" valign="middle" align="center" style="padding:16px 0 16px 16px"><img src="' + qr + '" width="130" height="130" alt="QR Code Pix" style="display:block;background:#ffffff;border-radius:10px;padding:6px"></td>' +
+    '<td valign="middle" style="padding:16px 18px"><div style="font:800 16px/1.25 Arial,Helvetica,sans-serif;color:' + AMARELO + '">Ajude o MonitoraDeputado a continuar</div>' +
+    '<div style="font:13px/1.5 Arial,Helvetica,sans-serif;color:#d6e1dc;margin-top:6px">Projeto independente e gratuito, mantido por uma pessoa só. ' +
+    'Se ele te ajuda a entender o que seus deputados fazem, apoie com <strong style="color:#ffffff">qualquer valor</strong> por Pix: aponte a câmera para o QR Code.</div></td></tr>' +
+    '<tr><td colspan="2" style="padding:0 18px 16px"><div style="font:700 11px/1.3 Arial,Helvetica,sans-serif;color:#9fb3ab;text-transform:uppercase;letter-spacing:.5px">Pix copia e cola · Gabriel Carlos</div>' +
+    '<div style="font:11px/1.45 Consolas,Menlo,monospace;color:#ffffff;background:#0d2350;border-radius:8px;padding:8px 10px;margin-top:5px;word-break:break-all">' + esc_(CONFIG.PIX) + '</div></td></tr></table></td></tr>';
+}
+
 function zapFalar_() { return "https://wa.me/" + CONFIG.WHATSAPP + "?text=" + encodeURIComponent("Olá! Vim pelo e-mail do MonitoraDeputado."); }
 
 /* ---- HTML ---- */
@@ -293,9 +319,9 @@ function html_(c) {
     ? "Obrigado por assinar" + (c.nome ? ", " + esc_(c.nome) : "") + "!"
     : "Olá" + (c.nome ? ", " + esc_(c.nome) : "") + "! Seu resumo de hoje";
   var intro = c.tipo === "boasVindas"
-    ? "Que bom ter você por aqui. Você pediu para acompanhar <strong>" + esc_(c.interesse) + "</strong>, e todo dia o acumulado dos últimos 7 dias chega neste e-mail. " +
-      "Para começar, veja o que aconteceu:"
-    : "Acumulado dos últimos 7 dias sobre <strong>" + esc_(c.interesse) + "</strong>:";
+    ? "Que bom ter você por aqui! Em vez de caçar informação em vários sites, você recebe, em poucos minutos de leitura, o que <strong>" + esc_(c.interesse) + "</strong> fez nos últimos 7 dias, com dados oficiais da Câmara. " +
+      "Todo dia um novo resumo chega neste e-mail. Para começar, veja a semana:"
+    : "Aqui está o que aconteceu com <strong>" + esc_(c.interesse) + "</strong> nos últimos 7 dias, direto dos dados oficiais:";
   var per = c.janela ? "Últimos 7 dias · " + dataBr_(c.janela.inicio) + " a " + dataBr_(c.janela.fim) : "";
   var nums = numeros_(c), dest = destaques_(c);
 
@@ -324,6 +350,7 @@ function html_(c) {
         '<td style="padding:12px 14px 12px 6px"><div style="font:700 14px/1.3 Arial,Helvetica,sans-serif;color:' + TINTA + '">' + esc_(x.t) + '</div>' +
         '<div style="font:13px/1.5 Arial,Helvetica,sans-serif;color:#44524d;margin-top:3px">' + esc_(x.d) + "</div></td></tr></table></td></tr>";
     }).join("") + "</table></td></tr>" : "";
+  var pix = pixBloco_(c, VERDE, AZUL, TINTA, AMARELO);
   var botoesZap = '<tr><td align="center" style="padding:4px 26px 6px"><a href="' + esc_(zap_(c)) + '" style="display:inline-block;background:#25D366;color:#ffffff;font:800 14px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:14px 22px;border-radius:999px;margin:4px">&#128172; Compartilhar no WhatsApp</a>' +
     '<a href="' + esc_(zapFalar_()) + '" style="display:inline-block;background:#ffffff;color:#128C7E;border:2px solid #25D366;font:800 14px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:12px 20px;border-radius:999px;margin:4px">Falar no WhatsApp</a></td></tr>';
 
@@ -343,9 +370,9 @@ function html_(c) {
     '<tr><td style="padding:6px 26px 0"><h2 style="margin:8px 0 0;font:800 17px/1.2 Arial,Helvetica,sans-serif;color:' + AZUL + '">Destaques dos últimos 7 dias</h2>' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + lista + "</table></td></tr>" + insHtml +
     '<tr><td align="center" style="padding:22px 26px 8px"><a href="' + esc_(c.link) + '" style="display:inline-block;background:' + AMARELO + ';color:' + TINTA + ';font:800 15px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:15px 26px;border-radius:999px">' +
-    (c.dep ? "Ver o perfil completo" : "Abrir o painel") + " →</a></td></tr>" + botoesZap +
+    (c.dep ? "Ver o perfil completo" : "Abrir o painel") + " →</a></td></tr>" + botoesZap + pix +
     '<tr><td style="padding:14px 26px 24px;font:13px/1.55 Arial,Helvetica,sans-serif;color:#5b6b66;text-align:center">' +
-    (c.tipo === "boasVindas" ? "O próximo resumo chega amanhã. " : "") + 'Quer acompanhar outro deputado? Responda este e-mail com o nome dele.</td></tr>' +
+    (c.tipo === "boasVindas" ? "O próximo resumo chega amanhã de manhã. " : "") + 'Quer acompanhar outro deputado ou mudar o que recebe? Responda este e-mail que eu ajusto para você.<br>Gabriel Carlos · MonitoraDeputado</td></tr>' +
     '<tr><td style="background:' + TINTA + ';padding:18px 26px;font:12px/1.6 Arial,Helvetica,sans-serif;color:#b9c7c1;text-align:center">' +
     "Dados públicos da Câmara dos Deputados, tratados e atualizados todo dia.<br>Você recebe este e-mail porque se cadastrou no MonitoraDeputado e autorizou o envio.<br>" +
     '<a href="' + esc_(c.sair) + '" style="color:' + AMARELO + '">Cancelar o recebimento</a> · <a href="' + c.site + '/privacidade/" style="color:' + AMARELO + '">Privacidade</a> · ' +
@@ -361,6 +388,7 @@ function texto_(c) {
   destaques_(c).forEach(function (x) { l.push("* " + x.t + ": " + x.d); });
   var ins = insights_(c);
   if (ins.length) { l.push("", "O que isso quer dizer:"); ins.forEach(function (x) { l.push("* " + x.t + ": " + x.d); }); }
+  l.push("", "Ajude o MonitoraDeputado (projeto independente e gratuito) com qualquer valor por Pix copia e cola, recebedor Gabriel Carlos:", CONFIG.PIX);
   l.push("", "Veja mais: " + c.link, "Compartilhar no WhatsApp: " + zap_(c), "Falar no WhatsApp: " + zapFalar_(), "", "Cancelar o recebimento: " + c.sair);
   return l.join("\n");
 }
