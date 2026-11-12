@@ -11,7 +11,7 @@ Na planilha "MonitoraDeputado — Controle", clique em **Compartilhar** e adicio
 2. Apague o conteúdo e cole todo o arquivo `Newsletter.gs`. Salve.
 3. Execute **configurar** (autorize quando o Google pedir: planilha, e-mail e gatilhos).
    Isso cria as colunas *Nome, Newsletter, Boas-vindas em, Último envio, Último erro* na aba Cadastros,
-   o segredo do link de cancelar e os dois gatilhos (um envio por dia às 8h).
+   o segredo do link de cancelar e os dois gatilhos (um envio por dia às 8h e a verificação de novos cadastros de hora em hora).
 4. Execute **testar**: chegam 3 e-mails de exemplo em gabriel.carlos@gcarlosdados.com. Confira o visual.
 
 ## 3. Ligar o link "Cancelar o recebimento"
@@ -29,6 +29,7 @@ recebe na hora o e-mail de boas-vindas com o resumo. A partir de amanhã, o gati
 ## Como funciona
 - **Todo dia 8h** (e quando você executa `enviarResumoDiario`): quem tem Consentimento = sim e nunca recebeu nada ganha o e-mail de agradecimento
   com os últimos 7 dias do interesse escolhido (um deputado, pela coluna Origem `deputado-<id>`, ou o resumo geral). Quem já recebeu ganha, no máximo uma vez por dia, o acumulado dos últimos 7 dias.
+- **De hora em hora** (`boasVindasNovos`): quem acabou de se cadastrar recebe o e-mail de agradecimento na hora (até 1 hora de atraso).
 - **Cancelar**: o link do rodapé grava `descadastrado` na coluna *Newsletter*. Para pausar alguém à mão, escreva `pausado` nela.
 - **Erros**: ficam na coluna *Último erro* da linha. Limite de segurança: 80 e-mails por execução.
 - Os fatos vêm de `/data/semanal/<id>.json` e `/data/semanal/geral.json` no site, gerados todo dia com os dados oficiais da Câmara.
