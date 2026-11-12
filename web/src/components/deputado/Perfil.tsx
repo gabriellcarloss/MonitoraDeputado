@@ -269,7 +269,7 @@ export function Perfil({ d, total }: { d: DeputadoDetalhe; total: number }) {
       </Suspense>
       <div className="mt-8">
         <Cadastro origem={`deputado-${d.deputado.id}`} interesse={`${d.deputado.nome} (${d.deputado.partido_atual}-${d.deputado.uf})`} compacto
-          titulo="Acompanhe este deputado" texto="Receba um aviso por e-mail quando houver novos pontos de atenção ou mudanças importantes nos números deste mandato." />
+          titulo="Acompanhe este deputado" texto="Receba por e-mail, todo dia, o acumulado dos últimos 7 dias: presença, votações, proposições, gastos da cota e novos pontos de atenção deste mandato." />
       </div>
     </div>
   );
