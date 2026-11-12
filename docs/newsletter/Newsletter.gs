@@ -19,6 +19,7 @@ var CONFIG = {
   NOME_REMETENTE: "MonitoraDeputado",
   RESPONDER_PARA: "gabriel.carlos@gcarlosdados.com",
   TESTE_PARA: "gabriel.carlos@gcarlosdados.com",
+  WHATSAPP: "5511918737727", // botão "Falar no WhatsApp" (só dígitos, com 55 + DDD)
   MAX_POR_EXECUCAO: 80, // folga sob a cota diária do Google Workspace (1.500)
 };
 
@@ -224,8 +225,8 @@ function numeros_(c) {
   if (!g2) return [];
   return [
     { v: String(g2.sessoes), t: g2.sessoes === 1 ? "sessão deliberativa" : "sessões deliberativas", n: "na Câmara" },
-    { v: String(g2.votacoes), t: g2.votacoes === 1 ? "votação" : "votações", n: g2.aprovadas + " aprovadas · " + g2.rejeitadas + " rejeitadas" },
-    { v: String(g2.proposicoes), t: g2.proposicoes === 1 ? "proposição nova" : "proposições novas", n: "apresentadas" },
+    { v: String(g2.votacoes), t: g2.votacoes === 1 ? "votação" : "votações", n: g2.votacoes ? g2.aprovadas + " aprovadas · " + g2.rejeitadas + " rejeitadas" : "nominais, com voto de cada deputado" },
+    { v: g2.proposicoes.toLocaleString("pt-BR"), t: g2.proposicoes === 1 ? "proposição nova" : "proposições novas", n: "apresentadas" },
     { v: reais_(g2.gasto_cota), t: "gastos da cota", n: "notas dos 7 dias" },
   ];
 }
@@ -248,6 +249,41 @@ function destaques_(c) {
   }
   return out;
 }
+
+/** Leituras prontas do resumo geral (só usam números que já vêm do site). */
+function insights_(c) {
+  var g = c.geral, out = [];
+  if (c.dep || !g) return out;
+  if (!g.votacoes) {
+    out.push({ ico: "🏛️", t: "Semana sem votações nominais",
+      d: "O plenário teve " + plural_(g.sessoes, "sessão", "sessões") + ", mas nenhuma votação em que o voto de cada deputado fica registrado. " +
+        "Votações simbólicas não entram nessa conta." });
+  } else {
+    var tx = g.aprovadas + " aprovadas e " + g.rejeitadas + " rejeitadas";
+    if (g.temas && g.temas.length) tx += ". Tema que mais apareceu: " + g.temas[0].tema + " (" + plural_(g.temas[0].n, "votação", "votações") + ")";
+    out.push({ ico: "🗳️", t: plural_(g.votacoes, "votação nominal", "votações nominais") + " na semana", d: tx + "." });
+  }
+  if (g.proposicoes) {
+    var dia = Math.max(1, Math.round(g.proposicoes / 7));
+    out.push({ ico: "📝", t: "Ritmo de proposições: cerca de " + dia + " por dia",
+      d: "Foram " + g.proposicoes.toLocaleString("pt-BR") + " propostas novas em 7 dias. Vale acompanhar quais delas avançam." });
+  }
+  if (g.gasto_cota && g.maiores_gastos && g.maiores_gastos.length) {
+    var m = g.maiores_gastos, top = m[0], pct = Math.round(100 * top.valor / g.gasto_cota);
+    var tres = Math.round(100 * m.reduce(function (a, x) { return a + x.valor; }, 0) / g.gasto_cota);
+    out.push({ ico: "💸", t: top.nome + " concentra " + pct + "% da cota da semana",
+      d: "Só ele somou " + reais_(top.valor) + " dos " + reais_(g.gasto_cota) + " lançados. Os 3 maiores gastos juntos representam " + tres + "% do total. " +
+        "As notas chegam com atraso, então o valor pode mudar nas próximas semanas." });
+  }
+  return out;
+}
+
+function zap_(c) {
+  var msg = "Dá para acompanhar o que os deputados federais votam, gastam e propõem, com dados oficiais, no MonitoraDeputado: " + c.link;
+  return "https://wa.me/?text=" + encodeURIComponent(msg);
+}
+
+function zapFalar_() { return "https://wa.me/" + CONFIG.WHATSAPP + "?text=" + encodeURIComponent("Olá! Vim pelo e-mail do MonitoraDeputado."); }
 
 /* ---- HTML ---- */
 
@@ -281,6 +317,16 @@ function html_(c) {
   }).join("") : '<tr><td style="padding:14px 0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#44524d">Sem votação nem proposição nova para destacar nos últimos 7 dias. ' +
     "O perfil completo continua atualizado no site.</td></tr>";
 
+  var ins = insights_(c);
+  var insHtml = ins.length ? '<tr><td style="padding:14px 26px 0"><h2 style="margin:8px 0 0;font:800 17px/1.2 Arial,Helvetica,sans-serif;color:' + AZUL + '">O que isso quer dizer</h2>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px">' + ins.map(function (x) {
+      return '<tr><td style="padding:5px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffbe0;border-radius:12px;border-left:4px solid ' + VERDE + '"><tr><td width="40" valign="top" style="padding:12px 0 12px 12px;font-size:22px">' + x.ico + '</td>' +
+        '<td style="padding:12px 14px 12px 6px"><div style="font:700 14px/1.3 Arial,Helvetica,sans-serif;color:' + TINTA + '">' + esc_(x.t) + '</div>' +
+        '<div style="font:13px/1.5 Arial,Helvetica,sans-serif;color:#44524d;margin-top:3px">' + esc_(x.d) + "</div></td></tr></table></td></tr>";
+    }).join("") + "</table></td></tr>" : "";
+  var botoesZap = '<tr><td align="center" style="padding:4px 26px 6px"><a href="' + esc_(zap_(c)) + '" style="display:inline-block;background:#25D366;color:#ffffff;font:800 14px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:14px 22px;border-radius:999px;margin:4px">&#128172; Compartilhar no WhatsApp</a>' +
+    '<a href="' + esc_(zapFalar_()) + '" style="display:inline-block;background:#ffffff;color:#128C7E;border:2px solid #25D366;font:800 14px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:12px 20px;border-radius:999px;margin:4px">Falar no WhatsApp</a></td></tr>';
+
   var foto = c.foto ? '<td width="84" valign="middle" style="padding-right:14px"><img src="' + esc_(c.foto) + '" width="72" height="90" alt="" style="display:block;border-radius:10px;border:3px solid ' + AMARELO + ';object-fit:cover"></td>' : "";
 
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>' +
@@ -295,9 +341,9 @@ function html_(c) {
     '<tr><td style="padding:8px 26px 4px;font:15px/1.55 Arial,Helvetica,sans-serif;color:#2b3834">' + intro + "</td></tr>" +
     '<tr><td style="padding:10px 21px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + cards + "</table></td></tr>" +
     '<tr><td style="padding:6px 26px 0"><h2 style="margin:8px 0 0;font:800 17px/1.2 Arial,Helvetica,sans-serif;color:' + AZUL + '">Destaques dos últimos 7 dias</h2>' +
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + lista + "</table></td></tr>" +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + lista + "</table></td></tr>" + insHtml +
     '<tr><td align="center" style="padding:22px 26px 8px"><a href="' + esc_(c.link) + '" style="display:inline-block;background:' + AMARELO + ';color:' + TINTA + ';font:800 15px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:15px 26px;border-radius:999px">' +
-    (c.dep ? "Ver o perfil completo" : "Abrir o painel") + " →</a></td></tr>" +
+    (c.dep ? "Ver o perfil completo" : "Abrir o painel") + " →</a></td></tr>" + botoesZap +
     '<tr><td style="padding:14px 26px 24px;font:13px/1.55 Arial,Helvetica,sans-serif;color:#5b6b66;text-align:center">' +
     (c.tipo === "boasVindas" ? "O próximo resumo chega amanhã. " : "") + 'Quer acompanhar outro deputado? Responda este e-mail com o nome dele.</td></tr>' +
     '<tr><td style="background:' + TINTA + ';padding:18px 26px;font:12px/1.6 Arial,Helvetica,sans-serif;color:#b9c7c1;text-align:center">' +
@@ -313,6 +359,8 @@ function texto_(c) {
   numeros_(c).forEach(function (n) { l.push("- " + n.v + " " + n.t + " (" + n.n + ")"); });
   l.push("");
   destaques_(c).forEach(function (x) { l.push("* " + x.t + ": " + x.d); });
-  l.push("", "Veja mais: " + c.link, "", "Cancelar o recebimento: " + c.sair);
+  var ins = insights_(c);
+  if (ins.length) { l.push("", "O que isso quer dizer:"); ins.forEach(function (x) { l.push("* " + x.t + ": " + x.d); }); }
+  l.push("", "Veja mais: " + c.link, "Compartilhar no WhatsApp: " + zap_(c), "Falar no WhatsApp: " + zapFalar_(), "", "Cancelar o recebimento: " + c.sair);
   return l.join("\n");
 }
