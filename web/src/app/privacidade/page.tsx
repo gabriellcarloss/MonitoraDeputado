@@ -22,9 +22,10 @@ export default function Page() {
 
       <Secao titulo="O que é coletado">
         <ul className="list-disc space-y-2 pl-5 text-sm">
-          <li><strong>Cadastro por e-mail</strong> (só se você preencher): seu e-mail, o que você quis acompanhar (por exemplo, um deputado), a página de onde veio,
+          <li><strong>Cadastro por e-mail</strong> (só se você preencher): seu e-mail, seu primeiro nome (opcional, só para personalizar o e-mail), o que você quis acompanhar (por exemplo, um deputado), a página de onde veio,
             o canal de chegada, a cidade e o estado aproximados (para mandar novidades da sua região) e a data.
-            Base legal: o seu consentimento, dado ao marcar a caixinha.</li>
+            Base legal: o seu consentimento, dado ao marcar a caixinha. Os e-mails (um de boas-vindas e um resumo toda segunda-feira) saem de
+            gabriel.carlos@gcarlosdados.com e trazem um link para cancelar.</li>
           <li><strong>Formulário de contato</strong> (só se você enviar): assunto, nome, e-mail e/ou WhatsApp e a mensagem. Base legal: atender ao seu pedido.</li>
           <li><strong>Acessos</strong>: uma linha por página vista, com a página e o conteúdo (por exemplo, qual deputado foi consultado), o site de
             origem (só o domínio, como &ldquo;google.com&rdquo;) e o canal (WhatsApp, Instagram, busca…), as marcações de campanha do link (utm), o tipo

@@ -17,6 +17,7 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
   titulo?: string; texto?: string; interesse?: string; origem: string; compacto?: boolean;
 }) {
   const id = useId();
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [aceito, setAceito] = useState(false);
   const [armadilha, setArmadilha] = useState("");
@@ -31,7 +32,7 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
     if (!aceito) { setEstado("erro"); setMsg("Marque a caixinha para autorizar o envio."); return; }
     setEstado("enviando");
     const ctx = await contextoColeta();
-    const ok = await enviar("cadastro", { email: email.trim(), interesse, origem, consentimento: true, site: armadilha, ...ctx });
+    const ok = await enviar("cadastro", { nome: nome.trim().slice(0, 60), email: email.trim(), interesse, origem, consentimento: true, site: armadilha, ...ctx });
     if (ok) setEstado("ok");
     else { setEstado("erro"); setMsg("Não foi possível enviar agora. Tente de novo em instantes."); }
   }
@@ -40,8 +41,8 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
     return (
       <section className="cartao flex items-start gap-3 p-4" role="status">
         <CheckCircle2 className="mt-0.5 shrink-0 text-verde" aria-hidden />
-        <p className="text-sm"><strong>Pronto!</strong> Você entrou na lista. Quando houver novidades sobre {interesse === "Resumo geral" ? "os deputados" : interesse}, o aviso chega por e-mail.
-          Para sair, é só pedir em <Link href="/contato/" className="text-destaque underline">Contato</Link>.</p>
+        <p className="text-sm"><strong>Pronto!</strong> Você entrou na lista{nome.trim() ? `, ${nome.trim().split(" ")[0]}` : ""}. Em breve chega o primeiro resumo da semana sobre {interesse === "Resumo geral" ? "os deputados" : interesse}, e depois um novo toda segunda-feira.
+          Todo e-mail tem um link para cancelar.</p>
       </section>
     );
   }
@@ -59,6 +60,10 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
           </p>
           <form onSubmit={enviarForm} className="mt-3 space-y-2" noValidate>
             <div className="flex flex-col gap-2 sm:flex-row">
+              <label className="sr-only" htmlFor={`${id}-n`}>Seu primeiro nome</label>
+              <input id={`${id}-n`} type="text" autoComplete="given-name" maxLength={60} placeholder="Seu nome"
+                value={nome} onChange={(e) => setNome(e.target.value)}
+                className="h-10 min-w-0 rounded-full border border-border bg-subtle/60 px-4 text-sm sm:w-40" />
               <label className="sr-only" htmlFor={`${id}-e`}>Seu e-mail</label>
               <input id={`${id}-e`} type="email" inputMode="email" autoComplete="email" required placeholder="seu@email.com"
                 value={email} onChange={(e) => setEmail(e.target.value)}
