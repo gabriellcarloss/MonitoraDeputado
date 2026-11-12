@@ -1,12 +1,12 @@
 /**
- * MonitoraDeputado — newsletter semanal por e-mail.
+ * MonitoraDeputado — newsletter diária por e-mail (acumulado dos últimos 7 dias).
  *
  * Roda na conta gabriel.carlos@gcarlosdados.com (os e-mails saem dela). Instalação: docs/newsletter/LEIAME.md.
  *
  * O que faz:
- *  - todo dia (boasVindasDiarias): quem se cadastrou com consentimento e ainda não recebeu nada ganha um e-mail de
- *    agradecimento com o resumo da última semana sobre o interesse que escolheu (um deputado ou o resumo geral);
- *  - toda segunda (resumoSemanal): cada pessoa ativa recebe o resumo da semana;
+ *  - todo dia (enviarResumoDiario): quem se cadastrou com consentimento e ainda não recebeu nada ganha um e-mail de
+ *    agradecimento com o resumo dos últimos 7 dias sobre o interesse escolhido (um deputado ou o resumo geral);
+ *    quem já está na lista recebe, uma vez por dia, o acumulado dos últimos 7 dias;
  *  - link de descadastro em todo e-mail (doGet), sem login.
  *
  * Os fatos vêm do site (arquivos /data/semanal/<id>.json, gerados todo dia pelo pipeline com dados oficiais da Câmara).
@@ -35,10 +35,9 @@ function configurar() {
   var props = PropertiesService.getScriptProperties();
   if (!props.getProperty("SEGREDO")) props.setProperty("SEGREDO", Utilities.getUuid() + Utilities.getUuid());
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (["boasVindasDiarias", "resumoSemanal"].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
+    if (["boasVindasDiarias", "resumoSemanal", "enviarResumoDiario"].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
   });
-  ScriptApp.newTrigger("boasVindasDiarias").timeBased().everyDays(1).atHour(9).inTimezone("America/Sao_Paulo").create();
-  ScriptApp.newTrigger("resumoSemanal").timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).inTimezone("America/Sao_Paulo").create();
+  ScriptApp.newTrigger("enviarResumoDiario").timeBased().everyDays(1).atHour(8).inTimezone("America/Sao_Paulo").create();
   Logger.log("Pronto. Falta só publicar como App da Web (Implantar) para o link de descadastro funcionar.");
 }
 
@@ -46,7 +45,7 @@ function configurar() {
 function testar() {
   var casos = [
     { nome: "Gabriel", interesse: "Resumo geral", origem: "home", tipo: "boasVindas" },
-    { nome: "Gabriel", interesse: "Nikolas Ferreira (PL-MG)", origem: "deputado-209787", tipo: "semanal" },
+    { nome: "Gabriel", interesse: "Nikolas Ferreira (PL-MG)", origem: "deputado-209787", tipo: "diario" },
     { nome: "", interesse: "Amom Mandel (REPUBLICANOS-AM)", origem: "deputado-220715", tipo: "boasVindas" },
   ];
   casos.forEach(function (c) {
@@ -58,18 +57,16 @@ function testar() {
 
 /* ============================ rotinas diárias ============================ */
 
-/** Gatilho diário: boas-vindas + resumo para quem acabou de se cadastrar. */
-function boasVindasDiarias() {
-  processar_(function (p) { return p.consent && p.ativo && !p.boasVindas; }, "boasVindas");
-}
-
-/** Gatilho de segunda: resumo semanal para quem já está na lista. */
-function resumoSemanal() {
+/**
+ * Gatilho diário (8h) e também o botão "enviar agora": cada pessoa ativa recebe no máximo um e-mail por dia.
+ * Quem nunca recebeu nada ganha o de boas-vindas; os demais, o acumulado dos últimos 7 dias.
+ */
+function enviarResumoDiario() {
   processar_(function (p, agora) {
     if (!p.consent || !p.ativo) return false;
-    if (!p.boasVindas) return true; // ainda não recebeu nada: manda já (com texto de boas-vindas)
-    return !p.ultimo || (agora - p.ultimo) > 5 * 86400000; // evita repetir na mesma semana
-  }, "semanal");
+    if (!p.ultimo) return true;
+    return p.ultimo.toDateString() !== agora.toDateString();
+  }, "diario");
 }
 
 function processar_(filtro, tipo) {
@@ -83,7 +80,7 @@ function processar_(filtro, tipo) {
     if (MailApp.getRemainingDailyQuota() < 5) { Logger.log("Cota diária quase no fim; continua amanhã."); break; }
     var linha = i + 2;
     try {
-      var efetivo = (tipo === "semanal" && !p.boasVindas) ? "boasVindas" : tipo;
+      var efetivo = p.boasVindas ? "diario" : "boasVindas";
       enviar_(p.email, montarEmail_(efetivo, p, p.email));
       if (efetivo === "boasVindas") aba.getRange(linha, cab[COL.boasVindas] + 1).setValue(agora);
       aba.getRange(linha, cab[COL.ultimo] + 1).setValue(agora);
@@ -117,7 +114,7 @@ function doGet(e) {
       }
     }
   }
-  var msg = ok ? "Pronto! Você não vai mais receber o resumo semanal do MonitoraDeputado."
+  var msg = ok ? "Pronto! Você não vai mais receber os e-mails do MonitoraDeputado."
     : "Este link de descadastro não é válido. Responda a qualquer e-mail do MonitoraDeputado e cancelamos para você.";
   return HtmlService.createHtmlOutput(
     '<div style="font-family:Arial,sans-serif;max-width:480px;margin:48px auto;padding:24px;text-align:center">' +
@@ -206,7 +203,7 @@ function cortar_(s, n) { s = String(s || "").replace(/\s+/g, " ").trim(); return
 function assunto_(c) {
   var per = c.janela ? dataBr_(c.janela.inicio) + " a " + dataBr_(c.janela.fim) : "";
   if (c.tipo === "boasVindas") return (c.nome ? c.nome + ", obrigado" : "Obrigado") + " por assinar! Seu resumo: " + c.rotulo;
-  return c.rotulo + ": o que aconteceu de " + per;
+  return c.rotulo + ": acumulado dos últimos 7 dias (" + per + ")";
 }
 
 /* ---- blocos do resumo: devolvem lista de {titulo, valor, nota} e de destaques ---- */
@@ -215,12 +212,12 @@ function numeros_(c) {
   if (c.dep) {
     var d = c.dep, pr = d.presenca, g = d.gasto_semana, out = [];
     out.push(pr ? { v: pr.presentes + "/" + pr.sessoes, t: "sessões com presença", n: pr.faltas ? plural_(pr.faltas, "falta", "faltas") : "nenhuma falta" }
-      : { v: "—", t: "sessões na semana", n: "sem sessão deliberativa" });
+      : { v: "—", t: "sessões em 7 dias", n: "sem sessão deliberativa" });
     out.push({ v: String(d.votos.total), t: d.votos.total === 1 ? "votação registrada" : "votações registradas", n: "em plenário" });
     out.push({ v: String(d.proposicoes.total), t: d.proposicoes.total === 1 ? "proposição apresentada" : "proposições apresentadas", n: "como autor ou coautor" });
-    out.push(g ? { v: reais_(g.total), t: "da cota parlamentar", n: plural_(g.documentos, "nota", "notas") + " na semana" }
+    out.push(g ? { v: reais_(g.total), t: "da cota parlamentar", n: plural_(g.documentos, "nota", "notas") + " em 7 dias" }
       : d.gasto_mes_recente ? { v: reais_(d.gasto_mes_recente.total), t: "da cota em " + d.gasto_mes_recente.ano_mes.split("-").reverse().join("/"), n: "último mês com dados" }
-        : { v: "—", t: "da cota parlamentar", n: "sem notas na semana" });
+        : { v: "—", t: "da cota parlamentar", n: "sem notas em 7 dias" });
     return out;
   }
   var g2 = c.geral;
@@ -229,7 +226,7 @@ function numeros_(c) {
     { v: String(g2.sessoes), t: g2.sessoes === 1 ? "sessão deliberativa" : "sessões deliberativas", n: "na Câmara" },
     { v: String(g2.votacoes), t: g2.votacoes === 1 ? "votação" : "votações", n: g2.aprovadas + " aprovadas · " + g2.rejeitadas + " rejeitadas" },
     { v: String(g2.proposicoes), t: g2.proposicoes === 1 ? "proposição nova" : "proposições novas", n: "apresentadas" },
-    { v: reais_(g2.gasto_cota), t: "gastos da cota", n: "notas da semana" },
+    { v: reais_(g2.gasto_cota), t: "gastos da cota", n: "notas dos 7 dias" },
   ];
 }
 
@@ -246,7 +243,7 @@ function destaques_(c) {
       out.push({ ico: "🗳️", t: "Votação" + (v.resultado ? " " + v.resultado : "") + (v.tema ? " · " + v.tema : ""), d: cortar_(v.descricao, 170) });
     });
     if (c.geral.maiores_gastos.length) {
-      out.push({ ico: "💸", t: "Maiores gastos da cota na semana", d: c.geral.maiores_gastos.map(function (x) { return x.nome + " (" + x.partido + "-" + x.uf + "): " + reais_(x.valor); }).join(" · ") });
+      out.push({ ico: "💸", t: "Maiores gastos da cota em 7 dias", d: c.geral.maiores_gastos.map(function (x) { return x.nome + " (" + x.partido + "-" + x.uf + "): " + reais_(x.valor); }).join(" · ") });
     }
   }
   return out;
@@ -258,12 +255,12 @@ function html_(c) {
   var VERDE = "#0b5a3d", AMARELO = "#ffdf00", AZUL = "#002776", TINTA = "#06122A";
   var saud = c.tipo === "boasVindas"
     ? "Obrigado por assinar" + (c.nome ? ", " + esc_(c.nome) : "") + "!"
-    : "Olá" + (c.nome ? ", " + esc_(c.nome) : "") + "! Seu resumo da semana";
+    : "Olá" + (c.nome ? ", " + esc_(c.nome) : "") + "! Seu resumo de hoje";
   var intro = c.tipo === "boasVindas"
-    ? "Que bom ter você por aqui. Você pediu para acompanhar <strong>" + esc_(c.interesse) + "</strong>, e toda segunda-feira o resumo chega neste e-mail. " +
-      "Para começar, veja o que aconteceu na última semana:"
-    : "Veja o que aconteceu com <strong>" + esc_(c.interesse) + "</strong> na última semana:";
-  var per = c.janela ? "Semana de " + dataBr_(c.janela.inicio) + " a " + dataBr_(c.janela.fim) : "";
+    ? "Que bom ter você por aqui. Você pediu para acompanhar <strong>" + esc_(c.interesse) + "</strong>, e todo dia o acumulado dos últimos 7 dias chega neste e-mail. " +
+      "Para começar, veja o que aconteceu:"
+    : "Acumulado dos últimos 7 dias sobre <strong>" + esc_(c.interesse) + "</strong>:";
+  var per = c.janela ? "Últimos 7 dias · " + dataBr_(c.janela.inicio) + " a " + dataBr_(c.janela.fim) : "";
   var nums = numeros_(c), dest = destaques_(c);
 
   var cards = "";
@@ -281,7 +278,7 @@ function html_(c) {
     return '<tr><td width="34" valign="top" style="padding:10px 0;font-size:20px">' + x.ico + '</td><td style="padding:10px 0;border-bottom:1px solid #e4ece7">' +
       '<div style="font:700 14px/1.3 Arial,Helvetica,sans-serif;color:' + TINTA + '">' + esc_(x.t) + "</div>" +
       '<div style="font:13px/1.45 Arial,Helvetica,sans-serif;color:#44524d;margin-top:2px">' + esc_(x.d) + "</div></td></tr>";
-  }).join("") : '<tr><td style="padding:14px 0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#44524d">Semana tranquila: não houve votação nem proposição nova para destacar. ' +
+  }).join("") : '<tr><td style="padding:14px 0;font:14px/1.5 Arial,Helvetica,sans-serif;color:#44524d">Sem votação nem proposição nova para destacar nos últimos 7 dias. ' +
     "O perfil completo continua atualizado no site.</td></tr>";
 
   var foto = c.foto ? '<td width="84" valign="middle" style="padding-right:14px"><img src="' + esc_(c.foto) + '" width="72" height="90" alt="" style="display:block;border-radius:10px;border:3px solid ' + AMARELO + ';object-fit:cover"></td>' : "";
@@ -297,12 +294,12 @@ function html_(c) {
     '<h1 style="margin:10px 0 0;font:800 24px/1.15 Arial,Helvetica,sans-serif;color:' + VERDE + '">' + saud + "</h1></td></tr></table></td></tr>" +
     '<tr><td style="padding:8px 26px 4px;font:15px/1.55 Arial,Helvetica,sans-serif;color:#2b3834">' + intro + "</td></tr>" +
     '<tr><td style="padding:10px 21px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + cards + "</table></td></tr>" +
-    '<tr><td style="padding:6px 26px 0"><h2 style="margin:8px 0 0;font:800 17px/1.2 Arial,Helvetica,sans-serif;color:' + AZUL + '">Destaques da semana</h2>' +
+    '<tr><td style="padding:6px 26px 0"><h2 style="margin:8px 0 0;font:800 17px/1.2 Arial,Helvetica,sans-serif;color:' + AZUL + '">Destaques dos últimos 7 dias</h2>' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + lista + "</table></td></tr>" +
     '<tr><td align="center" style="padding:22px 26px 8px"><a href="' + esc_(c.link) + '" style="display:inline-block;background:' + AMARELO + ';color:' + TINTA + ';font:800 15px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:15px 26px;border-radius:999px">' +
     (c.dep ? "Ver o perfil completo" : "Abrir o painel") + " →</a></td></tr>" +
     '<tr><td style="padding:14px 26px 24px;font:13px/1.55 Arial,Helvetica,sans-serif;color:#5b6b66;text-align:center">' +
-    (c.tipo === "boasVindas" ? "O próximo resumo chega na segunda-feira. " : "") + 'Quer acompanhar outro deputado? Responda este e-mail com o nome dele.</td></tr>' +
+    (c.tipo === "boasVindas" ? "O próximo resumo chega amanhã. " : "") + 'Quer acompanhar outro deputado? Responda este e-mail com o nome dele.</td></tr>' +
     '<tr><td style="background:' + TINTA + ';padding:18px 26px;font:12px/1.6 Arial,Helvetica,sans-serif;color:#b9c7c1;text-align:center">' +
     "Dados públicos da Câmara dos Deputados, tratados e atualizados todo dia.<br>Você recebe este e-mail porque se cadastrou no MonitoraDeputado e autorizou o envio.<br>" +
     '<a href="' + esc_(c.sair) + '" style="color:' + AMARELO + '">Cancelar o recebimento</a> · <a href="' + c.site + '/privacidade/" style="color:' + AMARELO + '">Privacidade</a> · ' +
@@ -311,8 +308,8 @@ function html_(c) {
 }
 
 function texto_(c) {
-  var l = [(c.tipo === "boasVindas" ? "Obrigado por assinar" + (c.nome ? ", " + c.nome : "") + "!" : "Seu resumo da semana" + (c.nome ? ", " + c.nome : "")),
-    c.rotulo + (c.janela ? " · semana de " + dataBr_(c.janela.inicio) + " a " + dataBr_(c.janela.fim) : ""), ""];
+  var l = [(c.tipo === "boasVindas" ? "Obrigado por assinar" + (c.nome ? ", " + c.nome : "") + "!" : "Seu resumo de hoje" + (c.nome ? ", " + c.nome : "")),
+    c.rotulo + (c.janela ? " · últimos 7 dias, de " + dataBr_(c.janela.inicio) + " a " + dataBr_(c.janela.fim) : ""), ""];
   numeros_(c).forEach(function (n) { l.push("- " + n.v + " " + n.t + " (" + n.n + ")"); });
   l.push("");
   destaques_(c).forEach(function (x) { l.push("* " + x.t + ": " + x.d); });
