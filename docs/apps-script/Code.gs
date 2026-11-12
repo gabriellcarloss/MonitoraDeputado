@@ -13,7 +13,7 @@ var ABAS = {
   cadastro: {
     nome: "Cadastros",
     // [cabeçalho, campo enviado pelo site]
-    cols: [["Data", null], ["E-mail", "email"], ["Interesse", "interesse"], ["Origem", "origem"], ["Consentimento", "consentimento"],
+    cols: [["Data", null], ["E-mail", "email"], ["Nome", "nome"], ["Interesse", "interesse"], ["Origem", "origem"], ["Consentimento", "consentimento"],
       ["Status", null], ["Cidade (aprox.)", "cidade"], ["Estado (aprox.)", "estado"], ["Canal", "canal"]],
   },
   contato: {

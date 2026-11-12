@@ -11,6 +11,7 @@ from monitora.config import ANOS, MAX_SECRETARIOS, VERBA_GABINETE
 from monitora.metrics.alertas import DESTINO_REAL, REGRAS, RODAPE
 from monitora.metrics.indicadores import INDICADORES, agregados
 from monitora.metrics.rede import ego_rede
+from monitora.metrics.semanal import resumo_semanal
 from monitora.metrics.series import series_de
 
 PARQUETS = ["despesas", "fornecedores", "votacoes", "votos", "orientacoes", "orientacao_partido", "sessoes", "presencas", "proposicoes",
@@ -167,6 +168,9 @@ def exportar(con: duckdb.DuckDBPyConnection, out_dir: Path, alertas: list[dict],
                    (SELECT coalesce(sum(pago), 0) FROM emendas) AS emendas_pago,
                    (SELECT count(*) FROM secretarios) AS n_secretarios""")[0] | {"n_alertas": len(alertas)},
     })
+
+    for nome, conteudo in resumo_semanal(con, alertas).items():
+        _grava(out_dir / "semanal" / f"{nome}.json", conteudo)
 
     (out_dir / "parquet").mkdir(parents=True, exist_ok=True)
     # Ordenar pelas colunas mais filtradas permite que o navegador pule blocos inteiros do arquivo.
