@@ -56,7 +56,7 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
             {titulo ?? "Receba o que mudou, todo dia"}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {texto ?? "Um resumo curto com os destaques, os novos pontos de atenção e as mudanças nos gastos e na presença dos deputados. Sem spam."}
+            {texto ?? "Todo dia, um resumo curto dos últimos 7 dias: destaques, novos pontos de atenção e mudanças nos gastos e na presença dos deputados. Sem spam."}
           </p>
           <form onSubmit={enviarForm} className="mt-3 space-y-2" noValidate>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -78,7 +78,7 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
             <label className="flex items-start gap-2 text-xs text-muted">
               <input type="checkbox" checked={aceito} onChange={(e) => setAceito(e.target.checked)} className="mt-0.5" />
               <span>
-                Concordo em receber e-mails do MonitoraDeputado sobre {interesse === "Resumo geral" ? "os deputados" : interesse}.
+                Concordo em receber e-mails diários do MonitoraDeputado sobre {interesse === "Resumo geral" ? "os deputados" : interesse}.
                 Posso cancelar quando quiser. Veja a <Link href="/privacidade/" className="text-destaque underline">política de privacidade</Link>.
               </span>
             </label>
