@@ -4,7 +4,9 @@
  * Roda na conta gabriel.carlos@gcarlosdados.com (os e-mails saem dela). Instalação: docs/newsletter/LEIAME.md.
  *
  * O que faz:
- *  - todo dia (enviarResumoDiario): quem se cadastrou com consentimento e ainda não recebeu nada ganha um e-mail de
+ *  - de hora em hora (boasVindasNovos): quem acabou de se cadastrar com consentimento recebe na hora o e-mail de agradecimento
+ *    com o resumo dos últimos 7 dias do interesse escolhido;
+ *  - todo dia às 8h (enviarResumoDiario): quem se cadastrou com consentimento e ainda não recebeu nada ganha um e-mail de
  *    agradecimento com o resumo dos últimos 7 dias sobre o interesse escolhido (um deputado ou o resumo geral);
  *    quem já está na lista recebe, uma vez por dia, o acumulado dos últimos 7 dias;
  *  - link de descadastro em todo e-mail (doGet), sem login.
@@ -35,9 +37,10 @@ function configurar() {
   var props = PropertiesService.getScriptProperties();
   if (!props.getProperty("SEGREDO")) props.setProperty("SEGREDO", Utilities.getUuid() + Utilities.getUuid());
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (["boasVindasDiarias", "resumoSemanal", "enviarResumoDiario"].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
+    if (["boasVindasDiarias", "resumoSemanal", "enviarResumoDiario", "boasVindasNovos"].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger("enviarResumoDiario").timeBased().everyDays(1).atHour(8).inTimezone("America/Sao_Paulo").create();
+  ScriptApp.newTrigger("boasVindasNovos").timeBased().everyHours(1).create();
   Logger.log("Pronto. Falta só publicar como App da Web (Implantar) para o link de descadastro funcionar.");
 }
 
@@ -67,6 +70,11 @@ function enviarResumoDiario() {
     if (!p.ultimo) return true;
     return p.ultimo.toDateString() !== agora.toDateString();
   }, "diario");
+}
+
+/** Gatilho de hora em hora: só quem acabou de se cadastrar (nunca recebeu nada) ganha o e-mail de boas-vindas. */
+function boasVindasNovos() {
+  processar_(function (p) { return p.consent && p.ativo && !p.ultimo; }, "boas-vindas");
 }
 
 function processar_(filtro, tipo) {
