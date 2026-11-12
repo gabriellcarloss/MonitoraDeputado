@@ -41,7 +41,7 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
     return (
       <section className="cartao flex items-start gap-3 p-4" role="status">
         <CheckCircle2 className="mt-0.5 shrink-0 text-verde" aria-hidden />
-        <p className="text-sm"><strong>Pronto!</strong> Você entrou na lista{nome.trim() ? `, ${nome.trim().split(" ")[0]}` : ""}. Em breve chega o primeiro resumo da semana sobre {interesse === "Resumo geral" ? "os deputados" : interesse}, e depois um novo toda segunda-feira.
+        <p className="text-sm"><strong>Pronto!</strong> Você entrou na lista{nome.trim() ? `, ${nome.trim().split(" ")[0]}` : ""}. Em breve chega o primeiro resumo da semana sobre {interesse === "Resumo geral" ? "os deputados" : interesse}, e depois um novo todo dia, com o acumulado dos últimos 7 dias.
           Todo e-mail tem um link para cancelar.</p>
       </section>
     );
@@ -53,7 +53,7 @@ export function Cadastro({ titulo, texto, interesse = "Resumo geral", origem, co
         <BellRing className="mt-1 shrink-0 text-destaque" aria-hidden />
         <div className="min-w-0 flex-1">
           <h2 id={`${id}-t`} className={compacto ? "text-base font-bold" : "font-display text-2xl leading-none"}>
-            {titulo ?? "Receba o que mudou, toda semana"}
+            {titulo ?? "Receba o que mudou, todo dia"}
           </h2>
           <p className="mt-1 text-sm text-muted">
             {texto ?? "Um resumo curto com os destaques, os novos pontos de atenção e as mudanças nos gastos e na presença dos deputados. Sem spam."}
